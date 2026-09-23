@@ -1,0 +1,38 @@
+🌸 PinkChan Shimeji
+¡Qué onda! Aquí tienes a PinkChan, una mascota virtual para tu escritorio que camina, trepa paredes, hace trucos y hasta puede platicar contigo.
+
+⚠️ Requisitos Previos (¡Súper importante!)
+Para que PinkChan cobre vida, necesitas tener Python instalado en tu computadora.
+
+Descárgalo gratis desde python.org.
+
+¡OJO AQUÍ! Al momento de instalarlo, en la primera pantalla, asegúrate de marcar la casilla que dice "Add Python.exe to PATH" (o "Agregar Python al PATH").
+
+Si olvidas marcar esa casilla, los comandos no la van a reconocer y el programa no abrirá.
+
+🚀 Cómo Iniciar
+Mantén todo junto: Extrae esta carpeta completa en tu PC. No saques el archivo PinkChan.pyw de aquí, ya que necesita estar junto a sus carpetas de imágenes (img) y sus archivos de configuración (.xml) para funcionar.
+
+El primer inicio: Haz doble clic en el archivo iniciar.bat.
+
+La primera vez que lo abras, verás una ventana negra de consola durante unos segundos. ¡No la cierres! Está descargando e instalando las herramientas que necesita (pillow, requests y pywin32). Necesitas conexión a internet para este paso.
+
+¡Listo! En cuanto termine, PinkChan caerá directamente a tu escritorio.
+
+💬 Hablar con PinkChan (IA)
+PinkChan tiene un chat integrado para que platiques con ella:
+
+Haz clic derecho sobre PinkChan y selecciona "🤖 Preguntarle algo".
+
+Al ser impulsada por Google Gemini, te pedirá una API Key. Puedes conseguir la tuya de forma totalmente gratuita en Google AI Studio.
+
+Solo pega tu clave en el recuadro, ¡y listo! Podrás cotorrear con ella.
+
+🛠️ Notas Extras y Funciones "Troll"
+Menú de acciones: Haz clic derecho sobre ella para ver todo lo que puede hacer (tocar guitarra, escalar, arrodillarse, etc.).
+
+Funciones Windows: PinkChan tiene algunas funciones de broma (como arrastrar ventanas o mover tu cursor). Estas funciones utilizan librerías exclusivas de Windows. Si llegas a correr este programa en Mac o Linux, PinkChan seguirá caminando y platicando perfectamente, pero esas funciones específicas estarán desactivadas.
+
+Moverla manualmente: Puedes agarrarla manteniendo presionado el clic izquierdo y arrastrarla a donde quieras.
+ bueno el Python ya esta hqui solo picale al archivo manager okis??? 
+bueñoo mm uwu t kiero

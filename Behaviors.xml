@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BehaviorList>
+
+  <Behavior>
+    <Name>Stay</Name><Frequency>10</Frequency><Condition>OnGround</Condition>
+    <Action>Stay</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>WalkRight</Name><Frequency>5</Frequency><Condition>OnGround</Condition>
+    <Action>WalkRight</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>WalkLeft</Name><Frequency>5</Frequency><Condition>OnGround</Condition>
+    <Action>WalkLeft</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>WalkBack</Name><Frequency>2</Frequency><Condition>OnGround</Condition>
+    <Action>WalkBack</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>Sit</Name><Frequency>6</Frequency><Condition>OnGround</Condition>
+    <Action>Sit</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>Guitar</Name><Frequency>4</Frequency><Condition>OnGround</Condition>
+    <Action>Guitar</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>LieDown</Name><Frequency>4</Frequency><Condition>OnGround</Condition>
+    <Action>LieDown</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>Blob</Name><Frequency>3</Frequency><Condition>OnGround</Condition>
+    <Action>Blob</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>Ghost</Name><Frequency>2</Frequency><Condition>OnGround</Condition>
+    <Action>Ghost</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>BoxTrick</Name><Frequency>2</Frequency><Condition>OnGround</Condition>
+    <Action>BoxTrick</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>Kneel</Name><Frequency>2</Frequency><Condition>OnGround</Condition>
+    <Action>Kneel</Action>
+  </Behavior>
+
+  <Behavior>
+    <Name>Fall</Name><Frequency>10</Frequency><Condition>Falling</Condition>
+    <Action>Fall</Action>
+  </Behavior>
+
+</BehaviorList>

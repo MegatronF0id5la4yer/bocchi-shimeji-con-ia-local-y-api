@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionList>
+
+  <!-- IDLE / STAND -->
+  <Action>
+    <Name>Stay</Name>
+    <Type>Stay</Type>
+    <Duration>50</Duration>
+    <Animation>
+      <Frame><Image>stand1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>stand2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- WALK RIGHT -->
+  <Action>
+    <Name>WalkRight</Name>
+    <Type>Move</Type>
+    <Duration>60</Duration>
+    <Direction>Right</Direction>
+    <Animation>
+      <Frame><Image>walk1</Image><Anchor>0,0</Anchor><Velocity>3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk2</Image><Anchor>0,0</Anchor><Velocity>3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk3</Image><Anchor>0,0</Anchor><Velocity>3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk4</Image><Anchor>0,0</Anchor><Velocity>3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk5</Image><Anchor>0,0</Anchor><Velocity>3,0</Velocity><Duration>5</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- WALK LEFT -->
+  <Action>
+    <Name>WalkLeft</Name>
+    <Type>Move</Type>
+    <Duration>60</Duration>
+    <Direction>Left</Direction>
+    <Animation>
+      <Frame><Image>walk1</Image><Anchor>0,0</Anchor><Velocity>-3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk2</Image><Anchor>0,0</Anchor><Velocity>-3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk3</Image><Anchor>0,0</Anchor><Velocity>-3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk4</Image><Anchor>0,0</Anchor><Velocity>-3,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>walk5</Image><Anchor>0,0</Anchor><Velocity>-3,0</Velocity><Duration>5</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- SIT -->
+  <Action>
+    <Name>Sit</Name>
+    <Type>Stay</Type>
+    <Duration>100</Duration>
+    <Animation>
+      <Frame><Image>sit1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>sit2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>sit3</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>sit4</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>sit5</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>sit6</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- GUITAR -->
+  <Action>
+    <Name>Guitar</Name>
+    <Type>Stay</Type>
+    <Duration>120</Duration>
+    <Animation>
+      <Frame><Image>guitar1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>guitar2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>guitar3</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- LIE DOWN -->
+  <Action>
+    <Name>LieDown</Name>
+    <Type>Stay</Type>
+    <Duration>80</Duration>
+    <Animation>
+      <Frame><Image>lie1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+      <Frame><Image>lie2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+      <Frame><Image>lie3</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- BLOB -->
+  <Action>
+    <Name>Blob</Name>
+    <Type>Stay</Type>
+    <Duration>80</Duration>
+    <Animation>
+      <Frame><Image>blob1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>blob2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>blob3</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>blob4</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>blob5</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>blob6</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>blob7</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>8</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- GHOST -->
+  <Action>
+    <Name>Ghost</Name>
+    <Type>Stay</Type>
+    <Duration>60</Duration>
+    <Animation>
+      <Frame><Image>ghost1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>ghost2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>ghost3</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- BOX TRICK -->
+  <Action>
+    <Name>BoxTrick</Name>
+    <Type>Stay</Type>
+    <Duration>90</Duration>
+    <Animation>
+      <Frame><Image>stand1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>5</Duration></Frame>
+      <Frame><Image>box1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>20</Duration></Frame>
+      <Frame><Image>box2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>20</Duration></Frame>
+      <Frame><Image>box3</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>20</Duration></Frame>
+      <Frame><Image>smoke1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>stand1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>5</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- FALL -->
+  <Action>
+    <Name>Fall</Name>
+    <Type>Fall</Type>
+    <Animation>
+      <Frame><Image>fall1</Image><Anchor>0,0</Anchor><Velocity>0,4</Velocity><Duration>1</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- KNEEL -->
+  <Action>
+    <Name>Kneel</Name>
+    <Type>Stay</Type>
+    <Duration>40</Duration>
+    <Animation>
+      <Frame><Image>kneel1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>10</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- WALK BACK -->
+  <Action>
+    <Name>WalkBack</Name>
+    <Type>Move</Type>
+    <Duration>40</Duration>
+    <Direction>Right</Direction>
+    <Animation>
+      <Frame><Image>walk_back1</Image><Anchor>0,0</Anchor><Velocity>2,0</Velocity><Duration>8</Duration></Frame>
+      <Frame><Image>walk_back2</Image><Anchor>0,0</Anchor><Velocity>2,0</Velocity><Duration>8</Duration></Frame>
+    </Animation>
+  </Action>
+
+</ActionList>
