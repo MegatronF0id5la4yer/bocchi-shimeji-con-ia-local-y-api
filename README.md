@@ -1,99 +1,148 @@
-# bocchi-shimeji-con-ia-local-y-api
-shimeji custom con bastantes acciones y action events como cerrar ventanas de windows 
-Un Shimeji (mascota de escritorio) interactivo para Windows basado en Bocchi-Chan, con inteligencia artificial integrada (Local y API), autonomía de escritorio y animaciones personalizadas.
-✨ Características
+# 🌸 Bocchi Shimeji con IA local y API
 
-    🤖 IA Dual (Chatbot Integrado):
+Una mascota de escritorio inspirada en Bocchi-Chan. PinkChan puede caminar por el escritorio, trepar paredes y techo, reproducir animaciones personalizadas, mostrar mensajes y conversar mediante una IA local o la API de Google Gemini.
 
-        Modo Local: Corre un modelo ultraligero (SmolLM2-135M) directamente en tu procesador/tarjeta gráfica usando transformers, 100% offline y gratis.
+> ⚠️ **Proyecto experimental para Windows.** Algunas acciones pueden mover, minimizar, cerrar o enviar elementos a la papelera. Revisa siempre la acción antes de ejecutarla y mantén desactivados los modos autónomos si no quieres que PinkChan interactúe con tu escritorio automáticamente.
 
-        Modo API: Conexión opcional a la API de Google Gemini.
+## ✨ Características
 
-    🪟 Trolling y Control de Ventanas:
+- 🐾 Mascota de escritorio transparente y siempre visible.
+- 🎨 Animaciones personalizadas definidas en `Actions.xml` y almacenadas en `img/Shimeji/`.
+- 🧗 Movimiento autónomo por el suelo, las paredes y el techo.
+- 🎸 Acciones manuales como tocar la guitarra, modo blob, fantasma, truco de caja, arrodillarse y más.
+- 🤖 Chat con dos modos:
+  - **Local:** utiliza `HuggingFaceTB/SmolLM2-135M-Instruct` mediante Transformers.
+  - **API:** utiliza Google Gemini mediante una API key.
+- 🪟 Acciones sobre ventanas de Windows: minimizar, maximizar/restaurar, cerrar o arrastrar una ventana seleccionada.
+- 🖥️ Acciones sobre iconos del escritorio: mezclar, dispersar, ordenar, mover o enviar un icono a la papelera.
+- 👁️ Modo para seguir el cursor.
+- 😈 Modos autónomos opcionales para ventanas y escritorio.
 
-        Minimiza, maximiza, cierra o arrastra ventanas de tu sistema.
+## 🛠️ Requisitos
 
-        Modo autónomo donde la Shimeji interactúa sola con tus ventanas de vez en cuando.
+- Windows 10 o posterior para disponer de todas las funciones de ventanas y escritorio.
+- Python 3.10 o posterior.
+- `pip` disponible en el PATH.
+- Las imágenes de `img/Shimeji/` y `Actions.xml` deben permanecer junto a `PinkChan.pyw`.
 
-    🖥️ Autonomía en el Escritorio:
+Las funciones relacionadas con Windows requieren `pywin32` y no están disponibles en otros sistemas operativos. El modo local puede necesitar memoria adicional para descargar y ejecutar el modelo de Transformers.
 
-        Desordena, mezcla o envía iconos del escritorio a la papelera.
+## 🚀 Instalación y uso
 
-        Sigue el cursor del ratón por la pantalla.
+### Opción recomendada: Windows
 
-    🎨 Interfaz Personalizada:
+1. Descarga o clona el repositorio:
 
-        Transparencia al 70% en el chat para no estorbar.
+   ```bash
+   git clone https://github.com/MegatronF0id5la4yer/bocchi-shimeji-con-ia-local-y-api.git
+   cd bocchi-shimeji-con-ia-local-y-api
+   ```
 
-        Ocultación rápida de API Key con la tecla Enter.
+2. Comprueba que Python está instalado:
 
-        Animaciones basadas en acciones escritas en Actions.xml (escalar paredes, ir al techo, modo blob, tocar guitarra, etc.).
+   ```bash
+   python --version
+   ```
 
-🛠️ Requisitos Previos
+3. Ejecuta `iniciar.bat` con doble clic. El script instala automáticamente `Pillow`, `requests` y `pywin32` si no están instalados, y después inicia PinkChan sin mostrar una consola permanente.
 
-Necesitas tener Python 3.10+ instalado en tu sistema.
+También puedes instalar las dependencias manualmente:
 
-Dependencias necesarias de Python:
-Bash
+```bash
+python -m pip install pillow requests pywin32 transformers torch winshell
+```
 
-pip install pillow requests pywin32 winshell transformers torch
+4. Inicia la aplicación directamente si lo prefieres:
 
-🚀 Instalación y Uso
-Opción 1: Ejecutar desde el código fuente
+   ```bash
+   pythonw PinkChan.pyw
+   ```
 
-    Clona este repositorio:
-    Bash
+### Linux y otros sistemas
 
-    git clone https://github.com/tu-usuario/PinkChan-Shimeji.git
-    cd PinkChan-Shimeji
+El repositorio incluye `iniciar.sh`, pero el código utiliza APIs específicas de Windows (`pywin32`, ventanas y el escritorio de Windows). Por tanto, las funciones completas requieren Windows y el script de Linux no garantiza compatibilidad.
 
-    Ejecuta el script con Python:
-    Bash
+## 💬 Usar el chatbot
 
-    pythonw PinkChan.pyw
+1. Haz clic derecho sobre PinkChan.
+2. Selecciona **🤖 Preguntarle algo**.
+3. Elige uno de los modos disponibles:
+   - **Local (SmolLM):** descarga el modelo la primera vez y funciona sin conexión después de tenerlo disponible.
+   - **API (Gemini):** introduce tu API key de Google AI Studio.
+4. Pulsa **🔍 Verificar Estado / Probar IA** antes de enviar mensajes.
 
-    (O usa el script ejecutable incluido iniciar.bat en Windows).
+La API key se introduce durante la ejecución y no debe guardarse en el repositorio ni compartirse públicamente.
 
-Opción 2: Compilar a un ejecutable .exe
+## 🎮 Controles
 
-Si quieres empaquetarlo en un solo archivo ejecutable para correrlo sin abrir consola:
+### Clic izquierdo
 
-    Instala pyinstaller:
-    Bash
+- Mantén pulsado para arrastrar a PinkChan.
+- Haz doble clic para mostrar una frase.
 
-    pip install pyinstaller
+### Clic derecho
 
-    Compila el script:
-    Bash
+- 🎸 Animaciones y acciones especiales.
+- 🧗 Escalar paredes o ir al techo.
+- 🪟 Acciones sobre ventanas de Windows.
+- 🖥️ Acciones sobre iconos del escritorio.
+- 👁️ Activar o desactivar el seguimiento del cursor.
+- 🤖 Abrir el chatbot.
+- ✕ Cerrar la aplicación.
 
-    pyinstaller --noconsole --onefile PinkChan.pyw
+Para las acciones que indican **“apuntar”**, selecciona la ventana con el cursor después de activar la opción. Pulsa `Esc` para cancelar la selección cuando corresponda.
 
-    Mueve el ejecutable generado en dist/PinkChan.exe a la raíz del proyecto (junto a las carpetas img/ y el archivo Actions.xml).
+## ⚙️ Personalización
 
-🎮 Controles del Menú (Clic Derecho)
+- Modifica `Actions.xml` para cambiar el mapeo de animaciones y sus frames.
+- Añade o reemplaza imágenes PNG en `img/Shimeji/` respetando los nombres usados por `Actions.xml`.
+- Ajusta constantes como `SIZE`, `FPS`, `WALK_SPEED` y `CLIMB_SPEED` en `PinkChan.pyw`.
+- La personalidad y los mensajes del chatbot se pueden modificar en `PinkChan.pyw`, dentro de `SYSTEM_PROMPT`, `SPEECHES` y `POKED_SPEECHES`.
 
-Al hacer clic derecho sobre Bocchi, se despliega un menú interactivo con las siguientes funciones:
+> El programa espera actualmente los recursos desde la carpeta del proyecto. Si mueves el repositorio a otra ubicación, revisa las rutas configuradas en `PinkChan.pyw` antes de ejecutarlo.
 
-    🎸 Animaciones: Tocar guitarra, modo blob, fantasma, truco de caja, arrodillarse, escalar paredes/techo.
+## 🗂️ Estructura del proyecto
 
-    🪟 Ventanas: Minimizar, cerrar, maximizar o arrastrar ventanas del sistema.
-
-    🖥️ Escritorio: Dispersar, mezclar, ordenar o tirar iconos a la papelera.
-
-    👁️ Seguir cursor: Activa o desactiva el modo donde Bocchi camina hacia tu ratón.
-
-    🤖 Preguntarle algo: Abre la ventana del chatbot (Local / API).
-
-📁 Estructura del Proyecto
-Plaintext
-
+```text
+.
 ├── img/
-│   └── Shimeji/          # Frames PNG para cada animación
-├── Actions.xml           # Configuración de mapeo de animaciones
-├── PinkChan.pyw          # Código fuente principal de la aplicación
-├── iniciar.bat           # Launcher rápido para Windows
-└── README.md             # Documentación del proyecto
+│   └── Shimeji/          # Imágenes PNG de las animaciones
+├── Actions.xml           # Acciones y frames de animación
+├── Behaviors.xml         # Configuración adicional de comportamientos
+├── PinkChan.pyw          # Aplicación principal
+├── iniciar.bat           # Instalación de dependencias e inicio en Windows
+├── iniciar.sh            # Script de inicio experimental
+├── leeme uwu antes de todo .txt
+└── README.md             # Documentación
+```
 
-📜 Licencia
+## ⚠️ Seguridad y precauciones
 
-Proyecto desarrollado con fines de entretenimiento. Libre de modificar y redistribuir.
+- Desactiva **Autonomía** antes de dejar la aplicación funcionando sin supervisión.
+- Las acciones de cierre pueden cerrar ventanas con trabajo no guardado.
+- La acción de papelera utiliza la papelera de reciclaje, pero comprueba el resultado antes de usarla.
+- Haz copias de seguridad de archivos importantes y prueba las acciones en un entorno controlado.
+- No ejecutes el programa como administrador salvo que sea estrictamente necesario.
+- No incluyas API keys en `PinkChan.pyw`, commits, capturas de pantalla o incidencias públicas.
+- Descarga dependencias y modelos únicamente desde fuentes confiables.
+
+## 🐛 Problemas conocidos
+
+- Las funciones de ventanas y escritorio solo funcionan correctamente en Windows con `pywin32` instalado.
+- El primer uso del modo local puede tardar porque Transformers debe descargar el modelo.
+- Si las animaciones no aparecen, verifica que `img/Shimeji/` esté junto a `PinkChan.pyw` y que los nombres de `Actions.xml` coincidan con los archivos PNG.
+- Si `iniciar.bat` no encuentra Python, instala Python y activa la opción **Add Python to PATH**.
+
+## 🤝 Contribuciones
+
+Las mejoras son bienvenidas:
+
+1. Crea un fork del repositorio.
+2. Crea una rama para tu cambio.
+3. Prueba la modificación en Windows.
+4. Actualiza la documentación si cambias el comportamiento o la instalación.
+5. Abre un pull request explicando los cambios y las precauciones necesarias.
+
+## 📜 Licencia
+
+Este proyecto se distribuye actualmente con fines de entretenimiento. Antes de redistribuirlo, añade una licencia concreta y revisa las licencias de las imágenes, modelos y dependencias utilizadas.
