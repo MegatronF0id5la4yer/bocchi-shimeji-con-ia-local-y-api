@@ -19,17 +19,25 @@ Una mascota de escritorio interactiva inspirada en Bocchi-Chan (Hitori Gotoh). P
   - **Búsqueda en la Web y YouTube:** Abre búsquedas al instante (*"busca en web recetas de cocina"*, *"busca en google tutorial python"*, *"busca en youtube bocchi the rock"*, `/web <query>`, `/yt <query>`).
   - **Manipulación de archivos:** Crea, lee, escribe, modifica y renombra archivos tanto en lenguaje natural (*"hey haz que x archivo ahora se llame caca"*, *"crea notas.txt con hola mundo"*) como mediante atajos directos (`/create`, `/rename`, `/write`, `/read`, `/delete`, `/list`, `/open`, `/cmd`).
   - **Integración con IA:** Al conversar con Gemini o SmolLM, la IA puede emitir etiquetas de control del sistema (`[JARVIS: OPEN ...]`, `[JARVIS: SEARCH ...]`, `[JARVIS: ADD_CMD ...]`, `[JARVIS: PS ...]`, etc.) que se ejecutan automáticamente en Windows.
+- 🖼️ **Fondos de Chat Personalizados (Imágenes o GIFs animados):**
+  - Añade cualquier imagen (`.png`, `.jpg`, `.webp`) o **GIF animado (`.gif`)** como wallpaper de fondo del chat de Bocchi.
+  - Reproducción continua y fluida de GIFs animados sin consumo de CPU excesivo.
+  - El fondo permanece fijo en el visor estilo wallpaper moderno mientras los mensajes se desplazan con suavidad.
+  - Burbujas de chat estilo tarjeta con contraste automático para una lectura perfecta sin importar el fondo elegido.
+  - Botón directo `[IMG] Fondo` en la barra superior del chat, sección en la ventana de **Apariencia** y atajos `/fondo` y `/fondo clear`.
 - 😈 **Modo Troll Activable/Desactivable:**
   - **Interruptor ON/OFF:** Apágalo para que Bocchi sea una asistente dócil y formal, o enciéndelo para desatar el caos cómico.
-  - **Travesuras seguras (sin alterar el sistema ni borrar archivos):**
-    - Rickrolls sorpresa en el navegador.
-    - Simulador de Pantallazo Azul (BSOD) y pantalla HackerTyper.
-    - Terremoto de ventanas (sacudida rápida y desplazamiento de ventanas activas).
-    - Minimizar ventanas inesperadamente.
-    - Alertas y avisos falsos de Windows personalizados con tu nombre de usuario e IP real.
+  - **Travesuras seguras y 100% efectivas (sin alterar el sistema ni borrar archivos):**
+    - **Pantallazo Azul (BSOD) Nativo a Pantalla Completa:** Simulación ultra-realista de Windows con carita triste `:(`, porcentaje de carga animado progresivo (0% a 100%), código QR y stop code con tu nombre de usuario real. Se descarta al instante con cualquier tecla, clic o tras 7 segundos con Bocchi riéndose.
+    - Terremoto de ventanas: restaura y sacude ventanas activas incluso si están maximizadas, con fallback para sacudir a Bocchi si no hay otras ventanas abiertas.
+    - Mover ventanas activas o teletransportar a Bocchi por la pantalla.
+    - Rickrolls y screamers seguros en el navegador con apertura garantizada.
+    - Alertas y avisos de error falsos de Windows con tu nombre de usuario e IP real.
+    - Simulador HackerTyper.
+    - Minimizar ventanas inesperadamente (con soporte para minimizar la ventana de chat si no hay otra).
 - 🪟 **Interfaz Limpia y Dinámica con el Sistema:**
   - Colores dinámicos adaptados automáticamente al color de acento de Windows (leído del Registro `DWM\ColorizationColor`) y soporte para Modo Oscuro/Claro nativo.
-  - Ventana de **Personalización de Apariencia** en tiempo real: selector de colores (acento, superficie, fondo), control deslizante de transparencia (40% a 100%), familia y tamaño de fuentes tipográficas.
+  - Ventana de **Personalización de Apariencia** en tiempo real: selector de colores (acento, superficie, fondo), control deslizante de transparencia (40% a 100%), selector de wallpaper para el chat, familia y tamaño de fuentes tipográficas.
   - Sin colores morados estridentes fijos y estética profesional con iconos de texto limpios.
 - 🤖 **Chatbot IA con dos modos:**
   - **Local:** Utiliza `HuggingFaceTB/SmolLM2-135M-Instruct` mediante Hugging Face Transformers.
@@ -84,6 +92,10 @@ Puedes escribirle en lenguaje natural o usar atajos directos en el chat:
 | `/addpath <carpeta>` | Añade carpeta de búsqueda para programas/archivos | `/addpath D:\MisJuegos` |
 | `/delpath <carpeta>` | Elimina carpeta personalizada | `/delpath D:\MisJuegos` |
 | `/listpaths` | Lista rutas de búsqueda configuradas | `/listpaths` |
+| `/fondo` / `/bg` | Abre selector para fondo de chat (imagen o GIF) | `/fondo` |
+| `/fondo clear` | Quita el fondo personalizado del chat | `/fondo clear` |
+| `/bsod` / `/pantallazo` | Simula pantalla azul de la muerte (BSOD) | `/bsod` |
+| `/shake` / `/sacudir` | Sacude la ventana activa o a Bocchi | `/shake` |
 | `/ps <comando>` | Ejecuta un comando en PowerShell | `/ps Get-Process` |
 | `/web <búsqueda>` | Busca en Google / Navegador | `/web mejores animes 2024` |
 | `/yt <búsqueda>` | Busca directamente en YouTube | `/yt bocchi guitar solo` |

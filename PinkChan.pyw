@@ -5,6 +5,7 @@ from tkinter import scrolledtext
 from tkinter import messagebox
 from tkinter import ttk
 from tkinter import colorchooser
+from tkinter import filedialog
 from tkinter import font as tkfont
 import random
 import os
@@ -39,7 +40,7 @@ if sys.platform == "win32":
             pass
 
 try:
-    from PIL import Image, ImageTk
+    from PIL import Image, ImageTk, ImageSequence
     PIL_AVAILABLE = True
     try:
         FLIP_LEFT_RIGHT = getattr(getattr(Image, 'Transpose', Image), 'FLIP_LEFT_RIGHT', 0)
@@ -97,6 +98,23 @@ except Exception:
 
 IMG_DIR      = os.path.join(BASE_DIR, "img", "Shimeji")
 ACTIONS_FILE = os.path.join(BASE_DIR, "Actions.xml")
+
+def open_url_guaranteed(url):
+    try:
+        if sys.platform == "win32":
+            os.startfile(url)
+            return True
+    except Exception:
+        pass
+    try:
+        webbrowser.open_new_tab(url)
+        return True
+    except Exception:
+        try:
+            subprocess.Popen(f'start "" "{url}"', shell=True)
+            return True
+        except Exception:
+            return False
 
 def get_config_path():
     p = os.path.join(EXE_DIR, "config.json")
@@ -535,8 +553,8 @@ class AppearanceWindow:
         self.win.attributes("-topmost", True)
         self.win.attributes("-alpha", self.theme.opacity)
         self.win.configure(bg=self.theme.bg)
-        self.win.geometry("500x670")
-        self.win.resizable(False, False)
+        self.win.geometry("500x740")
+        self.win.resizable(False, True)
         self.win.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # Header
@@ -721,6 +739,40 @@ class AppearanceWindow:
                                   bd=0, relief=tk.FLAT, padx=10, pady=3)
         self.prev_btn.pack(side=tk.RIGHT)
 
+        # Section 6: Fondo del Chat (Imagen o GIF)
+        self.sec_bg = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
+                               highlightbackground=self.theme.border, highlightthickness=1)
+        self.sec_bg.pack(fill=tk.X, pady=(0, 10))
+
+        tk.Label(self.sec_bg, text="FONDO DEL CHAT (IMAGEN O GIF):",
+                 font=(self.theme.font_family, self.theme.font_size, "bold"),
+                 fg=self.theme.text, bg=self.theme.surface).pack(anchor="w", pady=(0, 4))
+
+        bg_row = tk.Frame(self.sec_bg, bg=self.theme.surface)
+        bg_row.pack(fill=tk.X, pady=2)
+
+        cur_bg = self.theme.config.get("chat_bg_image", "")
+        cur_name = os.path.basename(cur_bg) if cur_bg and os.path.exists(cur_bg) else "(Sin fondo personalizado)"
+        self.lbl_bg_status = tk.Label(bg_row, text=cur_name,
+                                      font=(self.theme.font_family, self.theme.font_size - 1),
+                                      fg=self.theme.text_dim, bg=self.theme.surface,
+                                      anchor="w")
+        self.lbl_bg_status.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+        btn_pick_bg = tk.Button(bg_row, text="Elegir...",
+                                command=self._pick_chat_bg,
+                                bg=self.theme.surface_variant, fg=self.theme.text,
+                                font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                bd=0, relief=tk.FLAT, padx=8, pady=3, cursor="hand2")
+        btn_pick_bg.pack(side=tk.RIGHT, padx=(4, 0))
+
+        btn_clear_bg = tk.Button(bg_row, text="Quitar",
+                                 command=self._clear_chat_bg,
+                                 bg=self.theme.surface_variant, fg=self.theme.danger,
+                                 font=(self.theme.font_family, self.theme.font_size - 1),
+                                 bd=0, relief=tk.FLAT, padx=6, pady=3, cursor="hand2")
+        btn_clear_bg.pack(side=tk.RIGHT)
+
         # Bottom Actions Bar
         bottom_bar = tk.Frame(self.win, bg=self.theme.surface, pady=10, padx=16)
         bottom_bar.pack(fill=tk.X, side=tk.BOTTOM)
@@ -779,6 +831,31 @@ class AppearanceWindow:
         self.font_cb.set("Segoe UI")
         self.size_cb.set(9)
 
+    def _pick_chat_bg(self):
+        f = filedialog.askopenfilename(
+            parent=self.win,
+            title="Seleccionar fondo para el chat (Imagen o GIF)",
+            filetypes=[
+                ("Imágenes y GIFs", "*.png *.jpg *.jpeg *.gif *.webp *.bmp"),
+                ("GIF Animado (*.gif)", "*.gif"),
+                ("Imágenes estáticas (*.png;*.jpg;*.jpeg;*.webp)", "*.png *.jpg *.jpeg *.webp *.bmp"),
+                ("Todos los archivos", "*.*")
+            ]
+        )
+        if f:
+            self.theme.config["chat_bg_image"] = f
+            save_config(self.theme.config)
+            self.lbl_bg_status.configure(text=os.path.basename(f))
+            if self.shimeji and getattr(self.shimeji, "chat_win", None):
+                self.shimeji.chat_win.load_bg_asset(f)
+
+    def _clear_chat_bg(self):
+        self.theme.config["chat_bg_image"] = ""
+        save_config(self.theme.config)
+        self.lbl_bg_status.configure(text="(Sin fondo personalizado)")
+        if self.shimeji and getattr(self.shimeji, "chat_win", None):
+            self.shimeji.chat_win.load_bg_asset("")
+
     def _on_theme_update(self):
         if not self.win or not tk.Toplevel.winfo_exists(self.win):
             return
@@ -797,6 +874,10 @@ class AppearanceWindow:
         self.prev_badge.configure(bg=self.theme.surface_variant, font=(self.theme.font_family, self.theme.font_size - 1, "bold"))
         self.prev_btn.configure(bg=self.theme.accent, fg=self.theme.accent_text,
                                 font=(self.theme.font_family, self.theme.font_size - 1, "bold"))
+        if hasattr(self, "sec_bg") and self.sec_bg:
+            self.sec_bg.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
+        if hasattr(self, "lbl_bg_status") and self.lbl_bg_status:
+            self.lbl_bg_status.configure(fg=self.theme.text_dim, bg=self.theme.surface)
 
     def _on_close(self):
         self.theme.remove_listener(self._on_theme_update)
@@ -1868,7 +1949,52 @@ class JarvisAssistant:
                 return True, msg, speech
             return True, "[!] Uso: /cmd <comando de Windows>", "Escribe el comando sokete :v"
 
+        # 15. Comandos de fondo del chat
+        if raw.lower() in ("/fondo", "/bg", "/wallpaper") or re.search(r'^(?:(?:hey\s+)?(?:cambia(?:r)?|pon(?:er)?|elige)\s+(?:el\s+)?fondo)', raw, re.IGNORECASE):
+            if self.shimeji and getattr(self.shimeji, "chat_win", None):
+                self.shimeji.chat_win.pick_chat_bg()
+                return True, "[*] Selector de fondo abierto.", "Elige una foto o gif kiut :v"
+            return True, "[!] Abre la ventana de chat para cambiar el fondo.", ""
+
+        if raw.lower() in ("/fondo clear", "/bg clear", "/delfondo", "/quitarfondo") or re.search(r'^(?:(?:hey\s+)?(?:quita(?:r)?|borra(?:r)?)\s+(?:el\s+)?fondo)', raw, re.IGNORECASE):
+            if self.shimeji and getattr(self.shimeji, "chat_win", None):
+                self.shimeji.chat_win.clear_chat_bg()
+                return True, "[-] Fondo de chat quitado.", "Listo, sin fondo UwU"
+            return True, "[!] Abre la ventana de chat para quitar el fondo.", ""
+
+        # 16. Comandos de travesuras directos
+        if raw.lower() in ("/bsod", "/bluescreen", "/pantallazo") or re.search(r'^(?:(?:hey\s+)?(?:dame|haz|pon|simula)\s+(?:un\s+)?(?:pantallazo\s+azul|bsod))', raw, re.IGNORECASE):
+            if self.shimeji:
+                self.shimeji.troll_bluescreen()
+                return True, "[!] ¡PANTALLAZO AZUL INICIADO! D: Bocchi ataca de nuevo...", "¡PANTALLAZO AZUL! :v"
+            return True, "[!] Bocchi no está disponible.", ""
+
+        if raw.lower() in ("/shake", "/sacudir") or re.search(r'^(?:(?:hey\s+)?(?:sacude|tiembla)\s+(?:la\s+)?ventana)', raw, re.IGNORECASE):
+            if self.shimeji:
+                self.shimeji.troll_shake_window()
+                return True, "[>] Ventana sacudida exitosamente.", "¡Terremoto! 7w7"
+            return True, "[!] Bocchi no está disponible.", ""
+
         return False, "", ""
+
+def create_round_rect(canvas, x1, y1, x2, y2, radius=10, **kwargs):
+    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+    radius = max(2, min(radius, (x2 - x1) // 2, (y2 - y1) // 2))
+    points = [
+        x1 + radius, y1,
+        x2 - radius, y1,
+        x2, y1,
+        x2, y1 + radius,
+        x2, y2 - radius,
+        x2, y2,
+        x2 - radius, y2,
+        x1 + radius, y2,
+        x1, y2,
+        x1, y2 - radius,
+        x1, y1 + radius,
+        x1, y1
+    ]
+    return canvas.create_polygon(points, smooth=True, **kwargs)
 
 class ChatWindow:
     BASE_SYSTEM_PROMPT = (
@@ -1897,6 +2023,18 @@ class ChatWindow:
         self.theme       = self.shimeji.theme_manager if self.shimeji else ThemeManager(self.config)
         self.jarvis      = JarvisAssistant(self.shimeji, self.user_info)
         self.history     = []
+        self.messages    = []
+        self.bg_image_path = self.config.get("chat_bg_image", "")
+        self.bg_frames   = []
+        self.bg_durations = []
+        self.bg_frame_idx = 0
+        self.bg_is_gif   = False
+        self._gif_timer  = None
+        self._cached_bg_photos = []
+        self._last_cw    = 0
+        self._last_ch    = 0
+        self._chat_y_cursor = 12
+
         saved_mode       = self.config.get("chat_mode", "api" if self.api_key_var.get() else "local")
         self.mode_var    = tk.StringVar(value=saved_mode)
         self.local_pipe  = None
@@ -1949,7 +2087,7 @@ class ChatWindow:
         self.win.attributes("-topmost", True)
         self.win.attributes("-alpha", self.theme.opacity)
         self.win.configure(bg=self.theme.bg)
-        self.win.geometry("490x650")
+        self.win.geometry("500x670")
         self.win.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # Top Header Bar
@@ -1991,6 +2129,12 @@ class ChatWindow:
                                   font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
                                   activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
         self.doxx_btn.pack(side=tk.LEFT, padx=2)
+
+        self.bg_btn = tk.Button(tool_col, text="[IMG] Fondo", command=self.open_bg_menu,
+                                bg=self.theme.surface_variant, fg=self.theme.text,
+                                font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+        self.bg_btn.pack(side=tk.LEFT, padx=2)
 
         self.theme_btn = tk.Button(tool_col, text="[*] Apariencia", command=self.open_appearance,
                                    bg=self.theme.surface_variant, fg=self.theme.text,
@@ -2054,17 +2198,19 @@ class ChatWindow:
                                     highlightbackground=self.theme.border, highlightthickness=1)
         self.verify_btn.pack(fill=tk.X, padx=12, pady=(2, 4))
 
-        # Chat display area
-        self.chat_area = scrolledtext.ScrolledText(
-            self.win, wrap=tk.WORD, state=tk.DISABLED,
-            bg=self.theme.surface, fg=self.theme.text,
-            font=(self.theme.font_family, self.theme.font_size + 1),
-            bd=0, padx=12, pady=10, highlightthickness=1, highlightbackground=self.theme.border
-        )
-        self.chat_area.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 6))
+        # Chat display area con Canvas para soportar fondos (PNG/JPG/GIF animado)
+        self.chat_container = tk.Frame(self.win, bg=self.theme.surface,
+                                       highlightthickness=1, highlightbackground=self.theme.border)
+        self.chat_container.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 6))
 
-        # Configure Text Tags
-        self._config_chat_tags()
+        self.chat_canvas = tk.Canvas(self.chat_container, bg=self.theme.surface, bd=0, highlightthickness=0)
+        self.chat_scroll = ttk.Scrollbar(self.chat_container, orient=tk.VERTICAL, command=self._on_canvas_scroll)
+        self.chat_canvas.configure(yscrollcommand=self.chat_scroll.set)
+        self.chat_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.chat_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.chat_canvas.bind("<Configure>", self._on_canvas_configure)
+        self.chat_canvas.bind("<MouseWheel>", self._on_mousewheel)
 
         # Quick action chips
         chips_frame = tk.Frame(self.win, bg=self.theme.bg, padx=12, pady=2)
@@ -2078,6 +2224,7 @@ class ChatWindow:
             ("[*] Alias", lambda: self.insert_chip("/alias ")),
             ("[!] Troll Mode", lambda: self.toggle_troll()),
             ("[?] Quien soy?", lambda: self.send_custom("Quien soy yo y cual es mi IP real?")),
+            ("[IMG] Fondo", self.open_bg_menu),
             ("[*] Consejo", lambda: self.send_custom("Bocchi dame un consejo")),
             ("UwU", lambda: self.insert_chip("UwU")),
             (":v", lambda: self.insert_chip(":v")),
@@ -2107,7 +2254,7 @@ class ChatWindow:
 
         # Asegurar foco al hacer clic en el chat o en la ventana
         self.win.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
-        self.chat_area.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
+        self.chat_canvas.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
 
         self.send_btn = tk.Button(inp, text="Enviar >>", command=self.send_message,
                                   bg=self.theme.accent, fg=self.theme.accent_text,
@@ -2117,23 +2264,392 @@ class ChatWindow:
         self.send_btn.pack(side=tk.RIGHT)
 
         self._toggle_mode()
+        self.load_bg_asset(self.bg_image_path, initial=True)
         self._append_system(
             f"Oie {self.user_info.username} ya llegue wei, se que estas en {self.user_info.public_ip} asi que apura tus preguntas pq ando jodida :v\n"
         )
 
         self.user_info.add_listener(self._on_ip_update)
 
-    def _config_chat_tags(self):
-        self.chat_area.tag_configure("user_hdr", foreground=self.theme.accent,
-                                     font=(self.theme.font_family, self.theme.font_size, "bold"))
-        self.chat_area.tag_configure("user_txt", foreground=self.theme.text,
-                                     font=(self.theme.font_family, self.theme.font_size + 1))
-        self.chat_area.tag_configure("bot_hdr",  foreground=self.theme.accent,
-                                     font=(self.theme.font_family, self.theme.font_size, "bold"))
-        self.chat_area.tag_configure("bot_txt",  foreground=self.theme.text,
-                                     font=(self.theme.font_family, self.theme.font_size + 1))
-        self.chat_area.tag_configure("system",   foreground=self.theme.text_dim,
-                                     font=(self.theme.font_family, self.theme.font_size, "italic"))
+    def open_bg_menu(self):
+        m = tk.Menu(self.win, tearoff=0,
+                    bg=self.theme.surface, fg=self.theme.text,
+                    activebackground=self.theme.accent,
+                    activeforeground=self.theme.accent_text,
+                    font=(self.theme.font_family, self.theme.font_size))
+        m.add_command(label="[+] Cambiar Fondo (Imagen o GIF)...", command=self.pick_chat_bg)
+        if self.bg_image_path:
+            m.add_command(label="[-] Quitar Fondo", command=self.clear_chat_bg)
+        try:
+            bx = self.bg_btn.winfo_rootx()
+            by = self.bg_btn.winfo_rooty() + self.bg_btn.winfo_height()
+            m.tk_popup(bx, by)
+        except Exception:
+            pass
+
+    def pick_chat_bg(self):
+        f = filedialog.askopenfilename(
+            parent=self.win,
+            title="Seleccionar fondo para el chat (Imagen o GIF)",
+            filetypes=[
+                ("Imágenes y GIFs", "*.png *.jpg *.jpeg *.gif *.webp *.bmp"),
+                ("GIF Animado (*.gif)", "*.gif"),
+                ("Imágenes estáticas (*.png;*.jpg;*.jpeg;*.webp)", "*.png *.jpg *.jpeg *.webp *.bmp"),
+                ("Todos los archivos", "*.*")
+            ]
+        )
+        if f:
+            self.load_bg_asset(f)
+            self.config["chat_bg_image"] = f
+            save_config(self.config)
+            self._append_system(f"[+] Fondo de chat cambiado a '{os.path.basename(f)}' UwU")
+
+    def clear_chat_bg(self):
+        self.load_bg_asset("")
+        self.config["chat_bg_image"] = ""
+        save_config(self.config)
+        self._append_system("[-] Fondo de chat eliminado.")
+
+    def load_bg_asset(self, path=None, initial=False):
+        if self._gif_timer:
+            try:
+                self.win.after_cancel(self._gif_timer)
+            except Exception:
+                pass
+            self._gif_timer = None
+
+        target_path = path if path is not None else self.bg_image_path
+        self.bg_image_path = target_path or ""
+        self.bg_frames = []
+        self.bg_durations = []
+        self.bg_frame_idx = 0
+        self.bg_is_gif = False
+        self._cached_bg_photos = []
+
+        if self.bg_image_path and os.path.isfile(self.bg_image_path):
+            try:
+                with Image.open(self.bg_image_path) as im:
+                    is_anim = getattr(im, "is_animated", False)
+                    num_frames = getattr(im, "n_frames", 1)
+                    if is_anim and num_frames > 1:
+                        # Limitar a máx 60 frames para rendimiento óptimo
+                        step = max(1, num_frames // 60)
+                        idx = 0
+                        for frame in ImageSequence.Iterator(im):
+                            if idx % step == 0:
+                                f_copy = frame.convert("RGBA").copy()
+                                self.bg_frames.append(f_copy)
+                                dur = frame.info.get("duration", 100)
+                                if dur < 25:
+                                    dur = 100
+                                self.bg_durations.append(dur * step)
+                            idx += 1
+                        self.bg_is_gif = len(self.bg_frames) > 1
+                    else:
+                        self.bg_frames = [im.convert("RGBA").copy()]
+                        self.bg_durations = [1000]
+                        self.bg_is_gif = False
+            except Exception as exc:
+                print(f"Error cargando fondo de chat: {exc}")
+                self.bg_frames = []
+                self.bg_durations = []
+                self.bg_is_gif = False
+
+        self._render_wallpaper()
+        if self.bg_is_gif and self.bg_frames:
+            self._step_gif()
+        if not initial:
+            self._redraw_all_messages()
+
+    def _step_gif(self):
+        if not self.bg_is_gif or not self.bg_frames or not self.win or not tk.Toplevel.winfo_exists(self.win):
+            return
+        self.bg_frame_idx = (self.bg_frame_idx + 1) % len(self.bg_frames)
+        if self._cached_bg_photos:
+            photo = self._cached_bg_photos[self.bg_frame_idx % len(self._cached_bg_photos)]
+            self.chat_canvas.itemconfig("bg_wallpaper", image=photo)
+        dur = self.bg_durations[self.bg_frame_idx % len(self.bg_durations)]
+        self._gif_timer = self.win.after(dur, self._step_gif)
+
+    def _render_wallpaper(self):
+        if not hasattr(self, "chat_canvas") or not self.chat_canvas:
+            return
+        if not self.bg_frames:
+            self.chat_canvas.delete("bg_wallpaper")
+            self.chat_canvas.configure(bg=self.theme.surface)
+            return
+
+        cw = max(200, self.chat_canvas.winfo_width())
+        ch = max(200, self.chat_canvas.winfo_height())
+
+        # Pre-escalar frames para la resolución visible
+        if not self._cached_bg_photos or len(self._cached_bg_photos) != len(self.bg_frames):
+            resample = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.ANTIALIAS
+            self._cached_bg_photos = []
+            for f in self.bg_frames:
+                rf = f.resize((cw, ch), resample)
+                self._cached_bg_photos.append(ImageTk.PhotoImage(rf))
+
+        if not self._cached_bg_photos:
+            return
+
+        photo = self._cached_bg_photos[self.bg_frame_idx % len(self._cached_bg_photos)]
+        top_y = self.chat_canvas.canvasy(0)
+        if self.chat_canvas.find_withtag("bg_wallpaper"):
+            self.chat_canvas.coords("bg_wallpaper", 0, top_y)
+            self.chat_canvas.itemconfig("bg_wallpaper", image=photo)
+        else:
+            self.chat_canvas.create_image(0, top_y, image=photo, anchor="nw", tags="bg_wallpaper")
+        self.chat_canvas.tag_lower("bg_wallpaper")
+
+    def _on_canvas_configure(self, event):
+        w_changed = abs(event.width - self._last_cw) > 6
+        h_changed = abs(event.height - self._last_ch) > 6
+        if w_changed or h_changed:
+            self._last_cw = event.width
+            self._last_ch = event.height
+            self._cached_bg_photos = []
+            self._render_wallpaper()
+            if w_changed:
+                self._redraw_all_messages()
+
+    def _on_mousewheel(self, event):
+        delta = -1 * (event.delta // 120) if event.delta else 1
+        self.chat_canvas.yview_scroll(delta, "units")
+        self._sync_bg_position()
+
+    def _on_canvas_scroll(self, *args):
+        self.chat_canvas.yview(*args)
+        self._sync_bg_position()
+
+    def _sync_bg_position(self):
+        if self.bg_frames and hasattr(self, "chat_canvas") and self.chat_canvas.find_withtag("bg_wallpaper"):
+            top_y = self.chat_canvas.canvasy(0)
+            self.chat_canvas.coords("bg_wallpaper", 0, top_y)
+            self.chat_canvas.tag_lower("bg_wallpaper")
+
+    def _draw_message(self, msg):
+        role = msg.get("role", "system")
+        text = msg.get("text", "")
+        cw = max(260, self.chat_canvas.winfo_width())
+
+        font_msg = tkfont.Font(family=self.theme.font_family, size=self.theme.font_size)
+        font_hdr = tkfont.Font(family=self.theme.font_family, size=max(8, self.theme.font_size - 1), weight="bold")
+
+        px = 12
+        py = 8
+        max_text_w = max(180, int(cw * 0.74))
+
+        if role == "system":
+            t_id = self.chat_canvas.create_text(
+                cw // 2, self._chat_y_cursor + py,
+                text=text.strip(), font=font_msg, width=max(200, int(cw * 0.85)),
+                fill=self.theme.text_dim, anchor="n", justify=tk.CENTER,
+                tags=("msg_item", "system_txt")
+            )
+            bb = self.chat_canvas.bbox(t_id)
+            if bb:
+                tw = bb[2] - bb[0]
+                th = bb[3] - bb[1]
+                rx1 = (cw - tw) // 2 - 10
+                rx2 = rx1 + tw + 20
+                ry1 = self._chat_y_cursor
+                ry2 = ry1 + th + py * 2
+                rect_id = create_round_rect(
+                    self.chat_canvas, rx1, ry1, rx2, ry2, radius=8,
+                    fill=self.theme.surface_variant, outline=self.theme.border, width=1,
+                    tags=("msg_item", "system_pill")
+                )
+                self.chat_canvas.tag_lower(rect_id, t_id)
+                self._chat_y_cursor = ry2 + 8
+            else:
+                self._chat_y_cursor += 30
+
+        elif role == "user":
+            hdr_text = f"[USER] {self.user_info.username}"
+            hdr_id = self.chat_canvas.create_text(
+                0, 0, text=hdr_text, font=font_hdr,
+                fill=self.theme.accent_text, anchor="nw", tags=("msg_item",)
+            )
+            hbb = self.chat_canvas.bbox(hdr_id)
+            self.chat_canvas.delete(hdr_id)
+            hw = (hbb[2] - hbb[0]) if hbb else 60
+            hh = (hbb[3] - hbb[1]) if hbb else 14
+
+            txt_id = self.chat_canvas.create_text(
+                0, 0, text=text, font=font_msg, width=max_text_w,
+                fill=self.theme.accent_text, anchor="nw", tags=("msg_item",)
+            )
+            tbb = self.chat_canvas.bbox(txt_id)
+            self.chat_canvas.delete(txt_id)
+            tw = (tbb[2] - tbb[0]) if tbb else 80
+            th = (tbb[3] - tbb[1]) if tbb else 20
+
+            content_w = max(hw, tw)
+            bw = content_w + px * 2
+            bh = hh + th + py * 2 + 4
+
+            bx2 = cw - 16
+            bx1 = bx2 - bw
+            by1 = self._chat_y_cursor
+            by2 = by1 + bh
+
+            rect_id = create_round_rect(
+                self.chat_canvas, bx1, by1, bx2, by2, radius=12,
+                fill=self.theme.accent, outline=self.theme.accent, width=1,
+                tags=("msg_item", "user_bubble")
+            )
+
+            h_item = self.chat_canvas.create_text(
+                bx1 + px, by1 + py, text=hdr_text, font=font_hdr,
+                fill=self.theme.accent_text, anchor="nw",
+                tags=("msg_item", "user_hdr")
+            )
+            t_item = self.chat_canvas.create_text(
+                bx1 + px, by1 + py + hh + 4, text=text, font=font_msg, width=max_text_w,
+                fill=self.theme.accent_text, anchor="nw",
+                tags=("msg_item", "user_txt")
+            )
+
+            for item in (rect_id, h_item, t_item):
+                self.chat_canvas.tag_bind(item, "<Double-Button-1>", lambda e, txt=text: self._copy_msg(txt))
+                self.chat_canvas.tag_bind(item, "<Button-3>", lambda e, txt=text: self._msg_context(e, txt))
+
+            self._chat_y_cursor = by2 + 10
+
+        elif role == "bot":
+            hdr_text = "[*] Bocchi-chan"
+            hdr_id = self.chat_canvas.create_text(
+                0, 0, text=hdr_text, font=font_hdr,
+                fill=self.theme.accent, anchor="nw", tags=("msg_item",)
+            )
+            hbb = self.chat_canvas.bbox(hdr_id)
+            self.chat_canvas.delete(hdr_id)
+            hw = (hbb[2] - hbb[0]) if hbb else 60
+            hh = (hbb[3] - hbb[1]) if hbb else 14
+
+            txt_id = self.chat_canvas.create_text(
+                0, 0, text=text, font=font_msg, width=max_text_w,
+                fill=self.theme.text, anchor="nw", tags=("msg_item",)
+            )
+            tbb = self.chat_canvas.bbox(txt_id)
+            self.chat_canvas.delete(txt_id)
+            tw = (tbb[2] - tbb[0]) if tbb else 80
+            th = (tbb[3] - tbb[1]) if tbb else 20
+
+            content_w = max(hw, tw)
+            bw = content_w + px * 2
+            bh = hh + th + py * 2 + 4
+
+            bx1 = 16
+            bx2 = bx1 + bw
+            by1 = self._chat_y_cursor
+            by2 = by1 + bh
+
+            rect_id = create_round_rect(
+                self.chat_canvas, bx1, by1, bx2, by2, radius=12,
+                fill=self.theme.surface, outline=self.theme.border, width=1,
+                tags=("msg_item", "bot_bubble")
+            )
+
+            h_item = self.chat_canvas.create_text(
+                bx1 + px, by1 + py, text=hdr_text, font=font_hdr,
+                fill=self.theme.accent, anchor="nw",
+                tags=("msg_item", "bot_hdr")
+            )
+            t_item = self.chat_canvas.create_text(
+                bx1 + px, by1 + py + hh + 4, text=text, font=font_msg, width=max_text_w,
+                fill=self.theme.text, anchor="nw",
+                tags=("msg_item", "bot_txt")
+            )
+
+            for item in (rect_id, h_item, t_item):
+                self.chat_canvas.tag_bind(item, "<Double-Button-1>", lambda e, txt=text: self._copy_msg(txt))
+                self.chat_canvas.tag_bind(item, "<Button-3>", lambda e, txt=text: self._msg_context(e, txt))
+
+            self._chat_y_cursor = by2 + 10
+
+        total_h = max(self._chat_y_cursor + 20, self.chat_canvas.winfo_height())
+        self.chat_canvas.configure(scrollregion=(0, 0, cw, total_h))
+        self.chat_canvas.yview_moveto(1.0)
+        self._sync_bg_position()
+
+    def _redraw_all_messages(self):
+        if not hasattr(self, "chat_canvas") or not self.chat_canvas:
+            return
+        self.chat_canvas.delete("msg_item")
+        self._chat_y_cursor = 12
+        for m in self.messages:
+            self._draw_message(m)
+        self._sync_bg_position()
+
+    def _append_user(self, text):
+        m = {"role": "user", "text": text}
+        self.messages.append(m)
+        self._draw_message(m)
+
+    def _append_bot(self, text):
+        m = {"role": "bot", "text": text}
+        self.messages.append(m)
+        self._draw_message(m)
+
+    def _append_system(self, text):
+        m = {"role": "system", "text": text}
+        self.messages.append(m)
+        self._draw_message(m)
+
+    def clear_chat(self):
+        self.messages = []
+        if hasattr(self, "chat_canvas") and self.chat_canvas:
+            self.chat_canvas.delete("msg_item")
+            self._chat_y_cursor = 12
+            self.chat_canvas.configure(scrollregion=(0, 0, self.chat_canvas.winfo_width(), self.chat_canvas.winfo_height()))
+        self.history = []
+        self._append_system(f"Chat reiniciado con {self.user_info.username} ({self.user_info.public_ip}). Apura con tus preguntas :v\n")
+
+    def _copy_msg(self, text):
+        try:
+            self.win.clipboard_clear()
+            self.win.clipboard_append(text)
+            self._append_system("[+] Mensaje copiado al portapapeles.")
+        except Exception:
+            pass
+
+    def _copy_all_chat(self):
+        lines = []
+        for m in self.messages:
+            r = m.get("role", "")
+            t = m.get("text", "")
+            if r == "user":
+                lines.append(f"{self.user_info.username}: {t}")
+            elif r == "bot":
+                lines.append(f"Bocchi: {t}")
+            else:
+                lines.append(f"[SISTEMA] {t}")
+        full = "\n\n".join(lines)
+        try:
+            self.win.clipboard_clear()
+            self.win.clipboard_append(full)
+            self._append_system("[+] Historial completo copiado al portapapeles.")
+        except Exception:
+            pass
+
+    def _msg_context(self, event, text):
+        menu = tk.Menu(self.win, tearoff=0,
+                       bg=self.theme.surface, fg=self.theme.text,
+                       activebackground=self.theme.accent,
+                       activeforeground=self.theme.accent_text,
+                       font=(self.theme.font_family, self.theme.font_size))
+        menu.add_command(label="Copiar este mensaje", command=lambda: self._copy_msg(text))
+        menu.add_command(label="Copiar todo el chat", command=self._copy_all_chat)
+        menu.add_separator()
+        menu.add_command(label="Cambiar fondo...", command=self.pick_chat_bg)
+        if self.bg_image_path:
+            menu.add_command(label="Quitar fondo", command=self.clear_chat_bg)
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        except Exception:
+            pass
 
     def _reapply_theme(self):
         if not self.win or not tk.Toplevel.winfo_exists(self.win):
@@ -2143,10 +2659,9 @@ class ChatWindow:
         self.title_lbl.configure(fg=self.theme.accent, bg=self.theme.surface,
                                  font=(self.theme.font_family, self.theme.font_size + 2, "bold"))
         self.header_status.configure(font=(self.theme.font_family, self.theme.font_size - 1))
-        self.chat_area.configure(bg=self.theme.surface, fg=self.theme.text,
-                                 font=(self.theme.font_family, self.theme.font_size + 1),
-                                 highlightbackground=self.theme.border)
-        self._config_chat_tags()
+        self.chat_container.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
+        if not self.bg_frames:
+            self.chat_canvas.configure(bg=self.theme.surface)
         entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
         self.entry.configure(bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg,
                              font=(self.theme.font_family, self.theme.font_size + 1),
@@ -2161,6 +2676,7 @@ class ChatWindow:
         for btn in getattr(self, "chip_btns", []):
             btn.configure(bg=self.theme.surface_variant, fg=self.theme.text_dim,
                           font=(self.theme.font_family, self.theme.font_size - 1))
+        self._redraw_all_messages()
 
     def _on_ip_update(self, info):
         if self.win and tk.Toplevel.winfo_exists(self.win):
@@ -2205,13 +2721,6 @@ class ChatWindow:
         self.entry.insert(0, text)
         self.send_message()
 
-    def clear_chat(self):
-        self.chat_area.configure(state=tk.NORMAL)
-        self.chat_area.delete("1.0", tk.END)
-        self.chat_area.configure(state=tk.DISABLED)
-        self.history = []
-        self._append_system(f"Chat reiniciado con {self.user_info.username} ({self.user_info.public_ip}). Apura con tus preguntas :v\n")
-
     def _toggle_mode(self):
         mode = self.mode_var.get()
         self.config["chat_mode"] = mode
@@ -2220,26 +2729,6 @@ class ChatWindow:
             self.kf.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
         else:
             self.kf.pack_forget()
-
-    def _append_user(self, text):
-        self.chat_area.configure(state=tk.NORMAL)
-        self.chat_area.insert(tk.END, f"[USER] {self.user_info.username}:\n", "user_hdr")
-        self.chat_area.insert(tk.END, f"{text}\n\n", "user_txt")
-        self.chat_area.configure(state=tk.DISABLED)
-        self.chat_area.see(tk.END)
-
-    def _append_bot(self, text):
-        self.chat_area.configure(state=tk.NORMAL)
-        self.chat_area.insert(tk.END, "[BOCCHI] Bocchi-chan:\n", "bot_hdr")
-        self.chat_area.insert(tk.END, f"{text}\n\n", "bot_txt")
-        self.chat_area.configure(state=tk.DISABLED)
-        self.chat_area.see(tk.END)
-
-    def _append_system(self, text):
-        self.chat_area.configure(state=tk.NORMAL)
-        self.chat_area.insert(tk.END, f"[SISTEMA] {text}\n", "system")
-        self.chat_area.configure(state=tk.DISABLED)
-        self.chat_area.see(tk.END)
 
     def verify_connection(self):
         self.verify_btn.configure(state=tk.DISABLED, text="[..] Verificando...")
@@ -2517,6 +3006,12 @@ class ChatWindow:
         ))
 
     def _on_close(self):
+        if hasattr(self, "_gif_timer") and self._gif_timer:
+            try:
+                self.win.after_cancel(self._gif_timer)
+            except Exception:
+                pass
+            self._gif_timer = None
         self.theme.remove_listener(self._reapply_theme)
         self.win.destroy()
         if self.shimeji:
@@ -3568,23 +4063,154 @@ class Shimeji:
         except Exception:
             pass
 
+    def _shake_bocchi(self):
+        ox, oy = self.x, self.y
+        def do_b_shake(step=0):
+            if step < 12:
+                dx = random.randint(-35, 35)
+                dy = random.randint(-25, 25)
+                self.x = ox + dx
+                self.y = oy + dy
+                self.root.geometry(f"+{self.x}+{self.y}")
+                self.root.after(35, lambda: do_b_shake(step + 1))
+            else:
+                self.x = ox
+                self.y = oy
+                self.root.geometry(f"+{self.x}+{self.y}")
+        self.show_speech("¡Terremoto! ¡Me estoy sacudiendo toda! ＞﹏＜")
+        do_b_shake()
+
+    def _move_bocchi_random(self):
+        nx = random.randint(50, max(100, self.sw - 160))
+        ny = random.randint(50, max(100, self.sh - 160))
+        self.x = nx
+        self.y = ny
+        self.root.geometry(f"+{self.x}+{self.y}")
+        self.show_speech("¡Woosh! ¡Me teletransporte por alla! (ﾉ´ヮ`)ﾉ")
+
     def troll_rickroll(self):
         try:
-            webbrowser.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+            open_url_guaranteed("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
             self.show_speech("¡RICKROLLEADO! (ノ^∇^)ノ\nNever gonna give you up~ 7w7")
         except Exception:
             pass
 
     def troll_bluescreen(self):
         try:
-            webbrowser.open("https://geekprank.com/blue-screen-death/")
+            # Ventana nativa fullscreen ultra-realista de Windows BSOD
+            bsod = tk.Toplevel(self.root)
+            bsod.title("BSOD")
+            bsod.overrideredirect(True)
+            bsod.geometry(f"{self.sw}x{self.sh}+0+0")
+            bsod.attributes("-topmost", True)
+            bsod.configure(bg="#0078d7", cursor="none")
+            bsod.focus_force()
+
+            pad_left = max(60, int(self.sw * 0.12))
+            pad_top = max(50, int(self.sh * 0.10))
+
+            content = tk.Frame(bsod, bg="#0078d7")
+            content.place(x=pad_left, y=pad_top)
+
+            # 1. Carita triste :(
+            sad_lbl = tk.Label(content, text=":(", font=("Segoe UI", 95, "normal"),
+                               fg="#ffffff", bg="#0078d7")
+            sad_lbl.pack(anchor="w", pady=(0, 20))
+
+            # 2. Texto principal de choque del sistema
+            msg1 = (
+                "Se ha producido un problema en su PC y necesita reiniciarse.\n"
+                "Tan solo estamos recopilando información sobre el error y después se reiniciará automáticamente."
+            )
+            lbl1 = tk.Label(content, text=msg1, font=("Segoe UI", 18),
+                            fg="#ffffff", bg="#0078d7", justify=tk.LEFT)
+            lbl1.pack(anchor="w", pady=(0, 25))
+
+            # 3. Contador de porcentaje animado
+            pct_var = tk.StringVar(value="0% completado")
+            pct_lbl = tk.Label(content, textvariable=pct_var, font=("Segoe UI", 18),
+                               fg="#ffffff", bg="#0078d7")
+            pct_lbl.pack(anchor="w", pady=(0, 35))
+
+            # 4. Sección inferior: QR + Info de soporte
+            bot_frame = tk.Frame(content, bg="#0078d7")
+            bot_frame.pack(anchor="w")
+
+            # Dibujo realista de código QR en canvas
+            qr_canvas = tk.Canvas(bot_frame, width=110, height=110, bg="#ffffff",
+                                  highlightthickness=0, bd=0)
+            qr_canvas.pack(side=tk.LEFT, padx=(0, 24))
+
+            def draw_qr_corner(x, y, s):
+                qr_canvas.create_rectangle(x, y, x + s, y + s, fill="#000000", outline="")
+                qr_canvas.create_rectangle(x + 4, y + 4, x + s - 4, y + s - 4, fill="#ffffff", outline="")
+                qr_canvas.create_rectangle(x + 8, y + 8, x + s - 8, y + s - 8, fill="#000000", outline="")
+
+            draw_qr_corner(8, 8, 30)
+            draw_qr_corner(72, 8, 30)
+            draw_qr_corner(8, 72, 30)
+
+            qr_rnd = random.Random(42)
+            for gx in range(3, 19):
+                for gy in range(3, 19):
+                    if (gx < 8 and gy < 8) or (gx > 13 and gy < 8) or (gx < 8 and gy > 13):
+                        continue
+                    if qr_rnd.random() > 0.48:
+                        qr_canvas.create_rectangle(gx * 5 + 8, gy * 5 + 8, gx * 5 + 12, gy * 5 + 12, fill="#000000", outline="")
+
+            info_frame = tk.Frame(bot_frame, bg="#0078d7")
+            info_frame.pack(side=tk.LEFT)
+
+            uname = getattr(self.user_info, "username", "User")
+            support_text = (
+                "Para obtener más información sobre este problema y posibles soluciones, visita\n"
+                "https://windows.com/stopcode\n\n"
+                "Si llamas a una persona de soporte técnico, dales esta información:\n"
+                "Código de detención: CRITICAL_PROCESS_DIED\n"
+                f"Lo que tuvo error: bocchi_the_rock_{uname}.sys"
+            )
+            tk.Label(info_frame, text=support_text, font=("Segoe UI", 11),
+                     fg="#ffffff", bg="#0078d7", justify=tk.LEFT).pack(anchor="w")
+
+            steps = [(0, 400), (14, 500), (32, 600), (58, 700), (79, 600), (100, 800)]
+            def run_step(idx=0):
+                if not bsod.winfo_exists():
+                    return
+                if idx < len(steps):
+                    val, delay = steps[idx]
+                    pct_var.set(f"{val}% completado")
+                    bsod.after(delay, lambda: run_step(idx + 1))
+                else:
+                    bsod.after(900, dismiss_bsod)
+
+            dismissed = [False]
+            def dismiss_bsod(e=None):
+                if dismissed[0]:
+                    return
+                dismissed[0] = True
+                try:
+                    bsod.destroy()
+                except Exception:
+                    pass
+                self.show_speech(f"¡JAJAJAJA! ¿¡Te asustaste, {uname}!? (ﾉ´ヮ`)ﾉ*: ･ﾟ\n¡Era bromita de Bocchi, tu Windows está vivo! 7w7")
+
+            bsod.bind("<Key>", dismiss_bsod)
+            bsod.bind("<Button-1>", dismiss_bsod)
+            bsod.bind("<Button-2>", dismiss_bsod)
+            bsod.bind("<Button-3>", dismiss_bsod)
+            bsod.bind("<Escape>", dismiss_bsod)
+
+            bsod.after(7500, dismiss_bsod)
+            run_step(0)
+
+        except Exception as exc:
+            print(f"Error en troll_bluescreen: {exc}")
+            open_url_guaranteed("https://geekprank.com/blue-screen-death/")
             self.show_speech("¡PANTALLAZO AZUL! D:\nSe murio Windows alv :v")
-        except Exception:
-            pass
 
     def troll_hackertyper(self):
         try:
-            webbrowser.open("https://hackertyper.net/")
+            open_url_guaranteed("https://hackertyper.net/")
             self.show_speech("¡HACKEANDO LA NASA...! 7w7\n[STATUS: ACCESS GRANTED]")
         except Exception:
             pass
@@ -3597,24 +4223,17 @@ class Shimeji:
         ]
         url, speech = random.choice(links)
         try:
-            webbrowser.open(url)
+            open_url_guaranteed(url)
             self.show_speech(speech)
         except Exception:
             pass
 
-    def troll_shake_window(self):
-        if not WIN32_AVAILABLE:
-            return
-        hwnd = win32gui.GetForegroundWindow()
-        if not hwnd or hwnd == self._own_hwnd():
-            hwnd = WindowDragger.pick_random_window(exclude=self._own_hwnd())
-        if not hwnd:
-            return
+    def _do_window_shake(self, hwnd):
         try:
             rect = win32gui.GetWindowRect(hwnd)
             x, y, w, h = rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
             def do_shake(step=0):
-                if step < 8:
+                if step < 9:
                     dx = random.randint(-45, 45)
                     dy = random.randint(-30, 30)
                     win32gui.MoveWindow(hwnd, x + dx, y + dy, w, h, True)
@@ -3624,30 +4243,56 @@ class Shimeji:
             self.show_speech("¡Terremoto en tus ventanas! (ง'̀-'́)ง")
             do_shake()
         except Exception:
-            pass
+            self._shake_bocchi()
 
-    def troll_move_window(self):
+    def troll_shake_window(self):
         if not WIN32_AVAILABLE:
+            self._shake_bocchi()
             return
         hwnd = win32gui.GetForegroundWindow()
         if not hwnd or hwnd == self._own_hwnd():
             hwnd = WindowDragger.pick_random_window(exclude=self._own_hwnd())
         if not hwnd:
+            self._shake_bocchi()
             return
         try:
+            # Si la ventana está maximizada, Windows ignora MoveWindow; la restauramos primero
+            if win32gui.IsZoomed(hwnd):
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                self.root.after(70, lambda: self._do_window_shake(hwnd))
+            else:
+                self._do_window_shake(hwnd)
+        except Exception:
+            self._shake_bocchi()
+
+    def troll_move_window(self):
+        if not WIN32_AVAILABLE:
+            self._move_bocchi_random()
+            return
+        hwnd = win32gui.GetForegroundWindow()
+        if not hwnd or hwnd == self._own_hwnd():
+            hwnd = WindowDragger.pick_random_window(exclude=self._own_hwnd())
+        if not hwnd:
+            self._move_bocchi_random()
+            return
+        try:
+            # Si está maximizada, restaurar primero para permitir moverla
+            if win32gui.IsZoomed(hwnd):
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
             rect = win32gui.GetWindowRect(hwnd)
-            w = max(200, rect[2] - rect[0])
-            h = max(150, rect[3] - rect[1])
+            w = max(220, rect[2] - rect[0])
+            h = max(160, rect[3] - rect[1])
             title = win32gui.GetWindowText(hwnd)[:20] or "tu ventana"
             nx = random.randint(0, max(0, self.sw - w))
             ny = random.randint(0, max(0, self.sh - h - 60))
             win32gui.MoveWindow(hwnd, nx, ny, w, h, True)
             self.show_speech(f"Movi '{title}' por alla~ 7w7")
         except Exception:
-            pass
+            self._move_bocchi_random()
 
     def troll_move_desktop_icon(self):
         if not WIN32_AVAILABLE or not self.desktop_mover:
+            self._shake_bocchi()
             return
         try:
             icons = self.desktop_mover.get_icon_list()
@@ -3656,15 +4301,17 @@ class Shimeji:
                 self.desktop_mover.move_one_icon(idx)
                 label = name[:18] + ("..." if len(name) > 18 else "")
                 self.show_speech(f"Movi tu icono '{label}'~ [*]")
+            else:
+                self._shake_bocchi()
         except Exception:
-            pass
+            self._shake_bocchi()
 
     def troll_fake_error(self):
         title, msg = self.get_fake_error()
         self.show_speech("Jijiji... 7w7")
         if WIN32_AVAILABLE:
             threading.Thread(
-                target=lambda: win32gui.MessageBox(0, msg, title, win32con.MB_ICONERROR | win32con.MB_TOPMOST),
+                target=lambda: win32gui.MessageBox(0, msg, title, win32con.MB_ICONERROR | win32con.MB_TOPMOST | win32con.MB_SETFOREGROUND),
                 daemon=True
             ).start()
         else:
@@ -3708,6 +4355,12 @@ class Shimeji:
             self.show_speech("Me falta pywin32 para hacer eso :v")
             return
         ok = self.win_dragger.minimize_foreground(exclude=self._own_hwnd())
+        if not ok and getattr(self, "chat_win", None) and getattr(self.chat_win, "win", None) and tk.Toplevel.winfo_exists(self.chat_win.win):
+            try:
+                self.chat_win.win.iconify()
+                ok = True
+            except Exception:
+                pass
         self.show_speech("¡A mimir esa ventana! (-.-)zzZ" if ok else "No hay ventana que minimizar ._.")
 
     def _wait_click_then(self, action_fn, hint_msg):
