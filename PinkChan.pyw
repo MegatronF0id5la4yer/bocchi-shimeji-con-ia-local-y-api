@@ -1976,6 +1976,31 @@ class JarvisAssistant:
                 return True, "[>] Ventana sacudida exitosamente.", "¡Terremoto! 7w7"
             return True, "[!] Bocchi no está disponible.", ""
 
+        # 17. Comando para ver o cambiar modelo de IA local de charla
+        if raw.lower() in ("/modelo", "/model", "/ia", "/ialocal"):
+            curr_m = "Qwen/Qwen2.5-0.5B-Instruct"
+            if self.shimeji and getattr(self.shimeji, "chat_win", None) and hasattr(self.shimeji.chat_win, "local_model_var"):
+                curr_m = self.shimeji.chat_win.local_model_var.get()
+            msg = (
+                f"[*] Modelo local configurado: {curr_m}\n"
+                f"Especializado en SOLO CHARLA (sin código de programación).\n"
+                f"Uso: /modelo <nombre_modelo_hf>\n"
+                f"Recomendados:\n"
+                f"  - Qwen/Qwen2.5-0.5B-Instruct (Rápido, ideal para platicar en español)\n"
+                f"  - Qwen/Qwen2.5-1.5B-Instruct (Mayor conocimiento y charla profunda)\n"
+                f"  - HuggingFaceTB/SmolLM2-360M-Instruct (Ultra liviano)"
+            )
+            return True, msg, "Aqui estan los modelos :3"
+
+        if raw.startswith(("/modelo ", "/model ", "/ialocal ")):
+            parts = raw.split(maxsplit=1)
+            new_m = parts[1].strip()
+            if self.shimeji and getattr(self.shimeji, "chat_win", None):
+                self.shimeji.chat_win.local_model_var.set(new_m)
+                self.shimeji.chat_win._on_local_model_change()
+                return True, f"[+] Modelo local cambiado a: {new_m}\nConfigurado exclusivamente para hablar.", "Modelo actualizado UwU"
+            return True, f"[+] Modelo local: {new_m}", ""
+
         return False, "", ""
 
 def create_round_rect(canvas, x1, y1, x2, y2, radius=10, **kwargs):
@@ -2082,6 +2107,18 @@ class ChatWindow:
             f"exigiendole 50 pesos para esquites."
         )
 
+    def get_local_chat_system_prompt(self):
+        return (
+            f"{self.BASE_SYSTEM_PROMPT}\n\n"
+            f"[REGLAS DE CONVERSACIÓN DE BOCCHI (SOLO CHARLA - CERO PROGRAMACIÓN)]:\n"
+            f"- Usuario actual: {self.user_info.username}\n"
+            f"- Tu único propósito aquí es conversar, opinar, bromear, contar cosas y hacer compañía como una buena amiga.\n"
+            f"- Responde SIEMPRE en español manteniendo tu personalidad única (tímida, algo dramática o cínica, pero leal y chistosa).\n"
+            f"- OJO ESTRICTO: Esta es EXCLUSIVAMENTE una charla casual entre personas. NUNCA escribas código de programación, NUNCA hagas scripts, NUNCA uses bloques de código con comillas invertidas ni sintaxis técnica.\n"
+            f"- Si el usuario te platica o pregunta cosas de la vida, anime, juegos, memes o comida, conversa de forma divertida y natural.\n"
+            f"- Mantén tus respuestas conversacionales, concisas y directas (máximo 2 a 3 oraciones cortas)."
+        )
+
     def _build_window(self):
         self.win = tk.Toplevel(self.parent)
         self.win.title("[CHAT] Bocchi Chatbot IA")
@@ -2159,7 +2196,7 @@ class ChatWindow:
         mode_frame = tk.Frame(self.win, bg=self.theme.bg, pady=4, padx=12)
         mode_frame.pack(fill=tk.X)
 
-        self.rb_local = tk.Radiobutton(mode_frame, text="[-] Local (SmolLM)", variable=self.mode_var, value="local",
+        self.rb_local = tk.Radiobutton(mode_frame, text="[-] Local (Qwen Charla)", variable=self.mode_var, value="local",
                                        bg=self.theme.bg, fg=self.theme.text, selectcolor=self.theme.surface,
                                        activebackground=self.theme.bg, activeforeground=self.theme.accent,
                                        font=(self.theme.font_family, self.theme.font_size), command=self._toggle_mode)
@@ -2171,7 +2208,7 @@ class ChatWindow:
                                      font=(self.theme.font_family, self.theme.font_size), command=self._toggle_mode)
         self.rb_api.pack(side=tk.LEFT)
 
-        # API Key Row
+        # API Key Row (para modo API)
         self.kf = tk.Frame(self.win, bg=self.theme.surface, padx=10, pady=5,
                            highlightbackground=self.theme.border, highlightthickness=1)
 
@@ -2191,6 +2228,29 @@ class ChatWindow:
                                       activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, cursor="hand2")
         self.show_key_btn.pack(side=tk.LEFT, padx=(0, 4))
 
+        # Local Model Row (para modo local sin API)
+        self.local_frame = tk.Frame(self.win, bg=self.theme.surface, padx=10, pady=5,
+                                    highlightbackground=self.theme.border, highlightthickness=1)
+        self.local_lbl = tk.Label(self.local_frame, text="[IA] Modelo:", bg=self.theme.surface, fg=self.theme.text_dim,
+                                  font=(self.theme.font_family, self.theme.font_size))
+        self.local_lbl.pack(side=tk.LEFT)
+
+        saved_local_model = self.config.get("local_model", "Qwen/Qwen2.5-0.5B-Instruct")
+        self.local_model_var = tk.StringVar(value=saved_local_model)
+        self.model_combo = ttk.Combobox(
+            self.local_frame,
+            textvariable=self.local_model_var,
+            values=[
+                "Qwen/Qwen2.5-0.5B-Instruct",
+                "Qwen/Qwen2.5-1.5B-Instruct",
+                "HuggingFaceTB/SmolLM2-360M-Instruct"
+            ],
+            font=(self.theme.font_family, self.theme.font_size - 1)
+        )
+        self.model_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
+        self.model_combo.bind("<<ComboboxSelected>>", self._on_local_model_change)
+        self.model_combo.bind("<Return>", self._on_local_model_change)
+
         # Test IA Button
         self.verify_btn = tk.Button(self.win, text="[?] Probar Conexion / Estado de la IA", command=self.verify_connection,
                                     bg=self.theme.surface, fg=self.theme.accent,
@@ -2198,6 +2258,12 @@ class ChatWindow:
                                     activebackground=self.theme.surface_variant, bd=0, relief=tk.FLAT, pady=4, cursor="hand2",
                                     highlightbackground=self.theme.border, highlightthickness=1)
         self.verify_btn.pack(fill=tk.X, padx=12, pady=(2, 4))
+
+        # Empaquetar la fila correspondiente al modo actual
+        if saved_mode == "api":
+            self.kf.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
+        else:
+            self.local_frame.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
 
         # Chat display area con Canvas para soportar fondos (PNG/JPG/GIF animado)
         self.chat_container = tk.Frame(self.win, bg=self.theme.surface,
@@ -2669,6 +2735,14 @@ class ChatWindow:
                              highlightbackground=self.theme.border)
         if hasattr(self, "api_entry") and self.api_entry:
             self.api_entry.configure(bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg)
+        if hasattr(self, "local_frame") and self.local_frame:
+            self.local_frame.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
+        if hasattr(self, "local_lbl") and self.local_lbl:
+            self.local_lbl.configure(bg=self.theme.surface, fg=self.theme.text_dim, font=(self.theme.font_family, self.theme.font_size))
+        if hasattr(self, "rb_local") and self.rb_local:
+            self.rb_local.configure(bg=self.theme.bg, fg=self.theme.text, selectcolor=self.theme.surface, font=(self.theme.font_family, self.theme.font_size))
+        if hasattr(self, "rb_api") and self.rb_api:
+            self.rb_api.configure(bg=self.theme.bg, fg=self.theme.text, selectcolor=self.theme.surface, font=(self.theme.font_family, self.theme.font_size))
         self.send_btn.configure(bg=self.theme.accent, fg=self.theme.accent_text,
                                 font=(self.theme.font_family, self.theme.font_size, "bold"))
         self.verify_btn.configure(bg=self.theme.surface, fg=self.theme.accent,
@@ -2722,14 +2796,28 @@ class ChatWindow:
         self.entry.insert(0, text)
         self.send_message()
 
+    def _on_local_model_change(self, event=None):
+        m = self.local_model_var.get().strip() if hasattr(self, "local_model_var") else ""
+        if " " in m:
+            m = m.split()[0].strip()
+        if m:
+            self.config["local_model"] = m
+            save_config(self.config)
+            if getattr(self, "_current_loaded_model", None) != m:
+                self.local_pipe = None
+
     def _toggle_mode(self):
         mode = self.mode_var.get()
         self.config["chat_mode"] = mode
         save_config(self.config)
         if mode == "api":
+            if hasattr(self, "local_frame"):
+                self.local_frame.pack_forget()
             self.kf.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
         else:
             self.kf.pack_forget()
+            if hasattr(self, "local_frame"):
+                self.local_frame.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
 
     def verify_connection(self):
         self.verify_btn.configure(state=tk.DISABLED, text="[..] Verificando...")
@@ -2763,10 +2851,14 @@ class ChatWindow:
         else:
             try:
                 pipeline = importlib.import_module("transformers").pipeline
-                self.parent.after(0, lambda: self._append_system("[..] Verificando modelo local SmolLM..."))
-                if not self.local_pipe:
-                    self.local_pipe = pipeline("text-generation", model="HuggingFaceTB/SmolLM2-135M-Instruct")
-                self.parent.after(0, lambda: self._append_system("[+] Modelo local SmolLM listo para usarse offline!"))
+                model_id = self.local_model_var.get().strip() if hasattr(self, "local_model_var") else "Qwen/Qwen2.5-0.5B-Instruct"
+                if " " in model_id:
+                    model_id = model_id.split()[0].strip()
+                self.parent.after(0, lambda m=model_id: self._append_system(f"[..] Verificando modelo local de charla: {m}..."))
+                if not self.local_pipe or getattr(self, "_current_loaded_model", None) != model_id:
+                    self.local_pipe = pipeline("text-generation", model=model_id, low_cpu_mem_usage=True)
+                    self._current_loaded_model = model_id
+                self.parent.after(0, lambda m=model_id: self._append_system(f"[+] Modelo local de charla ({m}) cargado y listo offline!\n(Configurado exclusivamente para hablar, sin código)"))
             except Exception as e:
                 self._show_error(f"Error al cargar modelo local: {e}")
 
@@ -2799,17 +2891,40 @@ class ChatWindow:
     def _call_local(self, text):
         try:
             pipeline = importlib.import_module("transformers").pipeline
-            if not self.local_pipe:
-                self.parent.after(0, lambda: self._append_system("[..] Cargando SmolLM2 en memoria..."))
-                self.local_pipe = pipeline("text-generation", model="HuggingFaceTB/SmolLM2-135M-Instruct")
+            model_id = self.local_model_var.get().strip() if hasattr(self, "local_model_var") else "Qwen/Qwen2.5-0.5B-Instruct"
+            if " " in model_id:
+                model_id = model_id.split()[0].strip()
 
-            sys_prompt = self.get_system_prompt()
+            if not self.local_pipe or getattr(self, "_current_loaded_model", None) != model_id:
+                self.parent.after(0, lambda m=model_id: self._append_system(f"[..] Cargando modelo local de charla ({m})...\n(La primera vez tomará unos momentos mientras carga)"))
+                self.local_pipe = pipeline("text-generation", model=model_id, low_cpu_mem_usage=True)
+                self._current_loaded_model = model_id
+
+            sys_prompt = self.get_local_chat_system_prompt()
             msgs = [
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": text}
             ]
-            out = self.local_pipe(msgs, max_new_tokens=70)
-            reply = out[0]['generated_text'][-1]['content']
+            out = self.local_pipe(
+                msgs,
+                max_new_tokens=140,
+                do_sample=True,
+                temperature=0.7,
+                top_p=0.9,
+                repetition_penalty=1.12,
+                clean_up_tokenization_spaces=False
+            )
+            raw_reply = out[0]['generated_text'][-1]['content'].strip()
+
+            # FILTRO ESTRICTO: Solo charla, nada de coding
+            # Eliminar bloques de código markdown si la IA intentara generar alguno
+            clean_reply = re.sub(r'```[\s\S]*?```', '', raw_reply).strip()
+            # Eliminar líneas que parezcan código suelto
+            lines = [l for l in clean_reply.splitlines() if not l.strip().startswith(('import ', 'from ', 'def ', 'class ', '#include', 'print('))]
+            reply = "\n".join(lines).strip()
+            if not reply:
+                reply = raw_reply if raw_reply else "Jeje... me quedé pensando qué decirte UwU"
+
             self.parent.after(0, self._show_reply, reply)
         except Exception as e:
             self._show_error(f"Error corriendo modelo local: {e}")

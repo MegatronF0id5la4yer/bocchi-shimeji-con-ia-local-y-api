@@ -40,8 +40,8 @@ Una mascota de escritorio interactiva inspirada en Bocchi-Chan (Hitori Gotoh). P
   - Ventana de **Personalización de Apariencia** en tiempo real: selector de colores (acento, superficie, fondo), control deslizante de transparencia (40% a 100%), selector de wallpaper para el chat, familia y tamaño de fuentes tipográficas.
   - Sin colores morados estridentes fijos y estética profesional con iconos de texto limpios.
 - 🤖 **Chatbot IA con dos modos:**
-  - **Local:** Utiliza `HuggingFaceTB/SmolLM2-135M-Instruct` mediante Hugging Face Transformers.
-  - **API:** Utiliza Google Gemini mediante API Key.
+  - **Local (Offline):** Utiliza **`Qwen/Qwen2.5-0.5B-Instruct`** (modelo ligero de ~0.5B parámetros de última generación) mediante Hugging Face Transformers. Especializado **exclusivamente en charla y conversación casual** (con filtro estricto anti-código, sin tecnicismos), fluido en español, con selector de modelos integrado en la interfaz (`Qwen 0.5B`, `Qwen 1.5B`, `SmolLM2-360M`) y atajo `/modelo <nombre>`.
+  - **API:** Utiliza Google Gemini mediante API Key para capacidades completas de JARVIS y control extendido.
 - 🌐 **Doxx / Panel de Información Real:**
   - Consulta tu usuario de Windows, nombre de equipo, IP pública real, IP local, proveedor de internet y geolocalización aproximada.
 
