@@ -1,0 +1,44 @@
+╔══════════════════════════════════════════════════════════╗
+║          🌸  PINK CHAN SHIMEJI  🌸                       ║
+║       Mascota de escritorio - Desktop Mascot              ║
+╚══════════════════════════════════════════════════════════╝
+
+🖥️  CÓMO EJECUTAR EN WINDOWS:
+═══════════════════════════════
+1. Instala Python 3.10+ desde https://python.org
+   ⚠️ Marca "Add to PATH" al instalar
+
+2. Instala Pillow (una sola vez):
+   Abre CMD y escribe:  pip install pillow
+
+3. Ejecuta:
+   - Doble click en: iniciar.bat
+   ó
+   - Doble click en: PinkChan.pyw
+   (Sin ventana de consola, como un exe real)
+
+🍎  CÓMO EJECUTAR EN MAC/LINUX:
+════════════════════════════════
+   python3 PinkChan.pyw
+
+🎮  CONTROLES:
+══════════════
+   🖱️  Arrastrar        → Mover a Pink Chan
+   🖱️  Click derecho    → Menú de acciones
+   🖱️  Doble click      → Pink Chan habla
+   
+📦  ACCIONES (menú derecho):
+════════════════════════════
+   🎸 Tocar guitarra
+   💗 Modo blob
+   👻 Modo fantasma
+   📦 Truco de caja
+   😴 Tumbarse
+   🧎 Arrodillarse
+   🚶 Caminar de espaldas
+   💬 Hablar
+
+🌸  Pink Chan también hace cosas sola automáticamente!
+    Camina, se sienta, toca guitarra, etc.
+
+══════════════════════════════════════════════════════════

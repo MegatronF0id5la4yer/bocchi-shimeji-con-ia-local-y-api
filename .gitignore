@@ -1,0 +1,19 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller build outputs and executables (>100MB blocked by GitHub)
+build/
+dist/
+*.exe
+*.msix
+*.zip
+
+# Local configuration and credentials
+config.json
+
+# Temporary files
+files/
+*.tmp
+*.log
