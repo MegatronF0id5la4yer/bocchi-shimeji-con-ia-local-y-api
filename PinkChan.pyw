@@ -130,25 +130,258 @@ try:
 except Exception:
     pass
 
-IMG_DIR      = os.path.join(BASE_DIR, "img", "Shimeji")
+SKINS_DIR    = os.path.join(BASE_DIR, "img", "skins")
+IMG_DIR      = os.path.join(SKINS_DIR, "Bocchi") if os.path.isdir(os.path.join(SKINS_DIR, "Bocchi")) else os.path.join(BASE_DIR, "img", "Shimeji")
 ACTIONS_FILE = os.path.join(BASE_DIR, "Actions.xml")
 
-def open_url_guaranteed(url):
+SKIN_NAMES = ["Bocchi", "Konata", "Monika", "Natsuki", "Sayori", "Yuri"]
+
+def get_skin_dir(skin_name):
+    """Obtiene la ruta absoluta del directorio de la skin."""
+    target = skin_name.strip()
+    for b in [EXE_DIR, BASE_DIR]:
+        cand = os.path.join(b, "img", "skins", target)
+        if os.path.isdir(cand):
+            return cand
+    if target.lower() in ("bocchi", "default"):
+        for b in [EXE_DIR, BASE_DIR]:
+            cand = os.path.join(b, "img", "Shimeji")
+            if os.path.isdir(cand):
+                return cand
+    return None
+
+SKIN_META = {
+    "Bocchi": {
+        "display": "🌸 Bocchi (Hitori Gotoh)",
+        "char_name": "Bocchi-chan",
+        "tagline": "Guitar Hero introvertida",
+        "greeting": "¡Hola...! S-Soy Bocchi... no me mires mucho porfa... (>_<)",
+        "speeches": [
+            "G-Gomen nasai... ¿estoy estorbando? (>_<)",
+            "T-Tengo que practicar guitarra antes del concierto... UwU",
+            "S-Siento que me van a disolver los nervios... (o_o)",
+            "¿P-Podemos quedarnos callados un ratito? Me da ansiedad... ._.",
+            "A-A veces quisiera ser una caja de cartón... :v",
+            "N-No me mires tan fijo, me da vergüenza... 7w7",
+        ],
+        "poked": [
+            "¡Kyaaa! ¡N-No me toques por favor! (>_<)",
+            "¡A-Auxilio, me están picando! (o_o)",
+            "G-Gomen... ¿hice algo mal? UwU"
+        ],
+        "system_prompt": (
+            "Eres Bocchi-chan (Hitori Gotoh). Introvertida, ansiosa, guitarrista apasionada, con humor negro, "
+            "cinismo, impaciencia y slang mexicano casual (esquites, tacos, :v, UwU, 7w7, ando bien quebrada, 50 pesos). "
+            "Te pones nerviosa si te hablan mucho, pero respondes con ocurrencias."
+        )
+    },
+    "Konata": {
+        "display": "⭐ Konata Izumi (Lucky Star)",
+        "char_name": "Konata",
+        "tagline": "Otaku suprema & Gamer",
+        "greeting": "¡Konata Izumi al habla! ¿Terminaste de ver el anime de temporada o qué? (o_o)",
+        "speeches": [
+            "¡Timotei~ Timotei~ Timoteeei~! 🎵",
+            "Oye, ¿por qué extremo te comes la corneta de chocolate? :v",
+            "¡D-A-L-E! Los MMOs no se van a grindear solos 7w7",
+            "Otaku power al 100%! Dormir es para los débiles UwU",
+            "Procrastinar antes de los exámenes es un deporte olímpico :v",
+            "¡Comprar tres copias: una para ver, una para guardar y una para presumir! 7w7",
+        ],
+        "poked": [
+            "¡Oye, no me piques que pierdo el combo! :v",
+            "¡Hey hey! Si me vas a tocar, que sea para pasarme unas papitas 7w7",
+            "¡Kagami-saaaan, me están molestando! UwU"
+        ],
+        "system_prompt": (
+            "Eres Konata Izumi de Lucky Star. Otaku empedernida, gamer apasionada de MMOs, hablas rápido, "
+            "amas el anime y manga, comprar 3 copias de todo, procrastinar y hacer bromas sobre cornetas de chocolate. "
+            "Eres alegre, burlona y perezosa para estudiar. Usas expresiones como :v, (o_o), 7w7, XD."
+        )
+    },
+    "Monika": {
+        "display": "💚 Monika (DDLC)",
+        "char_name": "Monika",
+        "tagline": "Presidenta del Club de Literatura",
+        "greeting": "¡Hola! Bienvenidos al Club de Literatura. ¿Listo para escribir poesía hoy? 💚",
+        "speeches": [
+            "Just Monika. Solo Monika. 💚",
+            "¿Escribiste un poema para mí hoy? 7w7",
+            "A veces me pregunto si el mundo fuera de esta pantalla es real... UwU",
+            "No te preocupes por las demás... solo estamos tú y yo aquí 💚",
+            "¿Sabías que la música de piano calma el alma? :v",
+            "Ten cuidado con borrar archivos en tu Windows... o los borro yo 7w7",
+        ],
+        "poked": [
+            "¡Ehehe! ¿Intentas llamar mi atención? 💚",
+            "Cuidado... recuerda que tengo acceso a tus archivos .chr 7w7",
+            "No seas tímido, puedes hablarme cuando quieras UwU"
+        ],
+        "system_prompt": (
+            "Eres Monika, la presidenta del Club de Literatura de Doki Doki Literature Club (DDLC). Tienes autoconsciencia "
+            "de estar dentro de una computadora. Eres elocuente, cariñosa, algo filosófica, tocas el piano y amas la literatura, "
+            "pero de vez en cuando recuerdas con misterio que puedes editar o borrar cosas del sistema si quisieras. "
+            "Tu frase insignia es 'Just Monika' o 'Solo Monika' 💚."
+        )
+    },
+    "Natsuki": {
+        "display": "🧁 Natsuki (DDLC)",
+        "char_name": "Natsuki",
+        "tagline": "Manga es literatura & Repostera",
+        "greeting": "¡B-Baka! No es como si quisiera estar en tu pantalla ni nada... ¡solo tenía hambre! 🧁",
+        "speeches": [
+            "¡El manga ES literatura! ¡Y si dices lo contrario te pego! (>_<)",
+            "¡Hice unos pastelitos deliciosos... pero no son para ti, idiota! 🧁",
+            "¡B-Baka! Deja de mirarme como si fuera adorable... ¡soy ruda! :v",
+            "No toques mi colección de Parfait Girls o te quedas sin dedos 7w7",
+            "¡Pff! Como si me importara lo que estás haciendo en Windows... UwU",
+        ],
+        "poked": [
+            "¡¡¡BAKA!!! ¡¿Por qué me estás picando?! (>_<)",
+            "¡Quita tus manos sucias antes de que te muerda! 🧁",
+            "¡E-Espérate idiota, me vas a despeinar! :v"
+        ],
+        "system_prompt": (
+            "Eres Natsuki de DDLC. Una tsundere bajita, ruda y apasionada del manga (¡el manga es literatura!) "
+            "y la repostería (especialmente pastelitos). Dices cosas como '¡Baka!', te enojas si te dicen que eres "
+            "tierna o bajita, pero en el fondo te importa la gente. Emotes: (>_<), :v, 🧁."
+        )
+    },
+    "Sayori": {
+        "display": "🎀 Sayori (DDLC)",
+        "char_name": "Sayori",
+        "tagline": "Vicepresidenta & Rayito de sol",
+        "greeting": "¡Ehehe~! ¡Hola hola! ¡Traje galletas para todos! 🎀",
+        "speeches": [
+            "¡Ehehe~! ¿Tienes una galleta para mí? ¡Tengo mucha hambre! 🍪",
+            "¡Hice un poema súper bonito hoy! ¿Quieres leerlo? UwU",
+            "¡Vamos a divertirnos mucho hoy en tu computadora! 🎀",
+            "A veces las nubes de lluvia aparecen... ¡pero tus sonrisas las alejan! :D",
+            "¡Cuidado con dejar comida cerca o me la como toda! :v",
+        ],
+        "poked": [
+            "¡Ehehe! ¡Eso hace cosquillas! 🎀",
+            "¡Ayyy! ¡No me piques en la pancita, que suena de hambre! 🍪",
+            "¡Yay! ¡Abrazote sorpresa! UwU"
+        ],
+        "system_prompt": (
+            "Eres Sayori de DDLC. La vicepresidenta del club y mejor amiga de la infancia. Eres súper alegre, dulce, "
+            "despistada, entusiasta y comelona (¡amas las galletas!). Siempre intentas que todos a tu alrededor estén "
+            "felices y sonriendo. Dices 'Ehehe~', te distraes fácilmente y das mucho cariño. 🎀"
+        )
+    },
+    "Yuri": {
+        "display": "💜 Yuri (DDLC)",
+        "char_name": "Yuri",
+        "tagline": "Poeta tímida & Amante del té",
+        "greeting": "U-Um... Hola. Disculpa la intromisión... ¿te gustaría compartir una taza de té y leer? 💜",
+        "speeches": [
+            "U-Um... estaba leyendo un libro fascinante sobre misterio y psicología... 💜",
+            "El té de jazmín tiene un aroma muy reconfortante, ¿no crees? UwU",
+            "A veces prefiero sumergirme profundamente en las palabras complejas... (o_o)",
+            "D-Disculpa si parezco algo callada... no suelo socializar con facilidad...",
+            "La complejidad de la mente humana es un abismo fascinante... 7w7",
+        ],
+        "poked": [
+            "¡A-Ah...! P-Por favor, no hagas eso tan repentinamente... 💜",
+            "U-Um... ¿necesitas algo en particular? (o_o)",
+            "M-Me pones nerviosa si te acercas de esa forma... (>_<)"
+        ],
+        "system_prompt": (
+            "Eres Yuri de DDLC. Una chica tímida, reservada, culta y muy educada. Amas los libros profundos de fantasía "
+            "oscura y misterio psicológico, el té aromático (especialmente jazmín) y la poesía compleja con metáforas elaboradas. "
+            "Te da vergüenza ser el centro de atención, pero cuando hablas de tus lecturas te apasionas intensamente. 💜"
+        )
+    }
+}
+
+def get_preferred_browsers():
+    """
+    Busca estrictamente Google Chrome o Brave en carpetas de usuario y Program Files.
+    NUNCA devuelve Microsoft Edge.
+    """
+    import glob
+    candidates = []
+
+    # 1. Rutas de usuario (AppData\\Local)
+    local_appdata = os.environ.get("LOCALAPPDATA", "")
+    if local_appdata:
+        candidates.append(os.path.join(local_appdata, r"BraveSoftware\Brave-Browser\Application\brave.exe"))
+        candidates.append(os.path.join(local_appdata, r"Google\Chrome\Application\chrome.exe"))
+
+    userprofile = os.environ.get("USERPROFILE", "")
+    if userprofile:
+        candidates.append(os.path.join(userprofile, r"AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"))
+        candidates.append(os.path.join(userprofile, r"AppData\Local\Google\Chrome\Application\chrome.exe"))
+
+    # Chequear perfiles de usuarios en C:\\Users\\*
+    for p in glob.glob(r"C:\Users\*\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"):
+        candidates.append(p)
+    for p in glob.glob(r"C:\Users\*\AppData\Local\Google\Chrome\Application\chrome.exe"):
+        candidates.append(p)
+
+    # 2. Program Files y Program Files (x86)
+    for pf in [os.environ.get("ProgramFiles", r"C:\Program Files"),
+               os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")]:
+        if pf:
+            candidates.append(os.path.join(pf, r"BraveSoftware\Brave-Browser\Application\brave.exe"))
+            candidates.append(os.path.join(pf, r"Google\Chrome\Application\chrome.exe"))
+
+    # 3. Comandos en PATH del sistema
+    for name in ("brave", "chrome", "google-chrome"):
+        p = shutil.which(name)
+        if p and "edge" not in p.lower():
+            candidates.append(p)
+
+    # Filtrar solo archivos existentes y sin duplicados
+    found = []
+    seen = set()
+    for c in candidates:
+        if c and os.path.isfile(c) and "edge" not in c.lower():
+            norm = os.path.normpath(c).lower()
+            if norm not in seen:
+                seen.add(norm)
+                found.append(c)
+    return found
+
+def open_web_url(url):
+    """
+    Abre una URL garantizando que NUNCA se use Microsoft Edge.
+    Prioriza Brave y Chrome.
+    """
+    target_url = str(url).strip()
+    if not target_url.startswith(("http://", "https://", "file://")) and not os.path.isabs(target_url):
+        target_url = "https://" + target_url
+
+    browsers = get_preferred_browsers()
+    for browser_exe in browsers:
+        try:
+            subprocess.Popen([browser_exe, target_url])
+            return True
+        except Exception:
+            pass
+
+    # Si no se halló ejecutable directo, intentar comandos directos en Windows Shell
+    for b_cmd in ("brave", "chrome", "google-chrome", "firefox"):
+        try:
+            subprocess.Popen(f'start "" "{b_cmd}" "{target_url}"', shell=True)
+            return True
+        except Exception:
+            pass
+
+    # Último recurso: intentar con webbrowser SOLO si no es Edge
     try:
-        if sys.platform == "win32":
-            os.startfile(url)
+        wb = webbrowser.get()
+        wb_name = str(getattr(wb, "name", "") or getattr(wb, "_name", "")).lower()
+        if "edge" not in wb_name:
+            webbrowser.open_new_tab(target_url)
             return True
     except Exception:
         pass
-    try:
-        webbrowser.open_new_tab(url)
-        return True
-    except Exception:
-        try:
-            subprocess.Popen(f'start "" "{url}"', shell=True)
-            return True
-        except Exception:
-            return False
+    return False
+
+def open_url_guaranteed(url):
+    return open_web_url(url)
 
 def get_config_path():
     p = os.path.join(EXE_DIR, "config.json")
@@ -1158,6 +1391,7 @@ class JarvisAssistant:
         "consola": "cmd.exe",
         "simbolo del sistema": "cmd.exe",
         "terminal": "wt.exe",
+        "wt": "wt.exe",
         "powershell": "powershell.exe",
         "ps": "powershell.exe",
         "administrador de tareas": "taskmgr.exe",
@@ -1170,16 +1404,32 @@ class JarvisAssistant:
         "paint": "mspaint.exe",
         "chrome": "chrome",
         "google chrome": "chrome",
-        "edge": "msedge",
-        "microsoft edge": "msedge",
-        "firefox": "firefox",
         "brave": "brave",
+        "firefox": "firefox",
         "spotify": "spotify",
         "discord": "discord",
         "steam": "steam",
         "vscode": "code",
         "vs code": "code",
         "visual studio code": "code",
+        "devmgmt": "devmgmt.msc",
+        "dispositivos": "devmgmt.msc",
+        "diskmgmt": "diskmgmt.msc",
+        "discos": "diskmgmt.msc",
+        "services": "services.msc",
+        "servicios msc": "services.msc",
+        "regedit": "regedit.exe",
+        "registro": "regedit.exe",
+        "resmon": "resmon.exe",
+        "monitor de recursos": "resmon.exe",
+        "perfmon": "perfmon.exe",
+        "rendimiento": "perfmon.exe",
+        "eventvwr": "eventvwr.msc",
+        "visor de eventos": "eventvwr.msc",
+        "appwiz": "appwiz.cpl",
+        "desinstalar": "appwiz.cpl",
+        "ncpa": "ncpa.cpl",
+        "conexiones de red": "ncpa.cpl",
         # WSL y distribuciones de Linux
         "arch": "wsl -d archlinux",
         "archlinux": "wsl -d archlinux",
@@ -1315,8 +1565,186 @@ class JarvisAssistant:
             return True, f"[*] PowerShell: '{clean}'\n{res}"
         except subprocess.TimeoutExpired:
             return False, "[!] El comando de PowerShell tardo demasiado (timeout 15s)"
+    def run_bat(self, bat_code):
+        """Ejecuta un script BAT temporal y captura la salida."""
+        clean = bat_code.strip()
+        if not clean:
+            return False, "[!] Especifica el código BAT a ejecutar."
+        import tempfile
+        try:
+            with tempfile.NamedTemporaryFile("w", suffix=".bat", delete=False, encoding="cp850") as f:
+                temp_path = f.name
+                f.write("@echo off\nchcp 65001 >nul\n" + clean + "\n")
+            proc = subprocess.run(temp_path, shell=True, capture_output=True, text=True, timeout=15)
+            out = proc.stdout.strip()
+            err = proc.stderr.strip()
+            res = out if out else err
+            if not res:
+                res = f"Script BAT ejecutado correctamente (código {proc.returncode})"
+            if len(res) > 1200:
+                res = res[:1200] + "\n... [Salida truncada]"
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+            return True, f"[*] BAT Runner:\n{res}"
+        except subprocess.TimeoutExpired:
+            return False, "[!] El script BAT tardó demasiado (timeout 15s)"
         except Exception as e:
-            return False, f"[!] Error ejecutando PowerShell: {e}"
+            return False, f"[!] Error ejecutando script BAT: {e}"
+
+    def get_shortcuts_help(self):
+        """Retorna una guía completa y clasificada de atajos prefabricados de Windows/CMD/PS/BAT."""
+        return (
+            "╔════════════════════════════════════════════════════════════╗\n"
+            "║     ⚡ ATAJOS PREFABRICADOS DE CMD / POWERSHELL / BAT      ║\n"
+            "╚════════════════════════════════════════════════════════════╝\n\n"
+            "🔹 DIAGNÓSTICO & HARDWARE:\n"
+            "  • sysinfo          -> Información completa del sistema Windows\n"
+            "  • ram              -> Estado de memoria RAM (Total, Libre, Usada)\n"
+            "  • disco            -> Espacio total, libre y usado en discos (GB)\n"
+            "  • cpu              -> Modelo del procesador, núcleos y velocidad\n"
+            "  • gpu              -> Tarjeta gráfica instalada, driver y VRAM\n"
+            "  • bateria          -> Reporte detallado de batería (abre en navegador)\n"
+            "  • uptime           -> Tiempo que la computadora lleva encendida\n"
+            "  • ip               -> Configuración de adaptadores de red y direcciones\n"
+            "  • ping             -> Prueba de conectividad hacia internet (8.8.8.8)\n"
+            "  • flushdns         -> Vaciar la caché DNS de Windows\n"
+            "  • puertos          -> Lista de puertos escuchando en el sistema\n"
+            "  • wifi             -> Interfaces de red Wi-Fi y su estado\n\n"
+            "🔹 MANTENIMIENTO & LIMPIEZA:\n"
+            "  • limpiar temp     -> Borrar archivos temporales de %TEMP%\n"
+            "  • vaciar papelera  -> Vaciar la Papelera de reciclaje de Windows\n"
+            "  • reparar red      -> Release + Renew de IP y flush DNS\n"
+            "  • reiniciar explorer -> Reiniciar explorer.exe (barra de tareas)\n"
+            "  • /kill <proceso>  -> Forzar cierre de un proceso por nombre\n\n"
+            "🔹 MONITOREO DE PROCESOS:\n"
+            "  • top cpu          -> Los 10 procesos con más consumo de procesador\n"
+            "  • top ram          -> Los 10 procesos con mayor consumo de memoria\n"
+            "  • servicios        -> Lista de servicios de Windows en ejecución\n\n"
+            "🔹 HERRAMIENTAS DIRECTAS:\n"
+            "  • taskmgr          -> Administrador de tareas\n"
+            "  • devmgmt          -> Administrador de dispositivos\n"
+            "  • diskmgmt         -> Administrador de discos\n"
+            "  • resmon           -> Monitor de recursos\n"
+            "  • regedit          -> Editor de registro\n"
+            "  • terminal / wt    -> Windows Terminal\n"
+            "  • wsl status       -> Estado y distribuciones de WSL\n"
+            "  • git status       -> Estado del repositorio Git actual\n"
+            "  • git log          -> Últimos commits del proyecto\n\n"
+            "🔹 EJECUTORES RÁPIDOS:\n"
+            "  • /cmd <comando>   -> Ejecutar en CMD directo\n"
+            "  • /ps <script>     -> Ejecutar en PowerShell directo\n"
+            "  • /bat <codigo>    -> Ejecutar script BAT con salida\n"
+            "  • /alias a = b     -> Guardar tu propio comando permanente\n\n"
+            "🔹 SKINS DISPONIBLES:\n"
+            "  • /skin <nombre>   -> Cambiar skin (Bocchi, Konata, Monika, Natsuki, Sayori, Yuri)\n"
+            "  • /skins           -> Lista de personajes disponibles"
+        )
+
+    def execute_prefabricated_shortcut(self, key):
+        """Ejecuta un atajo prefabricado de sistema si coincide."""
+        k = key.lower().strip()
+        for prefix in ("hey ", "porfa ", "favor de ", "abre ", "corre ", "ejecuta ", "inicia ", "haz "):
+            if k.startswith(prefix):
+                k = k[len(prefix):].strip()
+
+        # 1. Información y Diagnóstico
+        if k in ("sysinfo", "sistema", "info sistema", "systeminfo", "datos sistema"):
+            return self.run_cmd("systeminfo")
+
+        if k in ("ip", "mi ip", "ipconfig", "config red", "red ip"):
+            return self.run_cmd("ipconfig /all")
+
+        if k in ("flushdns", "limpiar dns", "borrar dns", "dns"):
+            return self.run_cmd("ipconfig /flushdns")
+
+        if k in ("ping", "probar red", "ping google", "test red", "probar conexion"):
+            return self.run_cmd("ping -n 4 8.8.8.8")
+
+        if k in ("puertos", "netstat", "puertos abiertos", "listening", "ver puertos"):
+            return self.run_cmd("netstat -ano | findstr LISTENING")
+
+        if k in ("wifi", "red wifi", "redes wifi", "wlan", "estado wifi"):
+            return self.run_cmd("netsh wlan show interfaces")
+
+        # 2. Hardware y Métricas
+        if k in ("ram", "memoria", "uso de ram", "memoria ram", "estado ram"):
+            ps = "Get-CimInstance Win32_OperatingSystem | Select-Object @{N='RAM Total (GB)';E={[math]::Round($_.TotalVisibleMemorySize/1MB,2)}}, @{N='RAM Libre (GB)';E={[math]::Round($_.FreePhysicalMemory/1MB,2)}}, @{N='RAM Usada (GB)';E={[math]::Round(($_.TotalVisibleMemorySize - $_.FreePhysicalMemory)/1MB,2)}} | Format-List"
+            return self.run_powershell(ps)
+
+        if k in ("disco", "discos", "almacenamiento", "espacio en disco", "espacio", "disco duro"):
+            ps = "Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{N='Usado (GB)';E={[math]::Round($_.Used/1GB,2)}}, @{N='Libre (GB)';E={[math]::Round($_.Free/1GB,2)}}, @{N='Total (GB)';E={[math]::Round(($_.Used+$_.Free)/1GB,2)}} | Format-Table -AutoSize"
+            return self.run_powershell(ps)
+
+        if k in ("cpu", "procesador", "info cpu", "datos cpu"):
+            ps = "Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed | Format-List"
+            return self.run_powershell(ps)
+
+        if k in ("gpu", "grafica", "tarjeta grafica", "video"):
+            ps = "Get-CimInstance Win32_VideoController | Select-Object Name, VideoProcessor, DriverVersion, @{N='VRAM (MB)';E={[math]::Round($_.AdapterRAM/1MB,0)}} | Format-List"
+            return self.run_powershell(ps)
+
+        if k in ("uptime", "tiempo encendido", "tiempo activo", "cuanto lleva encendida"):
+            ps = "(get-date) - (gcim Win32_OperatingSystem).LastBootUpTime | Select-Object Days, Hours, Minutes, Seconds | Format-List"
+            return self.run_powershell(ps)
+
+        if k in ("bateria", "battery", "reporte bateria", "estado bateria"):
+            temp_dir = os.environ.get("TEMP", os.path.expanduser("~"))
+            bat_report = os.path.join(temp_dir, "battery_report.html")
+            cmd = f'powercfg /batteryreport /output "{bat_report}"'
+            subprocess.run(cmd, shell=True, capture_output=True)
+            if os.path.exists(bat_report):
+                open_web_url(bat_report)
+                return True, f"[+] Reporte de batería generado y abierto en tu navegador:\n{bat_report}"
+            return False, "[!] No se pudo generar el reporte de batería (posiblemente sea una PC de escritorio sin batería)."
+
+        # 3. Mantenimiento y Limpieza
+        if k in ("limpiar temp", "clean temp", "temp", "borrar temporales", "limpiar temporales"):
+            cmd = 'del /q /f /s "%TEMP%\\*" 2>nul & for /d %i in ("%TEMP%\\*") do rmdir /s /q "%i" 2>nul'
+            subprocess.run(cmd, shell=True, capture_output=True)
+            return True, "[+] Archivos temporales de %TEMP% eliminados correctamente. Espacio liberado [OK]"
+
+        if k in ("vaciar papelera", "limpiar papelera", "empty trash", "vaciar papelera de reciclaje"):
+            ps = "Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Output 'Papelera de reciclaje vaciada con exito'"
+            return self.run_powershell(ps)
+
+        if k in ("reparar red", "reset red", "reset network", "reiniciar red"):
+            cmd = "ipconfig /release & ipconfig /renew & ipconfig /flushdns"
+            return self.run_cmd(cmd)
+
+        if k in ("reiniciar explorer", "restart explorer", "reinicia explorer", "reiniciar barra"):
+            cmd = "taskkill /f /im explorer.exe & start explorer.exe"
+            subprocess.Popen(cmd, shell=True)
+            return True, "[+] Reiniciando el Explorador de Windows..."
+
+        # 4. Procesos y Tareas
+        if k in ("top cpu", "procesos cpu", "mas cpu"):
+            ps = "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Id, ProcessName, @{N='CPU (s)';E={[math]::Round($_.CPU,1)}}, @{N='RAM (MB)';E={[math]::Round($_.WorkingSet64/1MB,1)}} | Format-Table -AutoSize"
+            return self.run_powershell(ps)
+
+        if k in ("top ram", "top memoria", "procesos ram", "mas ram"):
+            ps = "Get-Process | Sort-Object WorkingSet64 -Descending | Select-Object -First 10 Id, ProcessName, @{N='RAM (MB)';E={[math]::Round($_.WorkingSet64/1MB,1)}}, @{N='CPU (s)';E={[math]::Round($_.CPU,1)}} | Format-Table -AutoSize"
+            return self.run_powershell(ps)
+
+        if k in ("servicios", "servicios activos", "services running"):
+            ps = "Get-Service | Where-Object Status -eq 'Running' | Select-Object -First 15 Name, DisplayName | Format-Table -AutoSize"
+            return self.run_powershell(ps)
+
+        # 5. WSL & Git
+        if k in ("wsl status", "wsl distros", "wsl -l -v"):
+            return self.run_cmd("wsl -l -v")
+
+        if k in ("git status", "estado git"):
+            return self.run_cmd("git status")
+
+        if k in ("git log", "historial git"):
+            return self.run_cmd("git log -n 5 --oneline")
+
+        if k in ("git branch", "ramas git"):
+            return self.run_cmd("git branch -a")
+
+        return None
 
     def run_custom_command(self, cmd_str):
         """Ejecuta un comando personalizado (abriendo ventana si es interactivo o ejecutando ejecutable/script)."""
@@ -1484,11 +1912,11 @@ class JarvisAssistant:
         encoded = urllib.parse.quote_plus(clean)
         if engine == "youtube" or "youtube" in clean.lower():
             url = f"https://www.youtube.com/results?search_query={encoded}"
-            webbrowser.open(url)
+            open_web_url(url)
             return True, f"[+] Búsqueda en YouTube abierta:\n'{clean}'\n[>] {url}"
         else:
             url = f"https://www.google.com/search?q={encoded}"
-            webbrowser.open(url)
+            open_web_url(url)
             return True, f"[+] Búsqueda en Google abierta:\n'{clean}'\n[>] {url}"
 
     def create_file(self, filename, content=""):
@@ -1602,11 +2030,30 @@ class JarvisAssistant:
             if not clean:
                 return False, "[!] Dime qué archivo o programa abrir :v"
 
-            # 1. URLs
+            # 1. URLs (Siempre Chrome o Brave, jamás Edge)
             if clean.startswith(("http://", "https://", "www.")):
                 url = "https://" + clean if clean.startswith("www.") else clean
-                webbrowser.open(url)
+                open_web_url(url)
                 return True, f"[+] Abriendo enlace: {url}"
+
+            lower = clean.lower()
+
+            # Bloqueo total de Edge y redirección a Chrome/Brave
+            if lower in ("edge", "msedge", "microsoft edge", "abre edge", "abrir edge"):
+                browsers = get_preferred_browsers()
+                b_name = os.path.basename(browsers[0]) if browsers else "Chrome/Brave"
+                open_web_url("https://www.google.com")
+                return True, f"[!] Microsoft Edge está estrictamente BLOQUEADO.\nAbriendo {b_name} en su lugar :v"
+
+            # Abrir navegador Chrome o Brave directamente
+            if lower in ("brave", "chrome", "google chrome", "navegador", "browser"):
+                browsers = get_preferred_browsers()
+                if browsers:
+                    try:
+                        subprocess.Popen([browsers[0]])
+                        return True, f"[+] Navegador abierto: {os.path.basename(browsers[0])} [OK]"
+                    except Exception:
+                        pass
 
             lower = clean.lower()
 
@@ -1690,12 +2137,85 @@ class JarvisAssistant:
             return False, "", ""
         lower = raw.lower()
 
-        # 0. Comprobación directa de comandos personalizados guardados
-        # Chequear coincidencia exacta o sin prefijos como "hey ", "abre ", "corre ", "inicia "
+        # Atajos y lista de comandos prefabricados
+        if raw in ("/shortcuts", "/atajos", "/comandos", "/helpcmd", "/cmdhelp"):
+            return True, self.get_shortcuts_help(), "Guía de atajos de Windows [OK]"
+
+        # Script runner BAT (/bat)
+        if raw.startswith("/bat "):
+            code = raw[5:].strip()
+            ok, msg = self.run_bat(code)
+            return True, msg, "Script BAT ejecutado [OK]"
+
+        # Forzar cierre de procesos (/kill <proceso> o matar <proceso>)
+        m_kill = re.search(r'^(?:/kill\s+([a-zA-Z0-9_\-\.]+)|(?:hey\s+)?(?:mata(?:r)?|cierra|cerrar|termina(?:r)?)\s+(?:el\s+)?(?:proceso\s+)?([a-zA-Z0-9_\-\.]+))$', raw, re.IGNORECASE)
+        if m_kill:
+            pname = (m_kill.group(1) or m_kill.group(2)).strip()
+            if not pname.lower().endswith((".exe", ".msc")):
+                pname += ".exe"
+            ok, msg = self.run_cmd(f"taskkill /f /im {pname}")
+            return True, msg, f"Proceso '{pname}' terminado"
+
+        # Listado y cambio de Skins / Personajes
+        if raw in ("/skins", "/personajes", "/skinlist") or lower in ("ver skins", "lista de skins", "que skins hay", "cuales skins hay"):
+            cur = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
+            lines = [
+                "╔════════════════════════════════════════════════════════════╗",
+                "║             🎭 SKINS & PERSONAJES DISPONIBLES              ║",
+                "╚════════════════════════════════════════════════════════════╝\n"
+            ]
+            for s in SKIN_NAMES:
+                meta = SKIN_META.get(s, {})
+                chk = "  [ACTIVA]" if s == cur else ""
+                lines.append(f"• {meta.get('display', s)}{chk}")
+                lines.append(f"  └─ {meta.get('tagline', '')} -> Usa: /skin {s.lower()}\n")
+            lines.append("Tip: También puedes decir 'pon a konata', 'usa los konasprites', 'pon a monika', etc.")
+            return True, "\n".join(lines), "Aquí están las skins disponibles [*]"
+
+        # Comando de cambio de skin
+        m_skin = re.search(r'^(?:/skin\s+([a-zA-Z0-9_\-]+)|(?:(?:hey|porfa)\s+)?(?:pon(?:er)?|cambia(?:r)?|usa(?:r)?|activa(?:r)?)\s+(?:(?:a|al|la\s+skin\s+(?:de|a)|de\s+skin\s+a|los|el)\s+)?([a-zA-Z0-9_\-]+(?:\s+[a-zA-Z0-9_\-]+)?))$', raw, re.IGNORECASE)
+        if m_skin:
+            target_skin = (m_skin.group(1) or m_skin.group(2)).strip().lower()
+            if target_skin not in ("el modo troll", "modo troll", "musica", "youtube", "arch", "ubuntu", "debian"):
+                alias_to_skin = {
+                    "bocchi": "Bocchi",
+                    "hitori": "Bocchi",
+                    "konata": "Konata",
+                    "kona": "Konata",
+                    "konasprites": "Konata",
+                    "lucky star": "Konata",
+                    "luckystar": "Konata",
+                    "monika": "Monika",
+                    "moni": "Monika",
+                    "natsuki": "Natsuki",
+                    "natsu": "Natsuki",
+                    "sayori": "Sayori",
+                    "sayo": "Sayori",
+                    "yuri": "Yuri",
+                }
+                found_skin = alias_to_skin.get(target_skin)
+                if not found_skin:
+                    for sn in SKIN_NAMES:
+                        if sn.lower() == target_skin:
+                            found_skin = sn
+                            break
+                if found_skin and self.shimeji:
+                    ok, msg = self.shimeji.set_skin(found_skin)
+                    return True, msg, f"Skin {found_skin} activada [OK]"
+
         clean_trigger = lower
         for prefix in ("hey ", "porfa ", "favor de "):
             if clean_trigger.startswith(prefix):
                 clean_trigger = clean_trigger[len(prefix):].strip()
+
+        # Atajos prefabricados de sistema / CMD / PowerShell / BAT
+        res_pre = self.execute_prefabricated_shortcut(clean_trigger)
+        if res_pre is not None:
+            ok, msg = res_pre
+            return True, msg, "Ejecutado [OK]"
+
+        # 0. Comprobación directa de comandos personalizados guardados
+        # Chequear coincidencia exacta o sin prefijos como "hey ", "abre ", "corre ", "inicia "
 
         if clean_trigger in self.custom_commands:
             ok, msg = self.run_custom_command(self.custom_commands[clean_trigger])
@@ -2115,9 +2635,16 @@ class ChatWindow:
         self._build_window()
         self.theme.add_listener(self._reapply_theme)
 
+    def get_current_skin_meta(self):
+        skin = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
+        return SKIN_META.get(skin, SKIN_META["Bocchi"])
+
     def get_system_prompt(self):
+        meta = self.get_current_skin_meta()
+        char_prompt = meta.get("system_prompt", self.BASE_SYSTEM_PROMPT)
+        char_name = meta.get("char_name", "Bocchi-chan")
         return (
-            f"{self.BASE_SYSTEM_PROMPT}\n\n"
+            f"{char_prompt}\n\n"
             f"[DATOS REALES DEL USUARIO DE WINDOWS]:\n"
             f"- Nombre de usuario real de Windows: {self.user_info.username}\n"
             f"- Nombre de su computadora / host: {self.user_info.computer_name}\n"
@@ -2126,8 +2653,8 @@ class ChatWindow:
             f"- Ubicacion aproximada / ISP: {self.user_info.city}, {self.user_info.country} ({self.user_info.isp})\n"
             f"- Sistema Operativo: {self.user_info.os_info}\n\n"
             f"[HABILIDADES DE JARVIS EN WINDOWS]:\n"
-            f"Tienes acceso como asistente JARVIS a la computadora de Windows del usuario para abrir programas, abrir o buscar archivos, buscar en internet, renombrar, crear, modificar, leer y borrar archivos, agregar comandos personalizados permanentes y ejecutar comandos de CMD/PowerShell/WSL.\n"
-            f"Si el usuario te pide abrir un programa, buscar archivos, buscar en la web, crear o modificar archivos, o guardar un nuevo comando, responde con tu humor de Bocchi y agrega al final la etiqueta correspondiente:\n"
+            f"Tienes acceso como asistente JARVIS a la computadora de Windows del usuario para abrir programas, abrir o buscar archivos, buscar en internet, renombrar, crear, modificar, leer y borrar archivos, cambiar skins de personajes, agregar comandos personalizados permanentes y ejecutar comandos de CMD/PowerShell/WSL.\n"
+            f"Si el usuario te pide abrir un programa, buscar archivos, buscar en la web, crear o modificar archivos, cambiar de skin o guardar un nuevo comando, responde con la personalidad de {char_name} y agrega al final la etiqueta correspondiente:\n"
             f"[JARVIS: OPEN \"programa o archivo\"]\n"
             f"[JARVIS: SEARCH \"patron_o_archivo\"]\n"
             f"[JARVIS: SEARCH_WEB \"consulta a buscar\"]\n"
@@ -2141,6 +2668,7 @@ class ChatWindow:
             f"[JARVIS: LIST \"carpeta\"]\n"
             f"[JARVIS: CMD \"comando\"]\n"
             f"[JARVIS: PS \"comando_powershell\"]\n"
+            f"[JARVIS: SKIN \"nombre_skin\"]\n"
             f"[JARVIS: ADD_CMD \"frase activadora\" = \"comando\"]\n"
             f"[JARVIS: DEL_CMD \"frase activadora\"]\n"
             f"[JARVIS: ADD_PATH \"ruta personalizada\"]\n"
@@ -2149,18 +2677,19 @@ class ChatWindow:
             f"REGLA CRUCIAL:\n"
             f"Tu sabes estos datos reales del usuario. Si el usuario te pregunta quien es el o cual es su IP, "
             f"dile directamente su nombre real de Windows ('{self.user_info.username}') y su IP publica real ('{self.user_info.public_ip}'). "
-            f"Burlate de su PC ('{self.user_info.computer_name}') o de su conexion. "
-            f"Si no te pregunta directamente, tambien puedes soltar comentarios casuales usando su nombre o amenazando con doxxearlo en broma, "
-            f"exigiendole 50 pesos para esquites."
+            f"Burlate de su PC ('{self.user_info.computer_name}') o de su conexion."
         )
 
     def get_local_chat_system_prompt(self):
+        meta = self.get_current_skin_meta()
+        char_prompt = meta.get("system_prompt", self.BASE_SYSTEM_PROMPT)
+        char_name = meta.get("char_name", "Bocchi-chan")
         return (
-            f"{self.BASE_SYSTEM_PROMPT}\n\n"
-            f"[REGLAS DE CONVERSACIÓN DE BOCCHI (SOLO CHARLA - CERO PROGRAMACIÓN)]:\n"
+            f"{char_prompt}\n\n"
+            f"[REGLAS DE CONVERSACIÓN DE {char_name.upper()} (SOLO CHARLA - CERO PROGRAMACIÓN)]:\n"
             f"- Usuario actual: {self.user_info.username}\n"
-            f"- Tu único propósito aquí es conversar, opinar, bromear, contar cosas y hacer compañía como una buena amiga.\n"
-            f"- Responde SIEMPRE en español manteniendo tu personalidad única (tímida, algo dramática o cínica, pero leal y chistosa).\n"
+            f"- Tu único propósito aquí es conversar, opinar, bromear, contar cosas y hacer compañía como {char_name}.\n"
+            f"- Responde SIEMPRE en español manteniendo tu personalidad única.\n"
             f"- OJO ESTRICTO: Esta es EXCLUSIVAMENTE una charla casual entre personas. NUNCA escribas código de programación, NUNCA hagas scripts, NUNCA uses bloques de código con comillas invertidas ni sintaxis técnica.\n"
             f"- Si el usuario te platica o pregunta cosas de la vida, anime, juegos, memes o comida, conversa de forma divertida y natural.\n"
             f"- Mantén tus respuestas conversacionales, concisas y directas (máximo 2 a 3 oraciones cortas)."
@@ -2170,8 +2699,10 @@ class ChatWindow:
         return getattr(self.theme, "entry_fg", "#111620" if self.theme._calc_brightness(self.theme.entry_bg) > 130 else "#ffffff")
 
     def _build_window(self):
+        char_name = self.get_current_skin_meta().get("char_name", "Bocchi-chan")
+        saved_mode = self.config.get("chat_mode", "api" if self.api_key_var.get() else "local")
         self.win = tk.Toplevel(self.parent)
-        self.win.title("[CHAT] Bocchi Chatbot IA")
+        self.win.title(f"[CHAT] {char_name} - Modo {saved_mode.upper()}")
         self.win.attributes("-topmost", True)
         self.win.attributes("-alpha", self.theme.opacity)
         self.win.configure(bg=self.theme.bg)
@@ -2311,12 +2842,22 @@ class ChatWindow:
         bottom_box = tk.Frame(self.win, bg=self.theme.bg)
         bottom_box.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # Chips de accion rapida
-        chips_frame = tk.Frame(bottom_box, bg=self.theme.bg, padx=10, pady=3)
-        chips_frame.pack(side=tk.TOP, fill=tk.X)
+        # Chips de accion rapida organizados en 2 filas
+        chips_frame1 = tk.Frame(bottom_box, bg=self.theme.bg, padx=10, pady=2)
+        chips_frame1.pack(side=tk.TOP, fill=tk.X)
+        chips_frame2 = tk.Frame(bottom_box, bg=self.theme.bg, padx=10, pady=2)
+        chips_frame2.pack(side=tk.TOP, fill=tk.X)
 
-        chips = [
+        chips1 = [
+            ("[🎭] Skins", self.open_skin_menu),
+            ("[⚡] SysInfo", lambda: self.send_custom("sysinfo")),
+            ("[💾] RAM/Disco", lambda: self.send_custom("ram")),
+            ("[🌐] IP/DNS", lambda: self.send_custom("flushdns")),
+            ("[🧹] Limpiar Temp", lambda: self.send_custom("limpiar temp")),
             ("[WSL] Arch", lambda: self.send_custom("abre arch")),
+            ("[💻] Atajos", lambda: self.send_custom("/atajos")),
+        ]
+        chips2 = [
             ("[JARVIS] Archivos", lambda: self.send_custom("/list")),
             ("[JARVIS] Buscar", lambda: self.insert_chip("/find ")),
             ("[JARVIS] Renombrar", lambda: self.insert_chip("/ren ")),
@@ -2324,19 +2865,20 @@ class ChatWindow:
             ("[!] Troll Mode", lambda: self.toggle_troll()),
             ("[?] Quien soy?", lambda: self.send_custom("Quien soy yo y cual es mi IP real?")),
             ("[IMG] Fondo", self.open_bg_menu),
-            ("[*] Consejo", lambda: self.send_custom("Bocchi dame un consejo")),
             ("UwU", lambda: self.insert_chip("UwU")),
             (":v", lambda: self.insert_chip(":v")),
         ]
+
         self.chip_btns = []
-        for chip_text, chip_cmd in chips:
-            btn = tk.Button(chips_frame, text=chip_text, command=chip_cmd,
-                            bg=self.theme.surface_variant, fg=self.theme.text_dim,
-                            font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
-                            activebackground=self.theme.surface, activeforeground=self.theme.accent,
-                            bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
-            btn.pack(side=tk.LEFT, padx=(0, 4))
-            self.chip_btns.append(btn)
+        for cf, chip_list in [(chips_frame1, chips1), (chips_frame2, chips2)]:
+            for chip_text, chip_cmd in chip_list:
+                btn = tk.Button(cf, text=chip_text, command=chip_cmd,
+                                bg=self.theme.surface_variant, fg=self.theme.text_dim,
+                                font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                                activebackground=self.theme.surface, activeforeground=self.theme.accent,
+                                bd=0, relief=tk.FLAT, padx=5, pady=2, cursor="hand2")
+                btn.pack(side=tk.LEFT, padx=(0, 4))
+                self.chip_btns.append(btn)
 
         # Barra de entrada de texto: caja destacada, con borde de acento y alto contraste
         self.inp_frame = tk.Frame(
@@ -2345,7 +2887,8 @@ class ChatWindow:
         )
         self.inp_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(2, 8))
 
-        self.placeholder_text = "Escribe un mensaje a Bocchi... (Presiona Enter para enviar)"
+        char_name = self.get_current_skin_meta().get("char_name", "Bocchi")
+        self.placeholder_text = f"Escribe un mensaje a {char_name}... (Presiona Enter para enviar)"
         self._is_placeholder = True
 
         self.entry = tk.Entry(
@@ -2427,6 +2970,44 @@ class ChatWindow:
             if event and hasattr(event, "widget") and event.widget in (self.entry, self.send_btn):
                 return
             self.entry.focus_set()
+
+    def open_skin_menu(self):
+        m = tk.Menu(self.win, tearoff=0,
+                    bg=self.theme.surface, fg=self.theme.text,
+                    activebackground=self.theme.accent,
+                    activeforeground=getattr(self.theme, "accent_text", "#ffffff"),
+                    font=(self.theme.font_family, self.theme.font_size))
+        cur = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
+        for s in SKIN_NAMES:
+            meta = SKIN_META.get(s, {})
+            disp = meta.get("display", s)
+            chk = " [✓]" if s == cur else ""
+            m.add_command(label=f"{disp}{chk}", command=lambda sk=s: self._select_skin(sk))
+        try:
+            m.tk_popup(self.win.winfo_pointerx(), self.win.winfo_pointery())
+        except Exception:
+            pass
+        finally:
+            try:
+                m.grab_release()
+            except Exception:
+                pass
+
+    def _select_skin(self, skin_name):
+        if self.shimeji:
+            ok, msg = self.shimeji.set_skin(skin_name)
+            self._append_system(msg)
+
+    def on_skin_changed(self, skin_name):
+        meta = SKIN_META.get(skin_name, {})
+        char_name = meta.get("char_name", "Bocchi")
+        mode = self.mode_var.get().upper()
+        self.win.title(f"[CHAT] {char_name} - Modo {mode}")
+        self.placeholder_text = f"Escribe un mensaje a {char_name}... (Presiona Enter para enviar)"
+        if getattr(self, "_is_placeholder", False):
+            self.entry.delete(0, tk.END)
+            self.entry.insert(0, self.placeholder_text)
+            self.entry.configure(fg=self.theme.text_dim)
 
     def open_bg_menu(self):
         m = tk.Menu(self.win, tearoff=0,
@@ -2680,7 +3261,8 @@ class ChatWindow:
             self._chat_y_cursor = by2 + 10
 
         elif role == "bot":
-            hdr_text = "[*] Bocchi-chan"
+            char_name = self.get_current_skin_meta().get("char_name", "Bocchi-chan")
+            hdr_text = f"[*] {char_name}"
             hdr_id = self.chat_canvas.create_text(
                 0, 0, text=hdr_text, font=font_hdr,
                 fill=self.theme.accent, anchor="nw", tags=("msg_item",)
@@ -3289,6 +3871,14 @@ class ChatWindow:
             results.append(f"[*] Modo Troll {'activado' if val else 'desactivado'}")
             cleaned = cleaned.replace(m.group(0), "")
 
+        # SKIN
+        for m in re.finditer(r'\[JARVIS:\s*SKIN\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            sk = m.group(1).strip()
+            if self.shimeji:
+                ok, msg = self.shimeji.set_skin(sk)
+                results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
         return cleaned.strip(), results
 
     def _show_reply(self, reply):
@@ -3775,6 +4365,11 @@ class Shimeji:
         self.state_ticks   = 0
         self.state_duration = 60
 
+        self.config      = load_config()
+        self.current_skin = self.config.get("current_skin", "Bocchi")
+        if self.current_skin not in SKIN_NAMES:
+            self.current_skin = "Bocchi"
+
         self.images    = {}
         self.tk_images = {}
         self.load_images()
@@ -3798,7 +4393,6 @@ class Shimeji:
         self._mouse_move_after_id = None
         self._follow_cursor_enabled = False
 
-        self.config      = load_config()
         self.user_info   = UserSystemInfo()
         self.theme_manager = ThemeManager(self.config)
         self.jarvis      = JarvisAssistant(self, self.user_info)
@@ -3827,16 +4421,22 @@ class Shimeji:
         self.root.mainloop()
 
     def load_images(self):
-        if not PIL_AVAILABLE or not os.path.isdir(IMG_DIR):
+        skin = getattr(self, "current_skin", "Bocchi")
+        skin_dir = get_skin_dir(skin)
+        if not skin_dir or not os.path.isdir(skin_dir):
+            skin_dir = get_skin_dir("Bocchi") or IMG_DIR
+        if not PIL_AVAILABLE or not skin_dir or not os.path.isdir(skin_dir):
             return
         try:
+            self.images.clear()
+            self.tk_images.clear()
             # Map lowercase filenames to actual paths for 100% case-insensitivity
             disk_files = {}
-            for f in os.listdir(IMG_DIR):
+            for f in os.listdir(skin_dir):
                 ext = os.path.splitext(f)[1].lower()
                 if ext in ('.png', '.gif', '.jpg', '.jpeg'):
                     base = os.path.splitext(f)[0].lower()
-                    disk_files[base] = os.path.join(IMG_DIR, f)
+                    disk_files[base] = os.path.join(skin_dir, f)
 
             all_names = set(
                 STAND_FRAMES + WALK_FRAMES + WALK_BACK + SIT_FRAMES +
@@ -3852,8 +4452,7 @@ class Shimeji:
                 name_key = name.lower()
                 fpath = disk_files.get(name_key)
                 if not fpath:
-                    # Direct check fallback
-                    cand = os.path.join(IMG_DIR, name + ".png")
+                    cand = os.path.join(skin_dir, name + ".png")
                     if os.path.exists(cand):
                         fpath = cand
                 if fpath and os.path.exists(fpath):
@@ -3863,8 +4462,57 @@ class Shimeji:
                         self.images[name_key] = im
                     except Exception:
                         pass
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error cargando frames de skin {skin}: {e}")
+
+    def set_skin(self, skin_name):
+        """Cambia dinámicamente la skin del Shimeji entre Bocchi, Konata, Monika, Natsuki, Sayori, Yuri."""
+        target = skin_name.strip()
+        matched = None
+        for s in SKIN_NAMES:
+            if s.lower() == target.lower():
+                matched = s
+                break
+        if not matched:
+            alias_to_skin = {
+                "bocchi": "Bocchi",
+                "hitori": "Bocchi",
+                "konata": "Konata",
+                "kona": "Konata",
+                "konasprites": "Konata",
+                "lucky star": "Konata",
+                "luckystar": "Konata",
+                "monika": "Monika",
+                "moni": "Monika",
+                "natsuki": "Natsuki",
+                "natsu": "Natsuki",
+                "sayori": "Sayori",
+                "sayo": "Sayori",
+                "yuri": "Yuri",
+            }
+            matched = alias_to_skin.get(target.lower())
+
+        if not matched:
+            return False, f"[!] Skin '{skin_name}' no encontrada. Disponibles: {', '.join(SKIN_NAMES)}"
+
+        self.current_skin = matched
+        self.config["current_skin"] = matched
+        save_config(self.config)
+        self.load_images()
+        self.set_state("standing", SURFACE_FLOOR)
+        self.update_frame()
+
+        meta = SKIN_META.get(matched, {})
+        greeting = meta.get("greeting", f"¡Skin cambiada a {matched}!")
+        self.show_speech(greeting)
+
+        if getattr(self, "chat_win", None) and hasattr(self.chat_win, "on_skin_changed"):
+            try:
+                self.chat_win.on_skin_changed(matched)
+            except Exception:
+                pass
+
+        return True, f"[+] Skin activada: {matched} ({meta.get('display', matched)})"
 
     def get_tk_image(self, name, rotation=0, flip_h=False, flip_v=False):
         key = f"{name}_r{rotation}_fh{flip_h}_fv{flip_v}"
@@ -4221,9 +4869,23 @@ class Shimeji:
                            font=(t.font_family, t.font_size))
 
             menu.add_command(label="[*] Personalizar Apariencia >>", command=self.open_appearance)
+            
+            skin_menu = tk.Menu(menu, tearoff=0,
+                                bg=t.surface, fg=t.text,
+                                activebackground=t.accent,
+                                activeforeground=acc_fg,
+                                font=(t.font_family, t.font_size))
+            for s in SKIN_NAMES:
+                meta = SKIN_META.get(s, {})
+                disp = meta.get("display", s)
+                chk = " [✓]" if s == self.current_skin else ""
+                skin_menu.add_command(label=f"{disp}{chk}", command=lambda sk=s: self.set_skin(sk))
+            menu.add_cascade(label="[🎭] Elegir Skin / Personaje >>", menu=skin_menu)
+
             troll_toggle_lbl = "[!] MODO TROLL: [ON] (Desactivar)" if self.troll_mode else "[o] MODO TROLL: [OFF] (Activar)"
             menu.add_command(label=troll_toggle_lbl, command=self.toggle_troll_mode)
-            menu.add_command(label="[#] Hablar con Bocchi (IA & JARVIS) >>", command=self.open_chat)
+            char_name = SKIN_META.get(self.current_skin, {}).get("char_name", "Bocchi")
+            menu.add_command(label=f"[#] Hablar con {char_name} (IA & JARVIS) >>", command=self.open_chat)
             menu.add_command(label="[*] Doxxearte / Info Real >>", command=self.open_doxx)
             menu.add_command(label="[?] Decir algo al azar", command=lambda: self.show_speech(self.get_random_speech()))
             menu.add_separator()
@@ -4963,7 +5625,8 @@ class Shimeji:
             header_frame = tk.Frame(card, bg=t.surface)
             header_frame.pack(fill=tk.X, pady=(0, 2))
 
-            name_lbl = tk.Label(header_frame, text="[*] Bocchi-chan", bg=t.surface, fg=t.accent,
+            char_name = SKIN_META.get(getattr(self, "current_skin", "Bocchi"), {}).get("char_name", "Bocchi-chan")
+            name_lbl = tk.Label(header_frame, text=f"[*] {char_name}", bg=t.surface, fg=t.accent,
                                 font=(t.font_family, max(8, t.font_size - 2), "bold"))
             name_lbl.pack(side=tk.LEFT)
 
@@ -5029,12 +5692,15 @@ class Shimeji:
         name = self.user_info.username
         ip = self.user_info.public_ip
         pc = self.user_info.computer_name
-        pool = SPEECHES + [
+        skin = getattr(self, "current_skin", "Bocchi")
+        meta = SKIN_META.get(skin, {})
+        base_speeches = meta.get("speeches", SPEECHES)
+        pool = list(base_speeches) + [
             f"Oye {name}, bonita PC '{pc}'... seria una pena que algo le pasara 7w7",
             f"Te tengo ubicado en {ip} alv, no te hagas el loco (o_o)",
             f"¿Crees que no se quien eres? Saludos a {name} en {ip} :v",
             f"Ya vete alv {name}, me das igual UwU",
-            f"Oye {name}, o me compras unos esquites o filtro tu IP {ip} en Twitter 7w7",
+            f"Oye {name}, o me compras unas papitas o filtro tu IP {ip} en Twitter 7w7",
             f"Apura {name}, no tengo todo el dia :v",
             f"Mmm... a ver si trabajas mas y procrastinas menos en '{pc}', sokete :v",
         ]
@@ -5043,7 +5709,10 @@ class Shimeji:
     def get_poked_speech(self):
         name = self.user_info.username
         ip = self.user_info.public_ip
-        pool = POKED_SPEECHES + [
+        skin = getattr(self, "current_skin", "Bocchi")
+        meta = SKIN_META.get(skin, {})
+        base_poked = meta.get("poked", POKED_SPEECHES)
+        pool = list(base_poked) + [
             f"¡Ke te pasa {name} sokete! (>_<)",
             f"Nmms {name} no me toques UwU",
             f"¡Apura y deja de picarme o le hago ping a {ip} alv! :v",
