@@ -1637,6 +1637,15 @@ class JarvisAssistant:
             "  • /ps <script>     -> Ejecutar en PowerShell directo\n"
             "  • /bat <codigo>    -> Ejecutar script BAT con salida\n"
             "  • /alias a = b     -> Guardar tu propio comando permanente\n\n"
+            "🔹 ARCH LINUX & WSL:\n"
+            "  • wsl arch           -> Abrir terminal de WSL Arch Linux\n"
+            "  • hyfetch            -> Información visual de Arch Linux (HyFetch)\n"
+            "  • sudo pacman -S <p> -> Instalar programa en Arch Linux con pacman\n"
+            "  • pacman <p>         -> Atajo rápido de instalación en Arch\n\n"
+            "🔹 GESTOR DE PAQUETES DE WINDOWS (WINGET):\n"
+            "  • winget <programa>  -> Instalar aplicación en Windows con winget\n"
+            "  • winget install <p> -> Instalación desatendida con winget\n"
+            "  • winget search <p>  -> Buscar programas disponibles en winget\n\n"
             "🔹 SKINS DISPONIBLES:\n"
             "  • /skin <nombre>   -> Cambiar skin (Bocchi, Konata, Monika, Natsuki, Sayori, Yuri)\n"
             "  • /skins           -> Lista de personajes disponibles"
@@ -1731,7 +1740,25 @@ class JarvisAssistant:
             ps = "Get-Service | Where-Object Status -eq 'Running' | Select-Object -First 15 Name, DisplayName | Format-Table -AutoSize"
             return self.run_powershell(ps)
 
-        # 5. WSL & Git
+        # 5. WSL, Arch Linux & Git
+        if k in ("wsl arch", "arch", "archlinux", "wsl archlinux", "abrir arch", "entrar a arch", "iniciar arch", "terminal arch"):
+            cmd = 'start wt wsl -d archlinux' if shutil.which("wt") else 'start wsl -d archlinux'
+            subprocess.Popen(cmd, shell=True)
+            return True, "[+] Abriendo terminal de WSL Arch Linux (archlinux)..."
+
+        if k in ("hyfetch", "wsl hyfetch", "arch hyfetch", "neofetch", "fastfetch"):
+            try:
+                proc = subprocess.run("wsl -d archlinux hyfetch", shell=True, capture_output=True, text=True, timeout=8)
+                out = (proc.stdout or proc.stderr).strip()
+                if out:
+                    clean_out = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', out)
+                    return True, f"[*] HyFetch (Arch Linux WSL):\n{clean_out}"
+            except Exception:
+                pass
+            cmd = 'start wt wsl -d archlinux hyfetch' if shutil.which("wt") else 'start wsl -d archlinux hyfetch'
+            subprocess.Popen(cmd, shell=True)
+            return True, "[+] Lanzando hyfetch en terminal de Arch Linux..."
+
         if k in ("wsl status", "wsl distros", "wsl -l -v"):
             return self.run_cmd("wsl -l -v")
 
@@ -2202,6 +2229,29 @@ class JarvisAssistant:
                 if found_skin and self.shimeji:
                     ok, msg = self.shimeji.set_skin(found_skin)
                     return True, msg, f"Skin {found_skin} activada [OK]"
+
+        # Pacman en Arch Linux / WSL (sudo pacman -S <programa>)
+        m_pacman = re.search(r'^(?:(?:hey\s+)?(?:sudo\s+)?pacman(?:\s+-S[yYuU]*)?|\/pacman|(?:hey\s+)?(?:instala(?:r)?|descarga(?:r)?)\s+(?:en\s+arch|con\s+pacman))\s+([a-zA-Z0-9_\-\.\+]+)$', raw, re.IGNORECASE)
+        if m_pacman:
+            pkg = m_pacman.group(1).strip()
+            wt_avail = shutil.which("wt") is not None
+            cmd = f'start wt wsl -d archlinux sudo pacman -S {pkg}' if wt_avail else f'start wsl -d archlinux sudo pacman -S {pkg}'
+            subprocess.Popen(cmd, shell=True)
+            return True, f"[+] Lanzando terminal interactiva para instalar con pacman en WSL Arch Linux:\n  $ sudo pacman -S {pkg}", f"Instalando {pkg} en Arch [OK]"
+
+        # Winget en Windows (winget install <programa> / winget search <programa>)
+        m_winget_search = re.search(r'^(?:(?:hey\s+)?winget\s+search|\/winget\s+search|(?:hey\s+)?(?:busca(?:r)?|encuentra)\s+(?:en\s+winget|programa))\s+([a-zA-Z0-9_\-\.\+]+)$', raw, re.IGNORECASE)
+        if m_winget_search:
+            pkg = m_winget_search.group(1).strip()
+            return self.run_cmd(f"winget search {pkg}")
+
+        m_winget_install = re.search(r'^(?:(?:hey\s+)?winget(?:\s+install)?|\/winget|(?:hey\s+)?(?:instala(?:r)?|descarga(?:r)?)\s+(?:con\s+winget|en\s+windows))\s+([a-zA-Z0-9_\-\.\+]+)$', raw, re.IGNORECASE)
+        if m_winget_install:
+            pkg = m_winget_install.group(1).strip()
+            wt_avail = shutil.which("wt") is not None
+            cmd = f'start wt winget install {pkg} --accept-source-agreements --accept-package-agreements' if wt_avail else f'start cmd /k winget install {pkg} --accept-source-agreements --accept-package-agreements'
+            subprocess.Popen(cmd, shell=True)
+            return True, f"[+] Iniciando instalación con winget en Windows:\n  > winget install {pkg}", f"Instalando {pkg} con winget [OK]"
 
         clean_trigger = lower
         for prefix in ("hey ", "porfa ", "favor de "):
@@ -2851,19 +2901,19 @@ class ChatWindow:
         chips1 = [
             ("[🎭] Skins", self.open_skin_menu),
             ("[⚡] SysInfo", lambda: self.send_custom("sysinfo")),
-            ("[💾] RAM/Disco", lambda: self.send_custom("ram")),
-            ("[🌐] IP/DNS", lambda: self.send_custom("flushdns")),
-            ("[🧹] Limpiar Temp", lambda: self.send_custom("limpiar temp")),
-            ("[WSL] Arch", lambda: self.send_custom("abre arch")),
+            ("[💾] RAM", lambda: self.send_custom("ram")),
+            ("[WSL] Arch", lambda: self.send_custom("wsl arch")),
+            ("[🐧] HyFetch", lambda: self.send_custom("hyfetch")),
+            ("[📦] pacman", lambda: self.insert_chip("sudo pacman -S ")),
+            ("[🪟] winget", lambda: self.insert_chip("winget install ")),
             ("[💻] Atajos", lambda: self.send_custom("/atajos")),
         ]
         chips2 = [
             ("[JARVIS] Archivos", lambda: self.send_custom("/list")),
             ("[JARVIS] Buscar", lambda: self.insert_chip("/find ")),
-            ("[JARVIS] Renombrar", lambda: self.insert_chip("/ren ")),
-            ("[JARVIS] Crear", lambda: self.insert_chip("/create ")),
+            ("[🧹] Limpiar Temp", lambda: self.send_custom("limpiar temp")),
+            ("[🌐] Flush DNS", lambda: self.send_custom("flushdns")),
             ("[!] Troll Mode", lambda: self.toggle_troll()),
-            ("[?] Quien soy?", lambda: self.send_custom("Quien soy yo y cual es mi IP real?")),
             ("[IMG] Fondo", self.open_bg_menu),
             ("UwU", lambda: self.insert_chip("UwU")),
             (":v", lambda: self.insert_chip(":v")),
