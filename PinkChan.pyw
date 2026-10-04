@@ -437,11 +437,19 @@ class ThemeManager:
             self.entry_bg = self.config.get("custom_entry_bg", "#1e222b")
             self.accent = self.config.get("custom_accent", "#38bdf8")
 
+        self.text_subtle = getattr(self, "text_subtle", self.text_dim)
         self.accent_text = "#ffffff" if self._calc_brightness(self.accent) < 150 else "#111620"
         self.accent_fg = self.accent_text
         self.danger = "#ef4444"
         self.success = "#22c55e"
         self.warning = "#f59e0b"
+
+    def __getattr__(self, name):
+        if name in ("text_subtle", "subtle_text"):
+            return getattr(self, "text_dim", "#94a0b3")
+        if name in ("accent_fg", "accent_text"):
+            return getattr(self, "accent_text", "#ffffff")
+        return "#888888"
 
     @property
     def accent_fg_prop(self):
@@ -3430,10 +3438,12 @@ class Shimeji:
                                  activeforeground=acc_fg,
                                  font=(t.font_family, t.font_size))
             troll_menu.add_command(label="[~] Rickroll sorpresa (YouTube)", command=self.troll_rickroll)
+            troll_menu.add_command(label="[!] Screamer / Bromas web", command=self.troll_screamer)
             troll_menu.add_command(label="[!] Simular Pantallazo Azul (BSOD)", command=self.troll_bluescreen)
             troll_menu.add_command(label="[#] Simular Hacker (HackerTyper)", command=self.troll_hackertyper)
             troll_menu.add_command(label="[?] Error falso del sistema", command=self.troll_fake_error)
             troll_menu.add_command(label="[>] Sacudir ventana activa", command=self.troll_shake_window)
+            troll_menu.add_command(label="[>] Mover ventana activa", command=self.troll_move_window)
             if WIN32_AVAILABLE:
                 troll_menu.add_command(label="[~] Mover cursor al azar", command=self.troll_move_mouse)
                 troll_menu.add_separator()
@@ -3508,12 +3518,30 @@ class Shimeji:
             self.troll_mode = bool(force_val)
         self.config["troll_mode"] = self.troll_mode
         save_config(self.config)
-        if self.chat_win and hasattr(self.chat_win, "update_troll_btn"):
+        if getattr(self, "chat_win", None) and hasattr(self.chat_win, "update_troll_btn"):
             self.chat_win.update_troll_btn()
         if self.troll_mode:
             self.show_speech("¡MODO TROLL ACTIVADO! 7w7\nPrepárate para la anarquía...")
+            # Feedback instantáneo: ejecuta una travesura en 1.5 segundos
+            self.root.after(1500, self._trigger_instant_troll)
         else:
             self.show_speech("Modo Troll desactivado [OFF]\nYa me porto bien, soy tu JARVIS UwU")
+
+    def _trigger_instant_troll(self):
+        if not self.troll_mode:
+            return
+        actions = [
+            self.troll_shake_window,
+            self.troll_fake_error,
+            self.troll_move_window,
+            self.troll_move_mouse,
+            self.troll_minimize,
+        ]
+        chosen = random.choice(actions)
+        try:
+            chosen()
+        except Exception:
+            pass
 
     def troll_rickroll(self):
         try:
@@ -3536,6 +3564,19 @@ class Shimeji:
         except Exception:
             pass
 
+    def troll_screamer(self):
+        links = [
+            ("https://geekprank.com/screamer/", "¡AAAAHH! ¡Un screamer! D: (jajaja :v)"),
+            ("https://theannoyingsite.com", "¡A ver si sales de esta pagina 7w7!"),
+            ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "¡Toma tu rickroll! 7w7"),
+        ]
+        url, speech = random.choice(links)
+        try:
+            webbrowser.open(url)
+            self.show_speech(speech)
+        except Exception:
+            pass
+
     def troll_shake_window(self):
         if not WIN32_AVAILABLE:
             return
@@ -3548,41 +3589,85 @@ class Shimeji:
             rect = win32gui.GetWindowRect(hwnd)
             x, y, w, h = rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1]
             def do_shake(step=0):
-                if step < 6:
-                    dx = random.randint(-40, 40)
-                    dy = random.randint(-25, 25)
+                if step < 8:
+                    dx = random.randint(-45, 45)
+                    dy = random.randint(-30, 30)
                     win32gui.MoveWindow(hwnd, x + dx, y + dy, w, h, True)
-                    self.root.after(45, lambda: do_shake(step + 1))
+                    self.root.after(40, lambda: do_shake(step + 1))
                 else:
-                    win32gui.MoveWindow(hwnd, x + random.randint(30, 80), y + random.randint(20, 60), w, h, True)
+                    win32gui.MoveWindow(hwnd, x + random.randint(35, 90), y + random.randint(25, 70), w, h, True)
             self.show_speech("¡Terremoto en tus ventanas! (ง'̀-'́)ง")
             do_shake()
+        except Exception:
+            pass
+
+    def troll_move_window(self):
+        if not WIN32_AVAILABLE:
+            return
+        hwnd = win32gui.GetForegroundWindow()
+        if not hwnd or hwnd == self._own_hwnd():
+            hwnd = WindowDragger.pick_random_window(exclude=self._own_hwnd())
+        if not hwnd:
+            return
+        try:
+            rect = win32gui.GetWindowRect(hwnd)
+            w = max(200, rect[2] - rect[0])
+            h = max(150, rect[3] - rect[1])
+            title = win32gui.GetWindowText(hwnd)[:20] or "tu ventana"
+            nx = random.randint(0, max(0, self.sw - w))
+            ny = random.randint(0, max(0, self.sh - h - 60))
+            win32gui.MoveWindow(hwnd, nx, ny, w, h, True)
+            self.show_speech(f"Movi '{title}' por alla~ 7w7")
+        except Exception:
+            pass
+
+    def troll_move_desktop_icon(self):
+        if not WIN32_AVAILABLE or not self.desktop_mover:
+            return
+        try:
+            icons = self.desktop_mover.get_icon_list()
+            if icons:
+                idx, name = random.choice(icons)
+                self.desktop_mover.move_one_icon(idx)
+                label = name[:18] + ("..." if len(name) > 18 else "")
+                self.show_speech(f"Movi tu icono '{label}'~ [*]")
         except Exception:
             pass
 
     def troll_fake_error(self):
         title, msg = self.get_fake_error()
         self.show_speech("Jijiji... 7w7")
-        self.root.after(400, lambda: messagebox.showerror(title, msg))
+        if WIN32_AVAILABLE:
+            threading.Thread(
+                target=lambda: win32gui.MessageBox(0, msg, title, win32con.MB_ICONERROR | win32con.MB_TOPMOST),
+                daemon=True
+            ).start()
+        else:
+            self.root.after(400, lambda: messagebox.showerror(title, msg))
 
     def _troll_autonomous_tick(self):
         if self.troll_mode:
             actions = [
-                self.troll_fake_error,
                 self.troll_shake_window,
+                self.troll_fake_error,
+                self.troll_move_window,
                 self.troll_minimize,
                 self.troll_move_mouse,
+                self.troll_move_desktop_icon,
                 self.troll_rickroll,
                 self.troll_bluescreen,
-                self.troll_hackertyper
+                self.troll_hackertyper,
+                self.troll_screamer,
             ]
-            weights = [25, 25, 20, 10, 8, 6, 6]
+            weights = [22, 22, 18, 14, 10, 8, 3, 1, 1, 1]
             chosen = random.choices(actions, weights=weights, k=1)[0]
             try:
                 chosen()
             except Exception:
                 pass
-        next_ms = random.randint(25000, 60000)
+            next_ms = random.randint(12000, 24000)
+        else:
+            next_ms = random.randint(18000, 35000)
         self.root.after(next_ms, self._troll_autonomous_tick)
 
     def troll_move_mouse(self):
@@ -3851,63 +3936,72 @@ class Shimeji:
         self.appearance_win = AppearanceWindow(self.root, self.theme_manager, self)
 
     def show_speech(self, text):
-        if self.bubble_win:
+        try:
+            if self.bubble_win:
+                try:
+                    self.bubble_win.destroy()
+                except Exception:
+                    pass
+            if self.bubble_after:
+                try:
+                    self.root.after_cancel(self.bubble_after)
+                except Exception:
+                    pass
+
+            t = self.theme_manager
+            bw = tk.Toplevel(self.root)
+            bw.overrideredirect(True)
+            bw.attributes("-topmost", True)
+            bw.config(bg=t.bg)
             try:
-                self.bubble_win.destroy()
+                bw.attributes("-alpha", t.opacity)
             except Exception:
                 pass
-        if self.bubble_after:
-            self.root.after_cancel(self.bubble_after)
 
-        t = self.theme_manager
-        bw = tk.Toplevel(self.root)
-        bw.overrideredirect(True)
-        bw.attributes("-topmost", True)
-        bw.config(bg=t.bg)
-        try:
-            bw.attributes("-alpha", t.opacity)
-        except Exception:
-            pass
+            card = tk.Frame(bw, bg=t.surface, highlightbackground=t.accent, highlightthickness=1, padx=10, pady=6)
+            card.pack(fill=tk.BOTH, expand=True)
 
-        card = tk.Frame(bw, bg=t.surface, highlightbackground=t.accent, highlightthickness=1, padx=10, pady=6)
-        card.pack(fill=tk.BOTH, expand=True)
+            header_frame = tk.Frame(card, bg=t.surface)
+            header_frame.pack(fill=tk.X, pady=(0, 2))
 
-        header_frame = tk.Frame(card, bg=t.surface)
-        header_frame.pack(fill=tk.X, pady=(0, 2))
+            name_lbl = tk.Label(header_frame, text="[*] Bocchi-chan", bg=t.surface, fg=t.accent,
+                                font=(t.font_family, max(8, t.font_size - 2), "bold"))
+            name_lbl.pack(side=tk.LEFT)
 
-        name_lbl = tk.Label(header_frame, text="[*] Bocchi-chan", bg=t.surface, fg=t.accent,
-                            font=(t.font_family, max(8, t.font_size - 2), "bold"))
-        name_lbl.pack(side=tk.LEFT)
+            subtle_fg = getattr(t, "text_subtle", getattr(t, "text_dim", "#888888"))
+            close_btn = tk.Label(header_frame, text="[x]", bg=t.surface, fg=subtle_fg,
+                                 font=(t.font_family, max(8, t.font_size - 2)), cursor="hand2")
+            close_btn.pack(side=tk.RIGHT)
+            close_btn.bind("<Button-1>", lambda e: self.destroy_bubble())
 
-        close_btn = tk.Label(header_frame, text="[x]", bg=t.surface, fg=t.text_subtle,
-                             font=(t.font_family, max(8, t.font_size - 2)), cursor="hand2")
-        close_btn.pack(side=tk.RIGHT)
-        close_btn.bind("<Button-1>", lambda e: self.destroy_bubble())
+            msg_lbl = tk.Label(card, text=text, bg=t.surface, fg=t.text,
+                               font=(t.font_family, t.font_size), wraplength=280, justify=tk.LEFT)
+            msg_lbl.pack(fill=tk.BOTH, expand=True)
 
-        msg_lbl = tk.Label(card, text=text, bg=t.surface, fg=t.text,
-                           font=(t.font_family, t.font_size), wraplength=280, justify=tk.LEFT)
-        msg_lbl.pack(fill=tk.BOTH, expand=True)
+            card.bind("<Button-1>", lambda e: self.destroy_bubble())
+            msg_lbl.bind("<Button-1>", lambda e: self.destroy_bubble())
+            name_lbl.bind("<Button-1>", lambda e: self.destroy_bubble())
 
-        card.bind("<Button-1>", lambda e: self.destroy_bubble())
-        msg_lbl.bind("<Button-1>", lambda e: self.destroy_bubble())
-        name_lbl.bind("<Button-1>", lambda e: self.destroy_bubble())
+            bw.update_idletasks()
+            bw_w = max(bw.winfo_reqwidth(), 160)
+            bw_h = max(bw.winfo_reqheight(), 40)
 
-        bw.update_idletasks()
-        bw_w = bw.winfo_width()
-        bw_h = bw.winfo_height()
+            bx = int(self.x) + SIZE // 2 - bw_w // 2
+            bx = max(10, min(bx, self.sw - bw_w - 10))
 
-        bx = int(self.x) + SIZE // 2 - bw_w // 2
-        bx = max(10, min(bx, self.sw - bw_w - 10))
+            if self.y < 120:
+                by = int(self.y) + SIZE + 10
+            else:
+                by = int(self.y) - bw_h - 12
+            by = max(10, min(by, self.sh - bw_h - 10))
 
-        if self.y < 120:
-            by = int(self.y) + SIZE + 10
-        else:
-            by = int(self.y) - bw_h - 12
-        by = max(10, min(by, self.sh - bw_h - 10))
-
-        bw.geometry(f"{bw_w}x{bw_h}+{bx}+{by}")
-        self.bubble_win   = bw
-        self.bubble_after = self.root.after(4500, self.destroy_bubble)
+            bw.geometry(f"{bw_w}x{bw_h}+{bx}+{by}")
+            bw.lift()
+            bw.attributes("-topmost", True)
+            self.bubble_win   = bw
+            self.bubble_after = self.root.after(5000, self.destroy_bubble)
+        except Exception as e:
+            print(f"Error en show_speech: {e}")
 
     def destroy_bubble(self):
         if self.bubble_win:
@@ -3960,10 +4054,15 @@ class Shimeji:
         return random.choice(pool)
 
     def schedule_random_speech(self):
-        self.root.after(random.randint(15000, 30000), self.random_speech_tick)
+        if getattr(self, "troll_mode", False):
+            delay = random.randint(6000, 14000)
+        else:
+            delay = random.randint(10000, 20000)
+        self.root.after(delay, self.random_speech_tick)
 
     def random_speech_tick(self):
-        if random.random() < 0.4:
+        chance = 0.85 if getattr(self, "troll_mode", False) else 0.65
+        if random.random() < chance:
             self.show_speech(self.get_random_speech())
         self.schedule_random_speech()
 
