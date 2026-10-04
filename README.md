@@ -79,6 +79,23 @@ pythonw PinkChan.pyw
 
 ---
 
+---
+
+## 🎭 Personajes & Skins Animadas
+
+Elige entre 6 personajes con físicas completas, personalidad y diálogos únicos (puedes cambiar de skin desde el menú contextual con clic derecho, el comando `/skin <nombre>` o el botón `[🎭] Skins` en el dock):
+
+| Personaje | Animación | Origen / Descripción | Comando |
+| :---: | :---: | :--- | :---: |
+| **Bocchi** *(Hitori Gotoh)* | <img src="img/gifs/bocchi.gif" width="96" height="96" alt="Bocchi" /> | *Bocchi the Rock!* - La guitarrista introvertida | `/skin bocchi` |
+| **Konata Izumi** | <img src="img/gifs/konata.gif" width="96" height="96" alt="Konata" /> | *Lucky Star* - Otaku gamer legendaria | `/skin konata` |
+| **Monika** | <img src="img/gifs/monika.gif" width="96" height="96" alt="Monika" /> | *Doki Doki Literature Club!* - Presidenta del club | `/skin monika` |
+| **Natsuki** | <img src="img/gifs/natsuki.gif" width="96" height="96" alt="Natsuki" /> | *Doki Doki Literature Club!* - Fan del manga y la repostería | `/skin natsuki` |
+| **Sayori** | <img src="img/gifs/sayori.gif" width="96" height="96" alt="Sayori" /> | *Doki Doki Literature Club!* - Dulce y siempre alegre | `/skin sayori` |
+| **Yuri** | <img src="img/gifs/yuri.gif" width="96" height="96" alt="Yuri" /> | *Doki Doki Literature Club!* - Lectora apasionada y tímida | `/skin yuri` |
+
+---
+
 ## ⌨️ Atajos de Comandos en el Chat (JARVIS)
 
 Puedes escribirle en lenguaje natural o usar atajos directos en el chat:
@@ -86,6 +103,15 @@ Puedes escribirle en lenguaje natural o usar atajos directos en el chat:
 | Comando | Descripción | Ejemplo |
 | :--- | :--- | :--- |
 | `abre <app/distro>` | Abre app, programa o distro de WSL | `abre arch`, `abre chrome`, `abre calc` |
+| `wsl arch` / `arch` | Abre terminal de WSL Arch Linux | `wsl arch` |
+| `hyfetch` | Muestra resumen visual del sistema con HyFetch | `hyfetch` |
+| `sudo pacman -S <p>` | Instala paquete en Arch Linux con pacman | `sudo pacman -S neovim` o `pacman git` |
+| `winget <programa>` | Instala aplicación de Windows con winget | `winget vlc` o `winget install discord` |
+| `winget search <p>` | Busca programas disponibles en repositorios winget | `winget search obsidian` |
+| `/skin <nombre>` | Cambia el personaje activo | `/skin konata` o `pon a monika` |
+| `/skins` | Muestra la lista de personajes disponibles | `/skins` |
+| `/shortcuts` / `/atajos` | Guía completa de atajos de sistema y herramientas | `/atajos` |
+| `/bat <código>` | Ejecuta un script BAT al vuelo y captura la salida | `/bat echo hola mundo` |
 | `/alias <frase> = <comando>` | Guarda un alias/comando permanente | `/alias abre arch = wsl -d archlinux` |
 | `/delcmd <frase>` | Elimina un alias/comando permanente | `/delcmd abre arch` |
 | `/listcmd` | Lista los comandos personalizados guardados | `/listcmd` |
@@ -97,7 +123,7 @@ Puedes escribirle en lenguaje natural o usar atajos directos en el chat:
 | `/bsod` / `/pantallazo` | Simula pantalla azul de la muerte (BSOD) | `/bsod` |
 | `/shake` / `/sacudir` | Sacude la ventana activa o a Bocchi | `/shake` |
 | `/ps <comando>` | Ejecuta un comando en PowerShell | `/ps Get-Process` |
-| `/web <búsqueda>` | Busca en Google / Navegador | `/web mejores animes 2024` |
+| `/web <búsqueda>` | Busca en Google / Navegador (Chrome o Brave) | `/web mejores animes 2024` |
 | `/yt <búsqueda>` | Busca directamente en YouTube | `/yt bocchi guitar solo` |
 | `/find <archivo>` | Busca archivos en el sistema | `/find notas.txt` |
 | `/rename <viejo> <nuevo>` | Renombra un archivo | `/rename notas.txt caca.txt` |
