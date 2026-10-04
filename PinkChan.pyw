@@ -449,15 +449,29 @@ class ThemeManager:
         else: # custom
             self.bg = self.config.get("custom_bg", "#111317")
             self.surface = self.config.get("custom_surface", "#181b22")
-            self.surface_variant = self.config.get("custom_surface_var", "#212630")
-            self.border = self.config.get("custom_border", "#2e3542")
-            self.text = self.config.get("custom_text", "#f1f4f8")
-            self.text_dim = self.config.get("custom_text_dim", "#94a0b3")
+            surf_bright = self._calc_brightness(self.surface)
+            is_light_surf = surf_bright > 130
+
+            default_surf_var = "#d5dbe5" if is_light_surf else "#212630"
+            default_border = "#9aa5b5" if is_light_surf else "#2e3542"
+            default_text = "#111620" if is_light_surf else "#f1f4f8"
+            default_text_dim = "#374151" if is_light_surf else "#94a0b3"
+
+            self.surface_variant = self.config.get("custom_surface_var", default_surf_var)
+            self.border = self.config.get("custom_border", default_border)
+            self.text = self.config.get("custom_text", default_text)
+            self.text_dim = self.config.get("custom_text_dim", default_text_dim)
+
+            # Garantizar que text_dim sea legible contra el fondo elegido
+            if is_light_surf and self._calc_brightness(self.text_dim) > 130:
+                self.text_dim = "#374151"
+            elif not is_light_surf and self._calc_brightness(self.text_dim) < 120:
+                self.text_dim = "#94a0b3"
+
             if "custom_entry_bg" in self.config:
                 self.entry_bg = self.config["custom_entry_bg"]
             else:
-                surf_bright = self._calc_brightness(self.surface)
-                self.entry_bg = "#ffffff" if surf_bright > 130 else "#1e222b"
+                self.entry_bg = "#ffffff" if is_light_surf else "#1e222b"
             self.accent = self.config.get("custom_accent", "#38bdf8")
 
         # Asegurar contraste legible y nítido para escribir en los cuadros de texto
@@ -2125,7 +2139,8 @@ class ChatWindow:
         self.win.attributes("-topmost", True)
         self.win.attributes("-alpha", self.theme.opacity)
         self.win.configure(bg=self.theme.bg)
-        self.win.geometry("500x670")
+        self.win.geometry("520x640")
+        self.win.minsize(440, 480)
         self.win.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # Top Header Bar
@@ -2265,23 +2280,29 @@ class ChatWindow:
         else:
             self.local_frame.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
 
-        # Chat display area con Canvas para soportar fondos (PNG/JPG/GIF animado)
-        self.chat_container = tk.Frame(self.win, bg=self.theme.surface,
-                                       highlightthickness=1, highlightbackground=self.theme.border)
-        self.chat_container.pack(fill=tk.BOTH, expand=True, padx=12, pady=(4, 6))
+        # 1. Input Area - Empaquetado en BOTTOM para garantizar visibilidad al 100%
+        inp = tk.Frame(self.win, bg=self.theme.bg, padx=12, pady=6)
+        inp.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.chat_canvas = tk.Canvas(self.chat_container, bg=self.theme.surface, bd=0, highlightthickness=0)
-        self.chat_scroll = ttk.Scrollbar(self.chat_container, orient=tk.VERTICAL, command=self._on_canvas_scroll)
-        self.chat_canvas.configure(yscrollcommand=self.chat_scroll.set)
-        self.chat_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        self.chat_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
+        self.entry = tk.Entry(inp, bg=self.theme.entry_bg, fg=entry_fg,
+                              insertbackground=entry_fg,
+                              font=(self.theme.font_family, self.theme.font_size + 1),
+                              bd=0, relief=tk.FLAT, highlightbackground=self.theme.border, highlightthickness=1)
+        self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6, padx=(0, 6))
+        self.entry.bind("<Return>", lambda e: self.send_message())
+        self.entry.focus_set()
 
-        self.chat_canvas.bind("<Configure>", self._on_canvas_configure)
-        self.chat_canvas.bind("<MouseWheel>", self._on_mousewheel)
+        self.send_btn = tk.Button(inp, text="Enviar >>", command=self.send_message,
+                                  bg=self.theme.accent, fg=self.theme.accent_text,
+                                  font=(self.theme.font_family, self.theme.font_size, "bold"),
+                                  activebackground=self.theme.surface_variant,
+                                  bd=0, relief=tk.FLAT, padx=14, cursor="hand2")
+        self.send_btn.pack(side=tk.RIGHT)
 
-        # Quick action chips
+        # 2. Quick action chips - Empaquetado en BOTTOM justo encima del cuadro de entrada
         chips_frame = tk.Frame(self.win, bg=self.theme.bg, padx=12, pady=2)
-        chips_frame.pack(fill=tk.X)
+        chips_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         chips = [
             ("[JARVIS] Renombrar", lambda: self.insert_chip("/ren ")),
@@ -2306,29 +2327,24 @@ class ChatWindow:
             btn.pack(side=tk.LEFT, padx=(0, 4))
             self.chip_btns.append(btn)
 
-        # Input Area
-        inp = tk.Frame(self.win, bg=self.theme.bg, padx=12, pady=8)
-        inp.pack(fill=tk.X)
+        # 3. Chat display area con Canvas - Empaquetado en TOP con fill=BOTH expand=True
+        # para tomar todo el espacio entre la barra superior y los controles inferiores
+        self.chat_container = tk.Frame(self.win, bg=self.theme.surface,
+                                       highlightthickness=1, highlightbackground=self.theme.border)
+        self.chat_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=12, pady=(4, 4))
 
-        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
-        self.entry = tk.Entry(inp, bg=self.theme.entry_bg, fg=entry_fg,
-                              insertbackground=entry_fg,
-                              font=(self.theme.font_family, self.theme.font_size + 1),
-                              bd=0, relief=tk.FLAT, highlightbackground=self.theme.border, highlightthickness=1)
-        self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6, padx=(0, 6))
-        self.entry.bind("<Return>", lambda e: self.send_message())
-        self.entry.focus_set()
+        self.chat_canvas = tk.Canvas(self.chat_container, bg=self.theme.surface, bd=0, highlightthickness=0)
+        self.chat_scroll = ttk.Scrollbar(self.chat_container, orient=tk.VERTICAL, command=self._on_canvas_scroll)
+        self.chat_canvas.configure(yscrollcommand=self.chat_scroll.set)
+        self.chat_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.chat_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.chat_canvas.bind("<Configure>", self._on_canvas_configure)
+        self.chat_canvas.bind("<MouseWheel>", self._on_mousewheel)
 
         # Asegurar foco al hacer clic en el chat o en la ventana
         self.win.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
         self.chat_canvas.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
-
-        self.send_btn = tk.Button(inp, text="Enviar >>", command=self.send_message,
-                                  bg=self.theme.accent, fg=self.theme.accent_text,
-                                  font=(self.theme.font_family, self.theme.font_size, "bold"),
-                                  activebackground=self.theme.surface_variant,
-                                  bd=0, relief=tk.FLAT, padx=14, cursor="hand2")
-        self.send_btn.pack(side=tk.RIGHT)
 
         self._toggle_mode()
         self.load_bg_asset(self.bg_image_path, initial=True)
@@ -2337,6 +2353,8 @@ class ChatWindow:
         )
 
         self.user_info.add_listener(self._on_ip_update)
+        self.win.update_idletasks()
+        self._redraw_all_messages()
 
     def open_bg_menu(self):
         m = tk.Menu(self.win, tearoff=0,
@@ -2508,23 +2526,28 @@ class ChatWindow:
         max_text_w = max(180, int(cw * 0.74))
 
         if role == "system":
+            is_light = self.theme._calc_brightness(self.theme.surface) > 130
+            sys_fg = "#1f2937" if is_light else "#e2e8f0"
+            pill_fill = "#e2e8f0" if is_light else self.theme.surface_variant
+            pill_border = "#94a3b8" if is_light else self.theme.border
+
             t_id = self.chat_canvas.create_text(
                 cw // 2, self._chat_y_cursor + py,
                 text=text.strip(), font=font_msg, width=max(200, int(cw * 0.85)),
-                fill=self.theme.text_dim, anchor="n", justify=tk.CENTER,
+                fill=sys_fg, anchor="n", justify=tk.CENTER,
                 tags=("msg_item", "system_txt")
             )
             bb = self.chat_canvas.bbox(t_id)
             if bb:
                 tw = bb[2] - bb[0]
                 th = bb[3] - bb[1]
-                rx1 = (cw - tw) // 2 - 10
-                rx2 = rx1 + tw + 20
+                rx1 = (cw - tw) // 2 - 12
+                rx2 = rx1 + tw + 24
                 ry1 = self._chat_y_cursor
                 ry2 = ry1 + th + py * 2
                 rect_id = create_round_rect(
                     self.chat_canvas, rx1, ry1, rx2, ry2, radius=8,
-                    fill=self.theme.surface_variant, outline=self.theme.border, width=1,
+                    fill=pill_fill, outline=pill_border, width=1,
                     tags=("msg_item", "system_pill")
                 )
                 self.chat_canvas.tag_lower(rect_id, t_id)
@@ -2613,9 +2636,14 @@ class ChatWindow:
             by1 = self._chat_y_cursor
             by2 = by1 + bh
 
+            is_light = self.theme._calc_brightness(self.theme.surface) > 130
+            bot_fill = "#ffffff" if is_light else self.theme.surface_variant
+            bot_border = "#94a3b8" if is_light else self.theme.border
+            bot_text_fg = "#0f172a" if is_light else self.theme.text
+
             rect_id = create_round_rect(
                 self.chat_canvas, bx1, by1, bx2, by2, radius=12,
-                fill=self.theme.surface, outline=self.theme.border, width=1,
+                fill=bot_fill, outline=bot_border, width=1,
                 tags=("msg_item", "bot_bubble")
             )
 
@@ -2626,7 +2654,7 @@ class ChatWindow:
             )
             t_item = self.chat_canvas.create_text(
                 bx1 + px, by1 + py + hh + 4, text=text, font=font_msg, width=max_text_w,
-                fill=self.theme.text, anchor="nw",
+                fill=bot_text_fg, anchor="nw",
                 tags=("msg_item", "bot_txt")
             )
 
