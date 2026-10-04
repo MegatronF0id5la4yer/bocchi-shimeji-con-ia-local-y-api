@@ -11,7 +11,8 @@ a = Analysis(
     ],
     hiddenimports=[
         'win32gui', 'win32con', 'win32api', 'win32process', 'win32net',
-        'winreg', 'requests', 'webbrowser', 'subprocess', 'PIL'
+        'winreg', 'requests', 'webbrowser', 'subprocess', 'PIL',
+        'fnmatch', 'urllib.parse'
     ],
     hookspath=[],
     hooksconfig={},

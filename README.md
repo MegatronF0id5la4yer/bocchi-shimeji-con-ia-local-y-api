@@ -6,14 +6,19 @@ Una mascota de escritorio interactiva inspirada en Bocchi-Chan (Hitori Gotoh). P
 
 ## ✨ Características Principales
 
-- 🐾 **Mascota de escritorio transparente y siempre visible** sobre tus ventanas.
+- 🐾 **Mascota de escritorio transparente y siempre activa:** Camina continuamente por el escritorio, trepa paredes y techo con física fluida e interactiva.
 - 🎨 **Animaciones personalizadas** definidas en `Actions.xml` e imágenes en `img/Shimeji/`.
-- 🧗 **Física y movimiento autónomo** por el suelo, las paredes y el techo.
-- 🎸 **Poses y modos manuales:** Tocar guitarra, modo blob, fantasma, caja de cartón, arrodillarse, caminar de espaldas, etc.
-- ⚡ **Asistente tipo JARVIS para Windows:**
-  - Crea, lee, escribe, modifica y renombra archivos tanto en lenguaje natural (*"hey haz que x archivo ahora se llame caca"*, *"crea notas.txt con hola mundo"*) como mediante atajos directos (`/create`, `/rename`, `/write`, `/read`, `/delete`, `/list`, `/open`, `/cmd`).
-  - Resolución inteligente de rutas en tu Escritorio o directorio del proyecto.
-  - Integración en tiempo real con IA: cuando hablas con Gemini, el bot puede emitir comandos de ejecución `[JARVIS: ...]` y el sistema los ejecuta automáticamente en Windows.
+- 🧗 **Física y movimiento autónomo mejorado:** Inicia caminando de inmediato al abrir, con un 80% de probabilidad de movimiento activo (caminar, caminar de espaldas, escalar paredes y caminar por el techo) intercalado con divertidas poses.
+- 🎸 **Poses y modos manuales (clic derecho):** Menú contextual con clic derecho completamente funcional y fluido para activar poses: tocar guitarra, modo blob, fantasma, caja de cartón, arrodillarse, caminar de espaldas, etc.
+- ⚡ **Asistente tipo JARVIS para Windows con control total:**
+  - **Apertura de programas y archivos:** Abre programas por nombre o alias (*"abre bloc de notas"*, *"abre calculadora"*, *"abre chrome"*, *"abre spotify"*, *"abre discord"*, *"abre cmd"*, *"abre visual studio code"*) o archivos directos (*"abre documento.pdf"*, *"abre notas.txt"*).
+  - **Integración con WSL (Linux) y PowerShell:** Abre terminales interactivas de tus distribuciones WSL al instante solo diciendo *"abre arch"*, *"abre archlinux"*, *"abre ubuntu"*, *"abre debian"*, *"abre kali"* o comandos de PowerShell (`/ps <comando>`, *"ejecuta en powershell <script>"*).
+  - **Comandos y Aliases Personalizados Permanentes:** Guarda tus propios comandos para siempre en `config.json` para ejecutarlos cuando digas una frase (*"cuando diga abrir juego corre D:\Juegos\game.exe"*, *"agrega comando compilar = npm run build"*, `/alias abre arch = wsl -d archlinux`, `/delcmd`, `/listcmd`).
+  - **Rutas personalizadas para programas en carpetas raras:** Añade carpetas extra al escaneo del asistente para encontrar ejecutables y archivos estés donde estés (`/addpath D:\ProgramasRaros`, `/delpath`, `/listpaths`).
+  - **Búsqueda rápida de archivos:** Encuentra archivos en tu Escritorio, Documentos, Descargas, rutas personalizadas o disco (*"busca tesis.docx"*, *"busca archivo notas.txt"*, `/find notas.txt`).
+  - **Búsqueda en la Web y YouTube:** Abre búsquedas al instante (*"busca en web recetas de cocina"*, *"busca en google tutorial python"*, *"busca en youtube bocchi the rock"*, `/web <query>`, `/yt <query>`).
+  - **Manipulación de archivos:** Crea, lee, escribe, modifica y renombra archivos tanto en lenguaje natural (*"hey haz que x archivo ahora se llame caca"*, *"crea notas.txt con hola mundo"*) como mediante atajos directos (`/create`, `/rename`, `/write`, `/read`, `/delete`, `/list`, `/open`, `/cmd`).
+  - **Integración con IA:** Al conversar con Gemini o SmolLM, la IA puede emitir etiquetas de control del sistema (`[JARVIS: OPEN ...]`, `[JARVIS: SEARCH ...]`, `[JARVIS: ADD_CMD ...]`, `[JARVIS: PS ...]`, etc.) que se ejecutan automáticamente en Windows.
 - 😈 **Modo Troll Activable/Desactivable:**
   - **Interruptor ON/OFF:** Apágalo para que Bocchi sea una asistente dócil y formal, o enciéndelo para desatar el caos cómico.
   - **Travesuras seguras (sin alterar el sistema ni borrar archivos):**
@@ -72,6 +77,17 @@ Puedes escribirle en lenguaje natural o usar atajos directos en el chat:
 
 | Comando | Descripción | Ejemplo |
 | :--- | :--- | :--- |
+| `abre <app/distro>` | Abre app, programa o distro de WSL | `abre arch`, `abre chrome`, `abre calc` |
+| `/alias <frase> = <comando>` | Guarda un alias/comando permanente | `/alias abre arch = wsl -d archlinux` |
+| `/delcmd <frase>` | Elimina un alias/comando permanente | `/delcmd abre arch` |
+| `/listcmd` | Lista los comandos personalizados guardados | `/listcmd` |
+| `/addpath <carpeta>` | Añade carpeta de búsqueda para programas/archivos | `/addpath D:\MisJuegos` |
+| `/delpath <carpeta>` | Elimina carpeta personalizada | `/delpath D:\MisJuegos` |
+| `/listpaths` | Lista rutas de búsqueda configuradas | `/listpaths` |
+| `/ps <comando>` | Ejecuta un comando en PowerShell | `/ps Get-Process` |
+| `/web <búsqueda>` | Busca en Google / Navegador | `/web mejores animes 2024` |
+| `/yt <búsqueda>` | Busca directamente en YouTube | `/yt bocchi guitar solo` |
+| `/find <archivo>` | Busca archivos en el sistema | `/find notas.txt` |
 | `/rename <viejo> <nuevo>` | Renombra un archivo | `/rename notas.txt caca.txt` |
 | `/create <archivo> [texto]` | Crea un archivo en el Escritorio | `/create lista.txt Huevos, Leche` |
 | `/write <archivo> <texto>` | Sobrescribe texto en archivo | `/write lista.txt Pan` |

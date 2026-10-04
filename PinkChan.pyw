@@ -19,6 +19,8 @@ import subprocess
 import webbrowser
 import re
 import shutil
+import fnmatch
+import urllib.parse
 
 try:
     import winreg
@@ -436,9 +438,14 @@ class ThemeManager:
             self.accent = self.config.get("custom_accent", "#38bdf8")
 
         self.accent_text = "#ffffff" if self._calc_brightness(self.accent) < 150 else "#111620"
+        self.accent_fg = self.accent_text
         self.danger = "#ef4444"
         self.success = "#22c55e"
         self.warning = "#f59e0b"
+
+    @property
+    def accent_fg_prop(self):
+        return getattr(self, "accent_text", "#ffffff")
 
     def set_opacity(self, opac, notify=True):
         self.opacity = max(0.40, min(1.0, float(opac)))
@@ -984,56 +991,352 @@ class DoxxWindow:
             self.shimeji.doxx_win = None
 
 class JarvisAssistant:
-    def __init__(self, shimeji_ref=None, user_info=None):
+    PROGRAM_ALIASES = {
+        "bloc de notas": "notepad.exe",
+        "bloc": "notepad.exe",
+        "notas": "notepad.exe",
+        "notepad": "notepad.exe",
+        "calculadora": "calc.exe",
+        "calc": "calc.exe",
+        "explorador": "explorer.exe",
+        "explorador de archivos": "explorer.exe",
+        "carpetas": "explorer.exe",
+        "cmd": "cmd.exe",
+        "consola": "cmd.exe",
+        "simbolo del sistema": "cmd.exe",
+        "terminal": "wt.exe",
+        "powershell": "powershell.exe",
+        "ps": "powershell.exe",
+        "administrador de tareas": "taskmgr.exe",
+        "taskmgr": "taskmgr.exe",
+        "tareas": "taskmgr.exe",
+        "panel de control": "control.exe",
+        "control": "control.exe",
+        "configuracion": "ms-settings:",
+        "ajustes": "ms-settings:",
+        "paint": "mspaint.exe",
+        "chrome": "chrome",
+        "google chrome": "chrome",
+        "edge": "msedge",
+        "microsoft edge": "msedge",
+        "firefox": "firefox",
+        "brave": "brave",
+        "spotify": "spotify",
+        "discord": "discord",
+        "steam": "steam",
+        "vscode": "code",
+        "vs code": "code",
+        "visual studio code": "code",
+        # WSL y distribuciones de Linux
+        "arch": "wsl -d archlinux",
+        "archlinux": "wsl -d archlinux",
+        "abre arch": "wsl -d archlinux",
+        "abre archlinux": "wsl -d archlinux",
+        "ubuntu": "wsl -d ubuntu",
+        "abre ubuntu": "wsl -d ubuntu",
+        "debian": "wsl -d debian",
+        "abre debian": "wsl -d debian",
+        "kali": "wsl -d kali-linux",
+        "abre kali": "wsl -d kali-linux",
+        "wsl": "wsl",
+        "abre wsl": "wsl",
+    }
+
+    def __init__(self, shimeji_ref=None, user_info=None, config=None):
         self.shimeji = shimeji_ref
         self.user_info = user_info
-        self.desktop_dir = os.path.join(os.path.expanduser("~"), "Desktop")
+        self.config = config if config is not None else (self.shimeji.config if self.shimeji else load_config())
+        self.home_dir = os.path.expanduser("~")
+        self.desktop_dir = os.path.join(self.home_dir, "Desktop")
+        self.documents_dir = os.path.join(self.home_dir, "Documents")
+        self.downloads_dir = os.path.join(self.home_dir, "Downloads")
         self.default_dir = self.desktop_dir if os.path.isdir(self.desktop_dir) else BASE_DIR
 
+        self.custom_paths = list(self.config.get("custom_paths", []))
+        self.custom_commands = dict(self.config.get("custom_commands", {}))
+
+        # Comandos predeterminados si aún no están guardados
+        default_builtins = {
+            "arch": "wsl -d archlinux",
+            "archlinux": "wsl -d archlinux",
+            "abre arch": "wsl -d archlinux",
+            "abre archlinux": "wsl -d archlinux",
+            "ubuntu": "wsl -d ubuntu",
+            "abre ubuntu": "wsl -d ubuntu",
+            "debian": "wsl -d debian",
+            "abre debian": "wsl -d debian",
+            "wsl": "wsl",
+            "abre wsl": "wsl",
+        }
+        modified = False
+        for k, v in default_builtins.items():
+            if k not in self.custom_commands:
+                self.custom_commands[k] = v
+                modified = True
+        if modified:
+            self.config["custom_commands"] = self.custom_commands
+            save_config(self.config)
+
+    def add_custom_command(self, trigger, command):
+        """Guarda un alias o comando personalizado para siempre en config.json."""
+        t_clean = trigger.strip().lower()
+        c_clean = command.strip()
+        if not t_clean or not c_clean:
+            return False, "[!] Especifica el nombre de la orden y el comando a correr."
+        self.custom_commands[t_clean] = c_clean
+        self.config["custom_commands"] = self.custom_commands
+        save_config(self.config)
+        return True, f"[+] Comando guardado para siempre:\n  Cuando digas: '{t_clean}'\n  Ejecutara: '{c_clean}'"
+
+    def delete_custom_command(self, trigger):
+        """Elimina un comando personalizado de config.json."""
+        t_clean = trigger.strip().lower()
+        if t_clean in self.custom_commands:
+            del self.custom_commands[t_clean]
+            self.config["custom_commands"] = self.custom_commands
+            save_config(self.config)
+            return True, f"[-] Comando '{t_clean}' eliminado correctamente."
+        return False, f"[!] No existe ningun comando guardado como '{t_clean}'."
+
+    def list_custom_commands(self):
+        """Lista todos los comandos guardados."""
+        if not self.custom_commands:
+            return True, "[*] No tienes comandos personalizados guardados todavia.\nUsa: /alias <frase> = <comando>"
+        lines = [f"[*] Comandos personalizados guardados ({len(self.custom_commands)}):"]
+        for t, c in sorted(self.custom_commands.items()):
+            lines.append(f"  - '{t}' -> {c}")
+        return True, "\n".join(lines)
+
+    def add_custom_path(self, folder):
+        """Añade una carpeta personalizada a las rutas de búsqueda de archivos y ejecutables."""
+        clean = folder.strip().strip('"').strip("'")
+        if not os.path.isdir(clean):
+            return False, f"[!] La carpeta '{clean}' no existe o no es valida."
+        norm = os.path.abspath(clean)
+        if norm not in self.custom_paths:
+            self.custom_paths.append(norm)
+            self.config["custom_paths"] = self.custom_paths
+            save_config(self.config)
+            return True, f"[+] Carpeta agregada a rutas de busqueda:\n  -> {norm}"
+        return True, f"[*] La carpeta ya estaba en la lista:\n  -> {norm}"
+
+    def delete_custom_path(self, folder):
+        """Elimina una carpeta de las rutas de búsqueda."""
+        clean = folder.strip().strip('"').strip("'")
+        norm = os.path.abspath(clean)
+        found = None
+        for p in self.custom_paths:
+            if p.lower() == norm.lower() or p.lower() == clean.lower():
+                found = p
+                break
+        if found:
+            self.custom_paths.remove(found)
+            self.config["custom_paths"] = self.custom_paths
+            save_config(self.config)
+            return True, f"[-] Carpeta removida de las rutas de busqueda: '{found}'"
+        return False, f"[!] La carpeta '{clean}' no estaba en la lista."
+
+    def list_custom_paths(self):
+        """Lista todas las rutas de carpetas configuradas."""
+        if not self.custom_paths:
+            return True, "[*] No tienes carpetas personalizadas guardadas.\nUsa: /addpath <carpeta>"
+        lines = [f"[*] Carpetas de busqueda personalizadas ({len(self.custom_paths)}):"]
+        for p in self.custom_paths:
+            status = "[OK]" if os.path.isdir(p) else "[NO EXISTE]"
+            lines.append(f"  - {status} {p}")
+        return True, "\n".join(lines)
+
+    def run_powershell(self, ps_cmd):
+        """Ejecuta un comando de PowerShell y devuelve el resultado."""
+        clean = ps_cmd.strip()
+        try:
+            proc = subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", clean],
+                                  capture_output=True, text=True, timeout=15)
+            out = proc.stdout.strip()
+            err = proc.stderr.strip()
+            res = out if out else err
+            if not res:
+                res = f"PowerShell finalizo con codigo {proc.returncode}"
+            if len(res) > 1200:
+                res = res[:1200] + "\n... [Salida truncada]"
+            return True, f"[*] PowerShell: '{clean}'\n{res}"
+        except subprocess.TimeoutExpired:
+            return False, "[!] El comando de PowerShell tardo demasiado (timeout 15s)"
+        except Exception as e:
+            return False, f"[!] Error ejecutando PowerShell: {e}"
+
+    def run_custom_command(self, cmd_str):
+        """Ejecuta un comando personalizado (abriendo ventana si es interactivo o ejecutando ejecutable/script)."""
+        clean = cmd_str.strip()
+        lower = clean.lower()
+        # Si es comando de terminal / WSL / interactive, abrir en nueva ventana
+        if lower.startswith("wsl") or lower.startswith("powershell") or lower.startswith("cmd") or lower.startswith("wt"):
+            try:
+                subprocess.Popen(f'start {clean}', shell=True)
+                return True, f"[+] Ejecutando en nueva ventana:\n  -> {clean}"
+            except Exception as e:
+                return False, f"[!] Error al lanzar comando: {e}"
+
+        # Si es archivo o ejecutable existente
+        resolved = self.resolve_target(clean, must_exist=True)
+        if resolved:
+            try:
+                os.startfile(resolved)
+                return True, f"[+] Archivo/programa ejecutado:\n  '{os.path.basename(resolved)}'"
+            except Exception as e:
+                return False, f"[!] Error al abrir '{resolved}': {e}"
+
+        # Probar con start de Windows
+        try:
+            subprocess.Popen(f'start "" "{clean}"', shell=True)
+            return True, f"[+] Lanzando orden:\n  '{clean}'"
+        except Exception:
+            return self.run_cmd(clean)
+
     def resolve_target(self, filename_or_path, must_exist=False):
-        """Resuelve el archivo buscando en Desktop, BASE_DIR o como ruta absoluta."""
+        """Resuelve el archivo buscando en Desktop, Documents, Downloads, BASE_DIR, rutas personalizadas o como ruta absoluta."""
         if not filename_or_path:
             return None
         cleaned = filename_or_path.strip().strip('"').strip("'")
         if not cleaned:
             return None
+
         # Si es ruta absoluta
         if os.path.isabs(cleaned):
             if must_exist and not os.path.exists(cleaned):
                 return None
             return cleaned
 
-        # Probar en Desktop
-        cand_desktop = os.path.join(self.desktop_dir, cleaned)
-        if os.path.exists(cand_desktop):
-            return cand_desktop
+        # Lista de carpetas estándar donde buscar + carpetas personalizadas
+        candidate_dirs = [
+            self.desktop_dir,
+            BASE_DIR,
+            self.documents_dir,
+            self.downloads_dir
+        ] + [p for p in self.custom_paths if os.path.isdir(p)]
 
-        # Probar en BASE_DIR
-        cand_base = os.path.join(BASE_DIR, cleaned)
-        if os.path.exists(cand_base):
-            return cand_base
+        # 1. Búsqueda exacta en directorios candidatos
+        for d in candidate_dirs:
+            if os.path.isdir(d):
+                cand = os.path.join(d, cleaned)
+                if os.path.exists(cand):
+                    return cand
 
-        # Si must_exist es True pero no se encontro por nombre exacto, buscar en Desktop case-insensitive o sin extension
+        # 2. Si must_exist es True, búsqueda insensible a mayúsculas o sin extensión
         if must_exist:
-            if os.path.isdir(self.desktop_dir):
-                for f in os.listdir(self.desktop_dir):
-                    if f.lower() == cleaned.lower():
-                        return os.path.join(self.desktop_dir, f)
-                    base, _ = os.path.splitext(f)
-                    if base.lower() == cleaned.lower():
-                        return os.path.join(self.desktop_dir, f)
-            # Buscar en BASE_DIR
-            if os.path.isdir(BASE_DIR):
-                for f in os.listdir(BASE_DIR):
-                    if f.lower() == cleaned.lower():
-                        return os.path.join(BASE_DIR, f)
-                    base, _ = os.path.splitext(f)
-                    if base.lower() == cleaned.lower():
-                        return os.path.join(BASE_DIR, f)
+            cleaned_lower = cleaned.lower()
+            for d in candidate_dirs:
+                if not os.path.isdir(d):
+                    continue
+                try:
+                    for f in os.listdir(d):
+                        if f.lower() == cleaned_lower:
+                            return os.path.join(d, f)
+                        base, _ = os.path.splitext(f)
+                        if base.lower() == cleaned_lower:
+                            return os.path.join(d, f)
+                except Exception:
+                    pass
             return None
 
-        # Si no debe existir (por ejemplo para crear), default a Desktop
-        return cand_desktop
+        # Si no debe existir (para crear nuevo archivo), default al Escritorio
+        return os.path.join(self.desktop_dir, cleaned)
+
+    def search_files(self, pattern, search_dir=None, max_results=15):
+        """Busca archivos por nombre o patrón en el equipo de forma rápida y segura."""
+        clean_pat = pattern.strip().strip('"').strip("'")
+        if not clean_pat:
+            return []
+
+        search_dirs = []
+        if search_dir and os.path.isdir(search_dir):
+            search_dirs.append(search_dir)
+        else:
+            search_dirs = [
+                self.desktop_dir,
+                self.documents_dir,
+                self.downloads_dir,
+                BASE_DIR,
+                self.home_dir
+            ] + [p for p in self.custom_paths if os.path.isdir(p)]
+
+        results = []
+        seen = set()
+        ignore_dirs = {
+            "appdata", "node_modules", ".git", "__pycache__", "venv", ".gemini",
+            "microsoft", "windows", "temp", "tmp", "cache", "caches", ".vscode"
+        }
+
+        pat_lower = clean_pat.lower()
+        glob_pat = pat_lower if ("*" in pat_lower or "?" in pat_lower) else f"*{pat_lower}*"
+
+        for root_dir in search_dirs:
+            if not os.path.isdir(root_dir):
+                continue
+            root_depth = root_dir.rstrip(os.sep).count(os.sep)
+
+            try:
+                for root, dirs, files in os.walk(root_dir, topdown=True):
+                    # Limitar profundidad a máximo 3 niveles relativos
+                    curr_depth = root.rstrip(os.sep).count(os.sep)
+                    if curr_depth - root_depth > 3:
+                        dirs.clear()
+                        continue
+
+                    # Filtrar carpetas protegidas o gigantes
+                    dirs[:] = [d for d in dirs if d.lower() not in ignore_dirs and not d.startswith('.')]
+
+                    for f in files:
+                        f_lower = f.lower()
+                        if fnmatch.fnmatch(f_lower, glob_pat) or pat_lower in f_lower:
+                            full_path = os.path.join(root, f)
+                            if full_path in seen:
+                                continue
+                            seen.add(full_path)
+
+                            try:
+                                size_b = os.path.getsize(full_path)
+                                if size_b < 1024:
+                                    size_str = f"{size_b} B"
+                                elif size_b < 1024 * 1024:
+                                    size_str = f"{size_b / 1024:.1f} KB"
+                                else:
+                                    size_str = f"{size_b / (1024*1024):.1f} MB"
+                            except Exception:
+                                size_str = "? B"
+
+                            results.append((f, full_path, size_str))
+                            if len(results) >= max_results:
+                                return results
+            except Exception:
+                pass
+
+        return results
+
+    def search_file(self, pattern, search_dir=None):
+        results = self.search_files(pattern, search_dir=search_dir)
+        if not results:
+            return False, f"[!] No encontré archivos que coincidan con '{pattern}' en tus carpetas."
+
+        lines = [f"[*] Se encontraron {len(results)} archivo(s) para '{pattern}':"]
+        for fname, full_path, size_str in results:
+            lines.append(f"  [FILE] {fname} ({size_str})\n         -> {full_path}")
+        return True, "\n".join(lines)
+
+    def search_web(self, query, engine="google"):
+        clean = query.strip().strip('"').strip("'")
+        if not clean:
+            return False, "[!] Dime qué quieres buscar en internet :v"
+
+        encoded = urllib.parse.quote_plus(clean)
+        if engine == "youtube" or "youtube" in clean.lower():
+            url = f"https://www.youtube.com/results?search_query={encoded}"
+            webbrowser.open(url)
+            return True, f"[+] Búsqueda en YouTube abierta:\n'{clean}'\n[>] {url}"
+        else:
+            url = f"https://www.google.com/search?q={encoded}"
+            webbrowser.open(url)
+            return True, f"[+] Búsqueda en Google abierta:\n'{clean}'\n[>] {url}"
 
     def create_file(self, filename, content=""):
         path = self.resolve_target(filename, must_exist=False)
@@ -1143,19 +1446,73 @@ class JarvisAssistant:
     def open_target(self, target):
         try:
             clean = target.strip().strip('"').strip("'")
-            if clean.startswith("http://") or clean.startswith("https://"):
-                webbrowser.open(clean)
-                return True, f"[+] Abriendo enlace: {clean}"
+            if not clean:
+                return False, "[!] Dime qué archivo o programa abrir :v"
 
-            resolved = self.resolve_target(clean, must_exist=True)
-            if resolved:
-                os.startfile(resolved)
-                return True, f"[+] Archivo abierto: '{os.path.basename(resolved)}'"
-            else:
-                os.startfile(clean)
-                return True, f"[+] Ejecutando programa: '{clean}'"
+            # 1. URLs
+            if clean.startswith(("http://", "https://", "www.")):
+                url = "https://" + clean if clean.startswith("www.") else clean
+                webbrowser.open(url)
+                return True, f"[+] Abriendo enlace: {url}"
+
+            lower = clean.lower()
+
+            # 2. Comandos personalizados del usuario
+            if lower in self.custom_commands:
+                return self.run_custom_command(self.custom_commands[lower])
+
+            # 3. Alias de programas comunes
+            cmd_target = self.PROGRAM_ALIASES.get(lower, clean)
+
+            # Protocolos directos de Windows
+            if cmd_target.startswith("ms-settings:") or cmd_target.startswith("steam:"):
+                try:
+                    os.startfile(cmd_target)
+                    return True, f"[+] Abriendo: '{cmd_target}' [*]"
+                except Exception:
+                    pass
+
+            # Si el alias es un comando WSL
+            if cmd_target.lower().startswith("wsl"):
+                try:
+                    subprocess.Popen(f'start {cmd_target}', shell=True)
+                    return True, f"[+] Abriendo terminal WSL:\n  -> {cmd_target}"
+                except Exception as e:
+                    return False, f"[!] Error abriendo WSL: {e}"
+
+            # 4. Intentar resolver como archivo existente (incluyendo custom_paths)
+            resolved = self.resolve_target(cmd_target, must_exist=True)
+            if not resolved and cmd_target != clean:
+                resolved = self.resolve_target(clean, must_exist=True)
+
+            if not resolved:
+                # Búsqueda rápida si no se halló en rutas directas
+                matches = self.search_files(clean, max_results=1)
+                if matches:
+                    resolved = matches[0][1]
+
+            if resolved and os.path.exists(resolved):
+                try:
+                    os.startfile(resolved)
+                    return True, f"[+] Archivo abierto: '{os.path.basename(resolved)}'\n[Ruta: {resolved}]"
+                except Exception as e:
+                    return False, f"[!] Error abriendo archivo '{resolved}': {e}"
+
+            # 5. Intentar abrir como programa o ejecutable del sistema
+            try:
+                os.startfile(cmd_target)
+                return True, f"[+] Ejecutando programa: '{cmd_target}'"
+            except Exception:
+                pass
+
+            # Probar lanzando mediante Windows shell
+            try:
+                subprocess.Popen(f'start "" "{cmd_target}"', shell=True)
+                return True, f"[+] Lanzando: '{cmd_target}'"
+            except Exception as e:
+                return False, f"[!] No se pudo abrir ni ejecutar '{target}': {e}"
         except Exception as e:
-            return False, f"[!] No se pudo abrir '{target}': {e}"
+            return False, f"[!] Error al abrir '{target}': {e}"
 
     def run_cmd(self, command_str):
         try:
@@ -1178,6 +1535,25 @@ class JarvisAssistant:
         raw = text.strip()
         if not raw:
             return False, "", ""
+        lower = raw.lower()
+
+        # 0. Comprobación directa de comandos personalizados guardados
+        # Chequear coincidencia exacta o sin prefijos como "hey ", "abre ", "corre ", "inicia "
+        clean_trigger = lower
+        for prefix in ("hey ", "porfa ", "favor de "):
+            if clean_trigger.startswith(prefix):
+                clean_trigger = clean_trigger[len(prefix):].strip()
+
+        if clean_trigger in self.custom_commands:
+            ok, msg = self.run_custom_command(self.custom_commands[clean_trigger])
+            return True, msg, f"Orden '{clean_trigger[:20]}' ejecutada [>]"
+
+        for act_prefix in ("abre ", "abrir ", "corre ", "correr ", "ejecuta ", "ejecutar ", "inicia ", "iniciar "):
+            if clean_trigger.startswith(act_prefix):
+                sub = clean_trigger[len(act_prefix):].strip()
+                if sub in self.custom_commands:
+                    ok, msg = self.run_custom_command(self.custom_commands[sub])
+                    return True, msg, f"Orden '{sub[:20]}' ejecutada [>]"
 
         # 1. Comandos de control del Modo Troll
         m_troll_on = re.search(r'^(?:/troll\s+on|(?:hey\s+)?(?:activa(?:r)?|pon|enciende)\s+(?:el\s+)?modo\s+troll)', raw, re.IGNORECASE)
@@ -1192,7 +1568,153 @@ class JarvisAssistant:
                 self.shimeji.toggle_troll_mode(False)
             return True, "[o] Modo Troll desactivado. Bocchi en modo JARVIS eficiente y pacífico.", "Modo troll desactivado UwU"
 
-        # 2. Renombrar archivos (Ej: "hey haz que x archivo ahora se llame caca", "/ren x y", "renombra x a y")
+        # 2. Gestión de comandos y alias personalizados
+        # Slash: /alias o /addcmd trigger = comando
+        if raw.startswith(("/alias ", "/addcmd ")):
+            body = raw.split(maxsplit=1)[1].strip()
+            if "=" in body:
+                parts = body.split("=", 1)
+                ok, msg = self.add_custom_command(parts[0], parts[1])
+                return True, msg, "Comando guardado [*]"
+            elif "->" in body:
+                parts = body.split("->", 1)
+                ok, msg = self.add_custom_command(parts[0], parts[1])
+                return True, msg, "Comando guardado [*]"
+            return True, "[!] Uso: /alias <frase_activadora> = <comando_a_ejecutar>\nEjemplo: /alias abre arch = wsl -d archlinux", "Escribe el alias wei :v"
+
+        if raw.startswith(("/delcmd ", "/unalias ")):
+            trig = raw.split(maxsplit=1)[1].strip()
+            ok, msg = self.delete_custom_command(trig)
+            return True, msg, "Comando eliminado [-]" if ok else "No encontre ese comando :v"
+
+        if raw in ("/listcmd", "/aliases", "/alias", "/comandos"):
+            ok, msg = self.list_custom_commands()
+            return True, msg, "Ahi estan tus comandos [*]"
+
+        # Lenguaje natural para agregar/borrar/listar comandos
+        m_add_cmd_nat = re.search(r'^(?:(?:hey\s+)?(?:agrega(?:r)?|guarda(?:r)?|crea(?:r)?|asocia(?:r)?)\s+(?:el\s+)?(?:comando|alias)\s+[\'"]?(.+?)[\'"]?\s+(?:que\s+(?:corra|ejecute)|como|con|=|->)\s+[\'"]?(.+?)[\'"]?)$', raw, re.IGNORECASE)
+        if m_add_cmd_nat:
+            t, c = m_add_cmd_nat.group(1).strip(), m_add_cmd_nat.group(2).strip()
+            ok, msg = self.add_custom_command(t, c)
+            return True, msg, "Comando guardado [*]"
+
+        m_when_cmd_nat = re.search(r'^(?:(?:hey\s+)?cuando\s+diga\s+[\'"]?(.+?)[\'"]?\s+(?:ejecuta|corre|abre|haz)\s+[\'"]?(.+?)[\'"]?)$', raw, re.IGNORECASE)
+        if m_when_cmd_nat:
+            t, c = m_when_cmd_nat.group(1).strip(), m_when_cmd_nat.group(2).strip()
+            ok, msg = self.add_custom_command(t, c)
+            return True, msg, "Comando guardado [*]"
+
+        m_del_cmd_nat = re.search(r'^(?:(?:hey\s+)?(?:borra(?:r)?|elimina(?:r)?)\s+(?:el\s+)?(?:comando|alias)\s+[\'"]?(.+?)[\'"]?)$', raw, re.IGNORECASE)
+        if m_del_cmd_nat:
+            t = m_del_cmd_nat.group(1).strip()
+            ok, msg = self.delete_custom_command(t)
+            return True, msg, "Comando borrado [-]" if ok else "No encontre ese comando :v"
+
+        m_list_cmd_nat = re.search(r'^(?:(?:hey\s+)?(?:lista(?:r)?|muestra(?:r)?|ver|qu[eé])\s+(?:los\s+)?(?:comandos\s+personalizados|aliases|alias))$', raw, re.IGNORECASE)
+        if m_list_cmd_nat:
+            ok, msg = self.list_custom_commands()
+            return True, msg, "Aqui estan tus comandos [*]"
+
+        # 3. Gestión de rutas y carpetas personalizadas (custom_paths)
+        if raw.startswith("/addpath "):
+            f = raw.split(maxsplit=1)[1].strip()
+            ok, msg = self.add_custom_path(f)
+            return True, msg, "Ruta añadida [*]" if ok else "Ruta invalida :v"
+
+        if raw.startswith("/delpath "):
+            f = raw.split(maxsplit=1)[1].strip()
+            ok, msg = self.delete_custom_path(f)
+            return True, msg, "Ruta eliminada [-]" if ok else "Ruta no encontrada :v"
+
+        if raw in ("/listpaths", "/paths", "/rutas"):
+            ok, msg = self.list_custom_paths()
+            return True, msg, "Aqui estan las rutas [*]"
+
+        m_add_path_nat = re.search(r'^(?:(?:hey\s+)?(?:agrega(?:r)?|a[nñ]ade|guarda(?:r)?)\s+(?:la\s+)?(?:ruta|carpeta|path)\s+(.+))', raw, re.IGNORECASE)
+        if m_add_path_nat:
+            f = m_add_path_nat.group(1).strip()
+            ok, msg = self.add_custom_path(f)
+            return True, msg, "Ruta añadida [*]" if ok else "Ruta invalida :v"
+
+        m_del_path_nat = re.search(r'^(?:(?:hey\s+)?(?:borra(?:r)?|elimina(?:r)?)\s+(?:la\s+)?(?:ruta|carpeta|path)\s+(.+))', raw, re.IGNORECASE)
+        if m_del_path_nat:
+            f = m_del_path_nat.group(1).strip()
+            ok, msg = self.delete_custom_path(f)
+            return True, msg, "Ruta eliminada [-]" if ok else "Ruta no encontrada :v"
+
+        m_list_path_nat = re.search(r'^(?:(?:hey\s+)?(?:lista(?:r)?|muestra(?:r)?|ver|qu[eé])\s+(?:las\s+)?(?:rutas|carpetas|paths))$', raw, re.IGNORECASE)
+        if m_list_path_nat:
+            ok, msg = self.list_custom_paths()
+            return True, msg, "Aqui estan las rutas [*]"
+
+        # 4. Comandos directos de PowerShell
+        if raw.startswith(("/ps ", "/powershell ")):
+            cmd = raw.split(maxsplit=1)[1].strip()
+            ok, msg = self.run_powershell(cmd)
+            return True, msg, "PowerShell ejecutado [PS]"
+
+        m_ps_nat = re.search(r'^(?:(?:hey\s+)?(?:ejecuta|corre)\s+en\s+powershell\s+(.+))', raw, re.IGNORECASE)
+        if m_ps_nat:
+            cmd = m_ps_nat.group(1).strip()
+            ok, msg = self.run_powershell(cmd)
+            return True, msg, "PowerShell ejecutado [PS]"
+
+        # 5. Búsqueda en la web / Google / YouTube
+        m_yt_nat = re.search(r'^(?:(?:hey\s+)?(?:busca(?:r)?\s+(?:en\s+)?(?:youtube|yt)|pon\s+(?:en\s+)?youtube)\s+(.+))', raw, re.IGNORECASE)
+        if m_yt_nat:
+            q = m_yt_nat.group(1).strip()
+            ok, msg = self.search_web(q, engine="youtube")
+            return True, msg, f"Buscando en YouTube: {q[:25]}"
+
+        m_web_nat = re.search(r'^(?:(?:hey\s+)?(?:busca(?:r)?\s+(?:en\s+(?:la\s+)?(?:web|internet|google|chrome)|por\s+internet)\s+(.+)|googlea(?:r)?\s+(.+)))', raw, re.IGNORECASE)
+        if m_web_nat:
+            q = (m_web_nat.group(1) or m_web_nat.group(2) or "").strip()
+            ok, msg = self.search_web(q, engine="google")
+            return True, msg, f"Buscando en Google: {q[:25]}"
+
+        if raw.startswith(("/web ", "/google ", "/searchweb ")):
+            q = raw.split(maxsplit=1)[1].strip()
+            ok, msg = self.search_web(q, engine="google")
+            return True, msg, f"Buscando en Google: {q[:25]}"
+
+        if raw.startswith(("/yt ", "/youtube ")):
+            q = raw.split(maxsplit=1)[1].strip()
+            ok, msg = self.search_web(q, engine="youtube")
+            return True, msg, f"Buscando en YouTube: {q[:25]}"
+
+        # 6. Buscar archivos en el equipo (incluyendo custom_paths)
+        m_search_nat = re.search(r'^(?:(?:hey\s+)?(?:busca(?:r)?|encuentra|d[oó]nde\s+est[aá])\s+(?:el\s+archivo\s+|archivo\s+|el\s+documento\s+|documento\s+)?(.+))', raw, re.IGNORECASE)
+        if m_search_nat and not re.search(r'^(?:(?:hey\s+)?busca(?:r)?\s+en\s+(?:web|internet|google|chrome|youtube|yt))', raw, re.IGNORECASE):
+            pattern = m_search_nat.group(1).strip().strip('"').strip("'")
+            ok, msg = self.search_file(pattern)
+            speech = f"Resultados para '{pattern[:20]}' [*]" if ok else "No encontre ese archivo :v"
+            return True, msg, speech
+
+        if raw.startswith(("/find ", "/search ", "/buscar ", "/where ")):
+            parts = raw.split(maxsplit=1)
+            if len(parts) >= 2:
+                ok, msg = self.search_file(parts[1].strip())
+                speech = f"Resultados para '{parts[1][:20]}' [*]" if ok else "No encontre ese archivo :v"
+                return True, msg, speech
+            return True, "[!] Uso: /find <nombre_o_patron>", "Dime que archivo busco :v"
+
+        # 7. Abrir programas, archivos o URLs
+        m_open_nat = re.search(r'^(?:(?:hey\s+)?(?:abre|abrir|ejecuta(?:r)?|inicia(?:r)?|lanza(?:r)?)\s+(?:el\s+programa\s+|la\s+app\s+|la\s+aplicaci[oó]n\s+|el\s+archivo\s+|el\s+documento\s+|el\s+|la\s+)?(.+))', raw, re.IGNORECASE)
+        if m_open_nat:
+            target = m_open_nat.group(1).strip().strip('"').strip("'")
+            ok, msg = self.open_target(target)
+            speech = f"Abriendo '{target[:20]}' [>]" if ok else f"No pude abrir '{target[:20]}' :v"
+            return True, msg, speech
+
+        if raw.startswith(("/open ", "/abrir ", "/start ", "/launch ")):
+            parts = raw.split(maxsplit=1)
+            if len(parts) >= 2:
+                ok, msg = self.open_target(parts[1].strip())
+                speech = f"Abriendo '{parts[1][:20]}' [>]" if ok else f"No pude abrir '{parts[1][:20]}' :v"
+                return True, msg, speech
+            return True, "[!] Uso: /open <archivo_o_programa>", "Dime que abrir :v"
+
+        # 8. Renombrar archivos (Ej: "hey haz que x archivo ahora se llame caca", "/ren x y", "renombra x a y")
         m_ren_nat = re.search(r'(?:(?:hey\s+)?haz\s+que\s+(?:el\s+archivo\s+)?([^\s,]+)\s+ahora\s+se\s+llame\s+([^\s,]+))', raw, re.IGNORECASE)
         if m_ren_nat:
             old_f, new_f = m_ren_nat.group(1), m_ren_nat.group(2)
@@ -1207,7 +1729,6 @@ class JarvisAssistant:
             speech = f"Renombrado '{old_f}' a '{new_f}' [OK]" if ok else "No pude renombrarlo :v"
             return True, msg, speech
 
-        # Slash command /ren o /rename
         if raw.startswith(("/ren ", "/rename ", "/renombrar ")):
             parts = raw.split(maxsplit=2)
             if len(parts) >= 3:
@@ -1217,7 +1738,7 @@ class JarvisAssistant:
             else:
                 return True, "[!] Uso: /rename <archivo_actual> <nuevo_nombre>", "Pon el nombre viejo y nuevo :v"
 
-        # 3. Crear archivos (Ej: "crea un archivo llamado notas con hola", "/create notas.txt hola")
+        # 9. Crear archivos
         m_create_nat = re.search(r'^(?:(?:hey\s+)?crea(?:r)?\s+(?:un\s+archivo\s+)?(?:llamado\s+)?([^\s,]+)(?:\s+(?:con|que\s+diga|con\s+el\s+texto)\s+(.+))?)$', raw, re.IGNORECASE)
         if m_create_nat:
             fname = m_create_nat.group(1)
@@ -1236,7 +1757,7 @@ class JarvisAssistant:
                 return True, msg, speech
             return True, "[!] Uso: /create <nombre_archivo> [contenido opcional]", "Dime que nombre ponerle :v"
 
-        # 4. Escribir / Modificar archivos (Ej: "escribe esto en notas.txt", "/write notas.txt texto")
+        # 10. Escribir / Modificar archivos
         m_write_nat = re.search(r'^(?:(?:hey\s+)?escribe\s+[\'"]?(.+?)[\'"]?\s+en\s+([^\s,]+))', raw, re.IGNORECASE)
         if m_write_nat:
             content, fname = m_write_nat.group(1), m_write_nat.group(2)
@@ -1267,7 +1788,7 @@ class JarvisAssistant:
                 return True, msg, speech
             return True, "[!] Uso: /append <archivo> <contenido>", "Falta el archivo o texto :v"
 
-        # 5. Leer archivos (Ej: "que dice notas.txt", "lee notas.txt", "/read notas.txt")
+        # 11. Leer archivos
         m_read_nat = re.search(r'^(?:(?:hey\s+)?(?:lee(?:r)?|qu[eé]\s+dice|muestra(?:r)?)\s+(?:el\s+archivo\s+)?([^\s,]+))', raw, re.IGNORECASE)
         if m_read_nat:
             fname = m_read_nat.group(1)
@@ -1283,7 +1804,7 @@ class JarvisAssistant:
                 return True, msg, speech
             return True, "[!] Uso: /read <archivo>", "Cual archivo leo wei? :v"
 
-        # 6. Borrar archivos (Ej: "borra notas.txt", "/del notas.txt")
+        # 12. Borrar archivos
         m_del_nat = re.search(r'^(?:(?:hey\s+)?(?:borra(?:r)?|elimina(?:r)?)\s+(?:el\s+archivo\s+)?([^\s,]+))', raw, re.IGNORECASE)
         if m_del_nat:
             fname = m_del_nat.group(1)
@@ -1299,7 +1820,7 @@ class JarvisAssistant:
                 return True, msg, speech
             return True, "[!] Uso: /delete <archivo>", "Dime que archivo borrar :v"
 
-        # 7. Listar archivos (Ej: "lista los archivos", "/dir", "/ls")
+        # 13. Listar archivos
         m_list_nat = re.search(r'^(?:(?:hey\s+)?(?:lista(?:r)?\s+(?:archivos|carpeta)|qu[eé]\s+archivos\s+hay)(?:\s+(?:en\s+)?(.+))?)', raw, re.IGNORECASE)
         if m_list_nat:
             folder = m_list_nat.group(1)
@@ -1314,23 +1835,7 @@ class JarvisAssistant:
             speech = "Aqui estan tus archivos [*]" if ok else "Carpeta no encontrada :v"
             return True, msg, speech
 
-        # 8. Abrir programas o URLs (Ej: "abre calc", "abre chrome", "/open calc")
-        m_open_nat = re.search(r'^(?:(?:hey\s+)?(?:abre|abrir|ejecuta(?:r)?)\s+([^\s,]+))', raw, re.IGNORECASE)
-        if m_open_nat:
-            target = m_open_nat.group(1)
-            ok, msg = self.open_target(target)
-            speech = f"Abriendo '{target}' [>]" if ok else f"No pude abrir '{target}' :v"
-            return True, msg, speech
-
-        if raw.startswith(("/open ", "/abrir ", "/start ")):
-            parts = raw.split(maxsplit=1)
-            if len(parts) >= 2:
-                ok, msg = self.open_target(parts[1])
-                speech = f"Abriendo '{parts[1]}' [>]" if ok else f"No pude abrir '{parts[1]}' :v"
-                return True, msg, speech
-            return True, "[!] Uso: /open <archivo_o_programa>", "Dime que abrir :v"
-
-        # 9. Ejecutar comandos directos de CMD (/cmd o /exec)
+        # 14. Ejecutar comandos directos de CMD
         if raw.startswith(("/cmd ", "/exec ")):
             parts = raw.split(maxsplit=1)
             if len(parts) >= 2:
@@ -1386,8 +1891,12 @@ class ChatWindow:
             f"- Ubicacion aproximada / ISP: {self.user_info.city}, {self.user_info.country} ({self.user_info.isp})\n"
             f"- Sistema Operativo: {self.user_info.os_info}\n\n"
             f"[HABILIDADES DE JARVIS EN WINDOWS]:\n"
-            f"Tienes acceso como asistente JARVIS a la computadora de Windows del usuario para crear, modificar, renombrar, leer y borrar archivos en su Escritorio o sistema, y ejecutar comandos.\n"
-            f"Si el usuario te pide crear o modificar archivos, o hacer tareas de archivos o troll, puedes responderle en tu tono de Bocchi y agregar al final la instruccion correspondiente:\n"
+            f"Tienes acceso como asistente JARVIS a la computadora de Windows del usuario para abrir programas, abrir o buscar archivos, buscar en internet, renombrar, crear, modificar, leer y borrar archivos, agregar comandos personalizados permanentes y ejecutar comandos de CMD/PowerShell/WSL.\n"
+            f"Si el usuario te pide abrir un programa, buscar archivos, buscar en la web, crear o modificar archivos, o guardar un nuevo comando, responde con tu humor de Bocchi y agrega al final la etiqueta correspondiente:\n"
+            f"[JARVIS: OPEN \"programa o archivo\"]\n"
+            f"[JARVIS: SEARCH \"patron_o_archivo\"]\n"
+            f"[JARVIS: SEARCH_WEB \"consulta a buscar\"]\n"
+            f"[JARVIS: SEARCH_YT \"video o tema en youtube\"]\n"
             f"[JARVIS: RENAME \"origen\" -> \"nuevo\"]\n"
             f"[JARVIS: CREATE \"archivo\" :: \"contenido\"]\n"
             f"[JARVIS: WRITE \"archivo\" :: \"contenido\"]\n"
@@ -1395,8 +1904,12 @@ class ChatWindow:
             f"[JARVIS: READ \"archivo\"]\n"
             f"[JARVIS: DELETE \"archivo\"]\n"
             f"[JARVIS: LIST \"carpeta\"]\n"
-            f"[JARVIS: OPEN \"programa\"]\n"
             f"[JARVIS: CMD \"comando\"]\n"
+            f"[JARVIS: PS \"comando_powershell\"]\n"
+            f"[JARVIS: ADD_CMD \"frase activadora\" = \"comando\"]\n"
+            f"[JARVIS: DEL_CMD \"frase activadora\"]\n"
+            f"[JARVIS: ADD_PATH \"ruta personalizada\"]\n"
+            f"[JARVIS: DEL_PATH \"ruta personalizada\"]\n"
             f"[JARVIS: TROLL ON|OFF]\n\n"
             f"REGLA CRUCIAL:\n"
             f"Tu sabes estos datos reales del usuario. Si el usuario te pregunta quien es el o cual es su IP, "
@@ -1536,6 +2049,8 @@ class ChatWindow:
             ("[JARVIS] Renombrar", lambda: self.insert_chip("/ren ")),
             ("[JARVIS] Crear", lambda: self.insert_chip("/create ")),
             ("[JARVIS] Archivos", lambda: self.send_custom("/list")),
+            ("[WSL] Arch", lambda: self.send_custom("abre arch")),
+            ("[*] Alias", lambda: self.insert_chip("/alias ")),
             ("[!] Troll Mode", lambda: self.toggle_troll()),
             ("[?] Quien soy?", lambda: self.send_custom("Quien soy yo y cual es mi IP real?")),
             ("[*] Consejo", lambda: self.send_custom("Bocchi dame un consejo")),
@@ -1877,10 +2392,66 @@ class ChatWindow:
             results.append(msg)
             cleaned = cleaned.replace(m.group(0), "")
 
+        # SEARCH (Buscar archivo)
+        for m in re.finditer(r'\[JARVIS:\s*SEARCH\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            pat = m.group(1).strip()
+            ok, msg = self.jarvis.search_file(pat)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # SEARCH_WEB (Buscar en Google/Web)
+        for m in re.finditer(r'\[JARVIS:\s*SEARCH_WEB\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            q = m.group(1).strip()
+            ok, msg = self.jarvis.search_web(q, engine="google")
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # SEARCH_YT (Buscar en YouTube)
+        for m in re.finditer(r'\[JARVIS:\s*SEARCH_YT\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            q = m.group(1).strip()
+            ok, msg = self.jarvis.search_web(q, engine="youtube")
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
         # CMD
         for m in re.finditer(r'\[JARVIS:\s*CMD\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
             c = m.group(1).strip()
             ok, msg = self.jarvis.run_cmd(c)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # PS (PowerShell)
+        for m in re.finditer(r'\[JARVIS:\s*PS\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            c = m.group(1).strip()
+            ok, msg = self.jarvis.run_powershell(c)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # ADD_CMD (Comandos personalizados)
+        for m in re.finditer(r'\[JARVIS:\s*ADD_CMD\s+["\']?([^"\'\n:=]+?)["\']?\s*(?:=|->|::)\s*["\']?([^"\'\]]+?)["\']?\]', reply_text, re.IGNORECASE):
+            trig, cmd = m.group(1).strip(), m.group(2).strip()
+            ok, msg = self.jarvis.add_custom_command(trig, cmd)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # DEL_CMD
+        for m in re.finditer(r'\[JARVIS:\s*DEL_CMD\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            trig = m.group(1).strip()
+            ok, msg = self.jarvis.delete_custom_command(trig)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # ADD_PATH (Rutas personalizadas de búsqueda)
+        for m in re.finditer(r'\[JARVIS:\s*ADD_PATH\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            p = m.group(1).strip()
+            ok, msg = self.jarvis.add_custom_path(p)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # DEL_PATH
+        for m in re.finditer(r'\[JARVIS:\s*DEL_PATH\s+["\']?([^"\'\n]+?)["\']?\]', reply_text, re.IGNORECASE):
+            p = m.group(1).strip()
+            ok, msg = self.jarvis.delete_custom_path(p)
             results.append(msg)
             cleaned = cleaned.replace(m.group(0), "")
 
@@ -2414,7 +2985,7 @@ class Shimeji:
 
         self.schedule_random_speech()
         self._schedule_random_mouse_move()
-        self.set_state("standing")
+        self.set_state("walking")
         self.root.after(DELAY, self.tick)
         self.root.after(500, self._cache_own_hwnd)
         self.root.after(5000, self._auto_tick)
@@ -2498,23 +3069,23 @@ class Shimeji:
         speed = self.WALK_SPEED
 
         cfg = {
-            "standing":     (STAND_FRAMES,  15, 50+random.randint(0,100),   0,     0),
-            "walking":      (WALK_FRAMES,   5,  80+random.randint(0,120),   random.choice([-1,1])*speed, 0),
-            "walk_back":    (WALK_BACK,     8,  40+random.randint(0,60),    random.choice([-1,1])*2, 0),
-            "sitting":      (SIT_FRAMES,    10, 100+random.randint(0,150),  0,     0),
-            "guitar":       (GUITAR_FRAMES, 8,  120+random.randint(0,120),  0,     0),
-            "ceiling_idle": (LIE_FRAMES,    12, 100+random.randint(0,150),  0,     0),
-            "blob":         (BLOB_FRAMES,   8,  60+random.randint(0,80),    0,     0),
-            "ghost":        (GHOST_FRAMES,  10, 50+random.randint(0,80),    0,     0),
-            "box":          (BOX_FRAMES,    18, len(BOX_FRAMES)*18,         0,     0),
-            "falling":      (FALL_FRAMES,   2,  9999,                       random.randint(-2,2), 0),
-            "kneel":        (KNEEL_FRAMES,  10, 40+random.randint(0,60),    0,     0),
-            "carry":        (CARRY_FRAMES,  15, 80+random.randint(0,100),   0,     0),
-            "depress":      (DEPRESS_FRAMES,15, 100+random.randint(0,100),  0,     0),
-            "away":         (AWAY_FRAMES,   10, 60+random.randint(0,80),    0,     0),
-            "climb_left":   (CLIMB_FRAMES,  6,  80+random.randint(0,120),   0,     0),
-            "climb_right":  (CLIMB_FRAMES,  6,  80+random.randint(0,120),   0,     0),
-            "ceiling_walk": (WALK_FRAMES,   5,  80+random.randint(0,120),   random.choice([-1,1])*speed, 0),
+            "standing":     (STAND_FRAMES,  15, 30+random.randint(10,30),    0,     0),
+            "walking":      (WALK_FRAMES,   5,  120+random.randint(40,160),  random.choice([-1,1])*speed, 0),
+            "walk_back":    (WALK_BACK,     8,  40+random.randint(20,50),    random.choice([-1,1])*2, 0),
+            "sitting":      (SIT_FRAMES,    10, 40+random.randint(20,50),    0,     0),
+            "guitar":       (GUITAR_FRAMES, 8,  50+random.randint(20,50),    0,     0),
+            "ceiling_idle": (LIE_FRAMES,    12, 50+random.randint(20,60),    0,     0),
+            "blob":         (BLOB_FRAMES,   8,  30+random.randint(10,30),    0,     0),
+            "ghost":        (GHOST_FRAMES,  10, 30+random.randint(10,30),    0,     0),
+            "box":          (BOX_FRAMES,    18, len(BOX_FRAMES)*14,          0,     0),
+            "falling":      (FALL_FRAMES,   2,  9999,                        random.randint(-2,2), 0),
+            "kneel":        (KNEEL_FRAMES,  10, 30+random.randint(10,30),    0,     0),
+            "carry":        (CARRY_FRAMES,  15, 40+random.randint(20,40),    0,     0),
+            "depress":      (DEPRESS_FRAMES,15, 40+random.randint(20,40),    0,     0),
+            "away":         (AWAY_FRAMES,   10, 30+random.randint(10,30),    0,     0),
+            "climb_left":   (CLIMB_FRAMES,  6,  80+random.randint(40,80),    0,     0),
+            "climb_right":  (CLIMB_FRAMES,  6,  80+random.randint(40,80),    0,     0),
+            "ceiling_walk": (WALK_FRAMES,   5,  100+random.randint(40,120),  random.choice([-1,1])*speed, 0),
         }
 
         frames, delay, dur, vx, vy = cfg.get(state, cfg["standing"])
@@ -2535,14 +3106,24 @@ class Shimeji:
         self.update_sprite()
 
     def choose_next_floor_state(self):
-        pool = (["standing"]*3 + ["walking"]*4 + ["walk_back"] +
-                ["sitting"]*3 + ["guitar"]*2 + 
-                ["blob"]*2 + ["ghost"] + ["box"] + ["kneel"] +
-                ["carry", "depress", "away"])
+        pool = (
+            ["walking"] * 20 +
+            ["walk_back"] * 6 +
+            ["standing"] * 2 +
+            ["sitting"] * 1 +
+            ["guitar"] * 1 +
+            ["blob"] * 1 +
+            ["ghost"] * 1 +
+            ["box"] * 1 +
+            ["kneel"] * 1 +
+            ["carry"] * 1 +
+            ["depress"] * 1 +
+            ["away"] * 1
+        )
         self.set_state(random.choice(pool), surface=SURFACE_FLOOR)
         
     def choose_next_ceiling_state(self):
-        if random.random() < 0.5:
+        if random.random() < 0.65:
             self.set_state("ceiling_walk", surface=SURFACE_CEILING)
             self.vel_x = random.choice([-1, 1]) * self.WALK_SPEED
             self.vel_y = 0
@@ -2552,12 +3133,16 @@ class Shimeji:
             self.vel_y = 0
 
     def tick(self):
-        if self._follow_cursor_enabled and WIN32_AVAILABLE and not self.dragging and not self.dragging_window:
-            self._move_towards_cursor()
-        if not self.dragging and not self.dragging_window:
-            self.physics()
-            self.animate()
-        self.root.after(DELAY, self.tick)
+        try:
+            if self._follow_cursor_enabled and WIN32_AVAILABLE and not self.dragging and not self.dragging_window:
+                self._move_towards_cursor()
+            if not self.dragging and not self.dragging_window:
+                self.physics()
+                self.animate()
+        except Exception:
+            pass
+        finally:
+            self.root.after(DELAY, self.tick)
 
     def physics(self):
         if self.state == "falling":
@@ -2567,7 +3152,7 @@ class Shimeji:
             if self.y >= self.ground_y:
                 self.y = self.ground_y
                 self.gravity = 0
-                self.set_state("standing", SURFACE_FLOOR)
+                self.choose_next_floor_state()
             self._apply_pos()
             return
 
@@ -2617,14 +3202,14 @@ class Shimeji:
             if random.random() < self.CLIMB_CHANCE:
                 self._start_climb(SURFACE_WALL_L, going_up=True)
             else:
-                self.vel_x = abs(self.vel_x)
+                self.vel_x = self.WALK_SPEED
                 self.flipped = False
         elif self.x >= self.wall_rx:
             self.x = self.wall_rx
             if random.random() < self.CLIMB_CHANCE:
                 self._start_climb(SURFACE_WALL_R, going_up=True)
             else:
-                self.vel_x = -abs(self.vel_x)
+                self.vel_x = -self.WALK_SPEED
                 self.flipped = True
 
     def _physics_wall(self):
@@ -2642,7 +3227,7 @@ class Shimeji:
             self.choose_next_ceiling_state()
         elif self.y >= self.ground_y:
             self.y = self.ground_y
-            self.set_state("standing", SURFACE_FLOOR)
+            self.choose_next_floor_state()
 
     def _physics_ceiling(self):
         if self.state not in ("ceiling_walk", "ceiling_idle"):
@@ -2655,14 +3240,14 @@ class Shimeji:
             if random.random() < 0.5:
                 self._start_climb(SURFACE_WALL_L, going_up=False)
             else:
-                self.vel_x = abs(self.vel_x)
+                self.vel_x = self.WALK_SPEED
                 self.flipped = False
         elif self.x >= self.wall_rx:
             self.x = self.wall_rx
             if random.random() < 0.5:
                 self._start_climb(SURFACE_WALL_R, going_up=False)
             else:
-                self.vel_x = -abs(self.vel_x)
+                self.vel_x = -self.WALK_SPEED
                 self.flipped = True
 
     def _start_climb(self, wall, going_up=True):
@@ -2786,119 +3371,125 @@ class Shimeji:
         if self.y < self.ground_y:
             self.set_state("falling", SURFACE_FLOOR)
         else:
-            self.set_state("standing", SURFACE_FLOOR)
+            self.choose_next_floor_state()
 
     def on_double_click(self, e):
         self.show_speech(self.get_random_speech())
 
     def on_right_click(self, e):
         t = self.theme_manager
-        menu = tk.Menu(self.root, tearoff=0,
-                       bg=t.surface, fg=t.text,
-                       activebackground=t.accent,
-                       activeforeground=t.accent_fg,
-                       font=(t.font_family, t.font_size))
+        acc_fg = getattr(t, "accent_fg", getattr(t, "accent_text", "#ffffff"))
+        try:
+            menu = tk.Menu(self.root, tearoff=0,
+                           bg=t.surface, fg=t.text,
+                           activebackground=t.accent,
+                           activeforeground=acc_fg,
+                           font=(t.font_family, t.font_size))
 
-        menu.add_command(label="[*] Personalizar Apariencia >>", command=self.open_appearance)
-        troll_toggle_lbl = "[!] MODO TROLL: [ON] (Desactivar)" if self.troll_mode else "[o] MODO TROLL: [OFF] (Activar)"
-        menu.add_command(label=troll_toggle_lbl, command=self.toggle_troll_mode)
-        menu.add_command(label="[#] Hablar con Bocchi (IA & JARVIS) >>", command=self.open_chat)
-        menu.add_command(label="[*] Doxxearte / Info Real >>", command=self.open_doxx)
-        menu.add_command(label="[?] Decir algo al azar", command=lambda: self.show_speech(self.get_random_speech()))
-        menu.add_separator()
+            menu.add_command(label="[*] Personalizar Apariencia >>", command=self.open_appearance)
+            troll_toggle_lbl = "[!] MODO TROLL: [ON] (Desactivar)" if self.troll_mode else "[o] MODO TROLL: [OFF] (Activar)"
+            menu.add_command(label=troll_toggle_lbl, command=self.toggle_troll_mode)
+            menu.add_command(label="[#] Hablar con Bocchi (IA & JARVIS) >>", command=self.open_chat)
+            menu.add_command(label="[*] Doxxearte / Info Real >>", command=self.open_doxx)
+            menu.add_command(label="[?] Decir algo al azar", command=lambda: self.show_speech(self.get_random_speech()))
+            menu.add_separator()
 
-        poses_menu = tk.Menu(menu, tearoff=0,
-                             bg=t.surface, fg=t.text,
-                             activebackground=t.accent,
-                             activeforeground=t.accent_fg,
-                             font=(t.font_family, t.font_size))
-        poses_menu.add_command(label="[*] Tocar guitarra",       command=lambda: self.set_state("guitar", SURFACE_FLOOR))
-        poses_menu.add_command(label="[o] Modo blob",             command=lambda: self.set_state("blob",   SURFACE_FLOOR))
-        poses_menu.add_command(label="[~] Modo fantasma",         command=lambda: self.set_state("ghost",  SURFACE_FLOOR))
-        poses_menu.add_command(label="[#] Truco de caja",         command=lambda: self.set_state("box",    SURFACE_FLOOR))
-        poses_menu.add_command(label="[-] Arrodillarse",          command=lambda: self.set_state("kneel",  SURFACE_FLOOR))
-        poses_menu.add_command(label="[<] Caminar de espaldas",   command=lambda: self.set_state("walk_back", SURFACE_FLOOR))
-        poses_menu.add_command(label="[+] Llevar funda",          command=lambda: self.set_state("carry",  SURFACE_FLOOR))
-        poses_menu.add_command(label="[_] Modo sad",             command=lambda: self.set_state("depress",SURFACE_FLOOR))
-        poses_menu.add_command(label="[>] Mirar atras",           command=lambda: self.set_state("away",   SURFACE_FLOOR))
-        menu.add_cascade(label="[>] Poses y Modos >>", menu=poses_menu)
+            poses_menu = tk.Menu(menu, tearoff=0,
+                                 bg=t.surface, fg=t.text,
+                                 activebackground=t.accent,
+                                 activeforeground=acc_fg,
+                                 font=(t.font_family, t.font_size))
+            poses_menu.add_command(label="[*] Tocar guitarra",       command=lambda: self.set_state("guitar", SURFACE_FLOOR))
+            poses_menu.add_command(label="[o] Modo blob",             command=lambda: self.set_state("blob",   SURFACE_FLOOR))
+            poses_menu.add_command(label="[~] Modo fantasma",         command=lambda: self.set_state("ghost",  SURFACE_FLOOR))
+            poses_menu.add_command(label="[#] Truco de caja",         command=lambda: self.set_state("box",    SURFACE_FLOOR))
+            poses_menu.add_command(label="[-] Arrodillarse",          command=lambda: self.set_state("kneel",  SURFACE_FLOOR))
+            poses_menu.add_command(label="[<] Caminar de espaldas",   command=lambda: self.set_state("walk_back", SURFACE_FLOOR))
+            poses_menu.add_command(label="[+] Llevar funda",          command=lambda: self.set_state("carry",  SURFACE_FLOOR))
+            poses_menu.add_command(label="[_] Modo sad",             command=lambda: self.set_state("depress",SURFACE_FLOOR))
+            poses_menu.add_command(label="[>] Mirar atras",           command=lambda: self.set_state("away",   SURFACE_FLOOR))
+            menu.add_cascade(label="[>] Poses y Modos >>", menu=poses_menu)
 
-        move_menu = tk.Menu(menu, tearoff=0,
-                            bg=t.surface, fg=t.text,
-                            activebackground=t.accent,
-                            activeforeground=t.accent_fg,
-                            font=(t.font_family, t.font_size))
-        move_menu.add_command(label="[^] Escalar pared izq", command=lambda: self._force_climb(SURFACE_WALL_L))
-        move_menu.add_command(label="[^] Escalar pared der", command=lambda: self._force_climb(SURFACE_WALL_R))
-        move_menu.add_command(label="[^^] Ir al techo",      command=self._force_ceiling)
-        move_menu.add_separator()
-        follow_cursor_lbl = ("[*] Seguir cursor [ON]" if self._follow_cursor_enabled
-                            else "[ ] Seguir cursor [OFF]")
-        move_menu.add_command(label=follow_cursor_lbl, command=self._toggle_follow_cursor)
-        menu.add_cascade(label="[^] Acrobacias y Techo >>", menu=move_menu)
-
-        troll_menu = tk.Menu(menu, tearoff=0,
-                             bg=t.surface, fg=t.text,
-                             activebackground=t.accent,
-                             activeforeground=t.accent_fg,
-                             font=(t.font_family, t.font_size))
-        troll_menu.add_command(label="[~] Rickroll sorpresa (YouTube)", command=self.troll_rickroll)
-        troll_menu.add_command(label="[!] Simular Pantallazo Azul (BSOD)", command=self.troll_bluescreen)
-        troll_menu.add_command(label="[#] Simular Hacker (HackerTyper)", command=self.troll_hackertyper)
-        troll_menu.add_command(label="[?] Error falso del sistema", command=self.troll_fake_error)
-        troll_menu.add_command(label="[>] Sacudir ventana activa", command=self.troll_shake_window)
-        if WIN32_AVAILABLE:
-            troll_menu.add_command(label="[~] Mover cursor al azar", command=self.troll_move_mouse)
-            troll_menu.add_separator()
-
-            win_lbl = ("[#] Ventanas [AUTO ON] >>" if self._auto_win_enabled
-                       else "[#] Ventanas >>")
-            win_menu = tk.Menu(troll_menu, tearoff=0,
-                               bg=t.surface, fg=t.text,
-                               activebackground=t.accent,
-                               activeforeground=t.accent_fg,
-                               font=(t.font_family, t.font_size))
-            win_menu.add_command(label="[-] Minimizar ventana activa",        command=self.troll_minimize)
-            win_menu.add_command(label="[x] Cerrar ventana activa",           command=self.action_close_foreground)
-            win_menu.add_separator()
-            win_menu.add_command(label="[-] Minimizar ventana (apuntar)",     command=self.action_minimize_under_cursor)
-            win_menu.add_command(label="[x] Cerrar ventana (apuntar)",        command=self.action_close_under_cursor)
-            win_menu.add_command(label="[+] Maximizar/Restaurar (apuntar)",   command=self.action_maximize_under_cursor)
-            win_menu.add_command(label="[>] Arrastrar ventana (apuntar)",     command=self.start_window_drag)
-            win_menu.add_separator()
-            auto_win_lbl = ("Autonomia ON  -> desactivar" if self._auto_win_enabled
-                            else "Autonomia OFF -> activar")
-            win_menu.add_command(label=auto_win_lbl, command=self._toggle_auto_win)
-            troll_menu.add_cascade(label=win_lbl, menu=win_menu)
-
-            desk_lbl = ("[#] Escritorio [AUTO ON] >>" if self._auto_desk_enabled
-                        else "[#] Escritorio >>")
-            desk_menu = tk.Menu(troll_menu, tearoff=0,
+            move_menu = tk.Menu(menu, tearoff=0,
                                 bg=t.surface, fg=t.text,
                                 activebackground=t.accent,
-                                activeforeground=t.accent_fg,
+                                activeforeground=acc_fg,
                                 font=(t.font_family, t.font_size))
-            desk_menu.add_command(label="[*] Mezclar todos los iconos",       command=self.action_shuffle_desktop)
-            desk_menu.add_command(label="[!] Dispersar todos los iconos",     command=self.action_scatter_desktop)
-            desk_menu.add_command(label="[#] Ordenar iconos (cuadricula)",    command=self.action_sort_desktop)
-            desk_menu.add_command(label="[>] Mover un icono al azar",        command=self.action_move_one_icon)
-            desk_menu.add_command(label="[-] Mandar icono a la papelera",    command=self.action_trash_icon)
-            desk_menu.add_separator()
-            auto_desk_lbl = ("Autonomia ON  -> desactivar" if self._auto_desk_enabled
-                             else "Autonomia OFF -> activar")
-            desk_menu.add_command(label=auto_desk_lbl, command=self._toggle_auto_desk)
-            troll_menu.add_cascade(label=desk_lbl, menu=desk_menu)
-        menu.add_cascade(label="[!] Travesuras & Windows >>", menu=troll_menu)
+            move_menu.add_command(label="[^] Escalar pared izq", command=lambda: self._force_climb(SURFACE_WALL_L))
+            move_menu.add_command(label="[^] Escalar pared der", command=lambda: self._force_climb(SURFACE_WALL_R))
+            move_menu.add_command(label="[^^] Ir al techo",      command=self._force_ceiling)
+            move_menu.add_separator()
+            follow_cursor_lbl = ("[*] Seguir cursor [ON]" if self._follow_cursor_enabled
+                                else "[ ] Seguir cursor [OFF]")
+            move_menu.add_command(label=follow_cursor_lbl, command=self._toggle_follow_cursor)
+            menu.add_cascade(label="[^] Acrobacias y Techo >>", menu=move_menu)
 
-        menu.add_separator()
-        menu.add_command(label="[x] Cerrar Shimeji", command=self.root.destroy,
-                         foreground=t.danger, activeforeground=t.danger)
-        try:
+            troll_menu = tk.Menu(menu, tearoff=0,
+                                 bg=t.surface, fg=t.text,
+                                 activebackground=t.accent,
+                                 activeforeground=acc_fg,
+                                 font=(t.font_family, t.font_size))
+            troll_menu.add_command(label="[~] Rickroll sorpresa (YouTube)", command=self.troll_rickroll)
+            troll_menu.add_command(label="[!] Simular Pantallazo Azul (BSOD)", command=self.troll_bluescreen)
+            troll_menu.add_command(label="[#] Simular Hacker (HackerTyper)", command=self.troll_hackertyper)
+            troll_menu.add_command(label="[?] Error falso del sistema", command=self.troll_fake_error)
+            troll_menu.add_command(label="[>] Sacudir ventana activa", command=self.troll_shake_window)
+            if WIN32_AVAILABLE:
+                troll_menu.add_command(label="[~] Mover cursor al azar", command=self.troll_move_mouse)
+                troll_menu.add_separator()
+
+                win_lbl = ("[#] Ventanas [AUTO ON] >>" if self._auto_win_enabled
+                           else "[#] Ventanas >>")
+                win_menu = tk.Menu(troll_menu, tearoff=0,
+                                   bg=t.surface, fg=t.text,
+                                   activebackground=t.accent,
+                                   activeforeground=acc_fg,
+                                   font=(t.font_family, t.font_size))
+                win_menu.add_command(label="[-] Minimizar ventana activa",        command=self.troll_minimize)
+                win_menu.add_command(label="[x] Cerrar ventana activa",           command=self.action_close_foreground)
+                win_menu.add_separator()
+                win_menu.add_command(label="[-] Minimizar ventana (apuntar)",     command=self.action_minimize_under_cursor)
+                win_menu.add_command(label="[x] Cerrar ventana (apuntar)",        command=self.action_close_under_cursor)
+                win_menu.add_command(label="[+] Maximizar/Restaurar (apuntar)",   command=self.action_maximize_under_cursor)
+                win_menu.add_command(label="[>] Arrastrar ventana (apuntar)",     command=self.start_window_drag)
+                win_menu.add_separator()
+                auto_win_lbl = ("Autonomia ON  -> desactivar" if self._auto_win_enabled
+                                else "Autonomia OFF -> activar")
+                win_menu.add_command(label=auto_win_lbl, command=self._toggle_auto_win)
+                troll_menu.add_cascade(label=win_lbl, menu=win_menu)
+
+                desk_lbl = ("[#] Escritorio [AUTO ON] >>" if self._auto_desk_enabled
+                            else "[#] Escritorio >>")
+                desk_menu = tk.Menu(troll_menu, tearoff=0,
+                                    bg=t.surface, fg=t.text,
+                                    activebackground=t.accent,
+                                    activeforeground=acc_fg,
+                                    font=(t.font_family, t.font_size))
+                desk_menu.add_command(label="[*] Mezclar todos los iconos",       command=self.action_shuffle_desktop)
+                desk_menu.add_command(label="[!] Dispersar todos los iconos",     command=self.action_scatter_desktop)
+                desk_menu.add_command(label="[#] Ordenar iconos (cuadricula)",    command=self.action_sort_desktop)
+                desk_menu.add_command(label="[>] Mover un icono al azar",        command=self.action_move_one_icon)
+                desk_menu.add_command(label="[-] Mandar icono a la papelera",    command=self.action_trash_icon)
+                desk_menu.add_separator()
+                auto_desk_lbl = ("Autonomia ON  -> desactivar" if self._auto_desk_enabled
+                                 else "Autonomia OFF -> activar")
+                desk_menu.add_command(label=auto_desk_lbl, command=self._toggle_auto_desk)
+                troll_menu.add_cascade(label=desk_lbl, menu=desk_menu)
+            menu.add_cascade(label="[!] Travesuras & Windows >>", menu=troll_menu)
+
+            menu.add_separator()
+            menu.add_command(label="[x] Cerrar Shimeji", command=self.root.destroy,
+                             foreground=t.danger, activeforeground=t.danger)
             rx = self.root.winfo_rootx() + e.x
             ry = self.root.winfo_rooty() + e.y
             menu.tk_popup(rx, ry)
+        except Exception as exc:
+            print(f"Error mostrando menu: {exc}")
         finally:
-            menu.grab_release()
+            try:
+                menu.grab_release()
+            except Exception:
+                pass
 
     def _cache_own_hwnd(self):
         if WIN32_AVAILABLE:
@@ -3102,10 +3693,11 @@ class Shimeji:
             self.show_speech("No encontre iconos en\nel escritorio ._.")
             return
         t = self.theme_manager
+        acc_fg = getattr(t, "accent_fg", getattr(t, "accent_text", "#ffffff"))
         menu = tk.Menu(self.root, tearoff=0,
                        bg=t.surface, fg=t.text,
                        activebackground=t.accent,
-                       activeforeground=t.accent_fg,
+                       activeforeground=acc_fg,
                        font=(t.font_family, t.font_size))
         for idx, name in icons:
             def make_cmd(i=idx, n=name):
