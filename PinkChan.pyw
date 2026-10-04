@@ -22,6 +22,7 @@ import re
 import shutil
 import fnmatch
 import urllib.parse
+import importlib
 
 try:
     import winreg
@@ -2761,7 +2762,7 @@ class ChatWindow:
                     self._show_error("Error al conectar con la API de Gemini (revisa tu key o internet)")
         else:
             try:
-                from transformers import pipeline
+                pipeline = importlib.import_module("transformers").pipeline
                 self.parent.after(0, lambda: self._append_system("[..] Verificando modelo local SmolLM..."))
                 if not self.local_pipe:
                     self.local_pipe = pipeline("text-generation", model="HuggingFaceTB/SmolLM2-135M-Instruct")
@@ -2797,7 +2798,7 @@ class ChatWindow:
 
     def _call_local(self, text):
         try:
-            from transformers import pipeline
+            pipeline = importlib.import_module("transformers").pipeline
             if not self.local_pipe:
                 self.parent.after(0, lambda: self._append_system("[..] Cargando SmolLM2 en memoria..."))
                 self.local_pipe = pipeline("text-generation", model="HuggingFaceTB/SmolLM2-135M-Instruct")

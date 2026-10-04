@@ -12,12 +12,19 @@ a = Analysis(
     hiddenimports=[
         'win32gui', 'win32con', 'win32api', 'win32process', 'win32net',
         'winreg', 'requests', 'webbrowser', 'subprocess', 'PIL',
-        'fnmatch', 'urllib.parse'
+        'PIL.Image', 'PIL.ImageTk', 'PIL.ImageSequence',
+        'tkinter', 'tkinter.filedialog', 'tkinter.colorchooser',
+        'tkinter.messagebox', 'tkinter.ttk', 'tkinter.font', 'tkinter.scrolledtext',
+        'winshell', 'fnmatch', 'urllib.parse'
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        'torch', 'torchvision', 'torchaudio', 'transformers',
+        'tokenizers', 'scipy', 'sympy', 'tensorboard', 'matplotlib',
+        'numpy.testing', 'IPython', 'jupyter'
+    ],
     noarchive=False,
     optimize=0,
 )
