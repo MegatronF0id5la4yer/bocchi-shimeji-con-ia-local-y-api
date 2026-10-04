@@ -434,8 +434,16 @@ class ThemeManager:
             self.border = self.config.get("custom_border", "#2e3542")
             self.text = self.config.get("custom_text", "#f1f4f8")
             self.text_dim = self.config.get("custom_text_dim", "#94a0b3")
-            self.entry_bg = self.config.get("custom_entry_bg", "#1e222b")
+            if "custom_entry_bg" in self.config:
+                self.entry_bg = self.config["custom_entry_bg"]
+            else:
+                surf_bright = self._calc_brightness(self.surface)
+                self.entry_bg = "#ffffff" if surf_bright > 130 else "#1e222b"
             self.accent = self.config.get("custom_accent", "#38bdf8")
+
+        # Asegurar contraste legible y nítido para escribir en los cuadros de texto
+        entry_bright = self._calc_brightness(self.entry_bg)
+        self.entry_fg = "#ffffff" if entry_bright < 130 else "#111620"
 
         self.text_subtle = getattr(self, "text_subtle", self.text_dim)
         self.accent_text = "#ffffff" if self._calc_brightness(self.accent) < 150 else "#111620"
@@ -445,6 +453,9 @@ class ThemeManager:
         self.warning = "#f59e0b"
 
     def __getattr__(self, name):
+        if name in ("entry_fg", "entry_text"):
+            entry_bright = self._calc_brightness(getattr(self, "entry_bg", "#1e222b"))
+            return "#ffffff" if entry_bright < 130 else "#111620"
         if name in ("text_subtle", "subtle_text"):
             return getattr(self, "text_dim", "#94a0b3")
         if name in ("accent_fg", "accent_text"):
@@ -620,6 +631,11 @@ class AppearanceWindow:
                             bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
                             bd=0, relief=tk.FLAT, padx=4)
         btn_txt.pack(side=tk.LEFT, padx=4)
+
+        btn_entry = tk.Button(self.custom_colors_frame, text="Caja texto...", command=lambda: self._pick_custom("entry_bg"),
+                              bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
+                              bd=0, relief=tk.FLAT, padx=4, cursor="hand2")
+        btn_entry.pack(side=tk.LEFT, padx=4)
 
         # Section 3: Opacity
         sec3 = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
@@ -2018,8 +2034,9 @@ class ChatWindow:
                                 font=(self.theme.font_family, self.theme.font_size))
         self.api_lbl.pack(side=tk.LEFT)
 
+        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
         self.api_entry = tk.Entry(self.kf, textvariable=self.api_key_var, show="*",
-                                  bg=self.theme.entry_bg, fg=self.theme.text, insertbackground=self.theme.text,
+                                  bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg,
                                   font=(self.theme.font_family, self.theme.font_size), bd=0, relief=tk.FLAT)
         self.api_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6, ipady=3)
 
@@ -2079,13 +2096,18 @@ class ChatWindow:
         inp = tk.Frame(self.win, bg=self.theme.bg, padx=12, pady=8)
         inp.pack(fill=tk.X)
 
-        self.entry = tk.Entry(inp, bg=self.theme.entry_bg, fg=self.theme.text,
-                              insertbackground=self.theme.text,
+        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
+        self.entry = tk.Entry(inp, bg=self.theme.entry_bg, fg=entry_fg,
+                              insertbackground=entry_fg,
                               font=(self.theme.font_family, self.theme.font_size + 1),
                               bd=0, relief=tk.FLAT, highlightbackground=self.theme.border, highlightthickness=1)
         self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6, padx=(0, 6))
         self.entry.bind("<Return>", lambda e: self.send_message())
-        self.entry.focus()
+        self.entry.focus_set()
+
+        # Asegurar foco al hacer clic en el chat o en la ventana
+        self.win.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
+        self.chat_area.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
 
         self.send_btn = tk.Button(inp, text="Enviar >>", command=self.send_message,
                                   bg=self.theme.accent, fg=self.theme.accent_text,
@@ -2125,9 +2147,12 @@ class ChatWindow:
                                  font=(self.theme.font_family, self.theme.font_size + 1),
                                  highlightbackground=self.theme.border)
         self._config_chat_tags()
-        self.entry.configure(bg=self.theme.entry_bg, fg=self.theme.text, insertbackground=self.theme.text,
+        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
+        self.entry.configure(bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg,
                              font=(self.theme.font_family, self.theme.font_size + 1),
                              highlightbackground=self.theme.border)
+        if hasattr(self, "api_entry") and self.api_entry:
+            self.api_entry.configure(bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg)
         self.send_btn.configure(bg=self.theme.accent, fg=self.theme.accent_text,
                                 font=(self.theme.font_family, self.theme.font_size, "bold"))
         self.verify_btn.configure(bg=self.theme.surface, fg=self.theme.accent,
@@ -3689,6 +3714,13 @@ class Shimeji:
         if not WIN32_AVAILABLE:
             self.show_speech("Me falta pywin32 :v")
             return
+        if getattr(self, "_overlay", None):
+            try:
+                self._overlay.destroy()
+            except Exception:
+                pass
+            self._overlay = None
+
         self.show_speech(hint_msg)
         self._pending_action = action_fn
 
@@ -3699,22 +3731,30 @@ class Shimeji:
         overlay.geometry(f"{self.sw}x{self.sh}+0+0")
         overlay.config(cursor="crosshair")
 
+        def cleanup():
+            if overlay and tk.Toplevel.winfo_exists(overlay):
+                try:
+                    overlay.destroy()
+                except Exception:
+                    pass
+            if getattr(self, "_overlay", None) == overlay:
+                self._overlay = None
+            self._pending_action = None
+
         def on_overlay_click(e):
             sx = e.x_root
             sy = e.y_root
-            overlay.destroy()
             fn = self._pending_action
-            self._pending_action = None
+            cleanup()
             self.root.after(80, lambda: fn(sx, sy) if fn else None)
 
-        def on_escape(e):
-            overlay.destroy()
-            self._pending_action = None
+        def on_escape(e=None):
+            cleanup()
             self.show_speech("Cancelado [OK]")
 
         overlay.bind("<ButtonPress-1>", on_overlay_click)
         overlay.bind("<Escape>", on_escape)
-        overlay.focus_force()
+        self.root.after(6000, lambda: on_escape() if getattr(self, "_overlay", None) == overlay else None)
         self._overlay = overlay
 
     def action_minimize_under_cursor(self):
@@ -3996,8 +4036,23 @@ class Shimeji:
             by = max(10, min(by, self.sh - bw_h - 10))
 
             bw.geometry(f"{bw_w}x{bw_h}+{bx}+{by}")
-            bw.lift()
             bw.attributes("-topmost", True)
+            if WIN32_AVAILABLE:
+                try:
+                    hwnd = bw.winfo_id()
+                    parent_hwnd = win32gui.GetParent(hwnd) or hwnd
+                    win32gui.SetWindowPos(
+                        parent_hwnd, win32con.HWND_TOPMOST, bx, by, bw_w, bw_h,
+                        win32con.SWP_NOACTIVATE | win32con.SWP_SHOWWINDOW
+                    )
+                except Exception:
+                    pass
+
+            # Si el chat está abierto, mantener siempre el foco en la caja de texto
+            if getattr(self, "chat_win", None) and getattr(self.chat_win, "win", None):
+                if tk.Toplevel.winfo_exists(self.chat_win.win) and hasattr(self.chat_win, "entry"):
+                    self.root.after(15, lambda: self.chat_win.entry.focus_set() if self.chat_win else None)
+
             self.bubble_win   = bw
             self.bubble_after = self.root.after(5000, self.destroy_bubble)
         except Exception as e:
