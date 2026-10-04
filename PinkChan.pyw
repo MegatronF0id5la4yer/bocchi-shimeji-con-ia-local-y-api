@@ -2166,37 +2166,49 @@ class ChatWindow:
             f"- Mantén tus respuestas conversacionales, concisas y directas (máximo 2 a 3 oraciones cortas)."
         )
 
+    def _get_entry_fg(self):
+        return getattr(self.theme, "entry_fg", "#111620" if self.theme._calc_brightness(self.theme.entry_bg) > 130 else "#ffffff")
+
     def _build_window(self):
         self.win = tk.Toplevel(self.parent)
         self.win.title("[CHAT] Bocchi Chatbot IA")
         self.win.attributes("-topmost", True)
         self.win.attributes("-alpha", self.theme.opacity)
         self.win.configure(bg=self.theme.bg)
-        self.win.geometry("520x640")
-        self.win.minsize(440, 480)
+
+        # Centrar de manera segura en pantalla para garantizar que nunca quede debajo de la barra de tareas
+        sw = self.win.winfo_screenwidth()
+        sh = self.win.winfo_screenheight()
+        w = 540
+        h = min(660, max(520, sh - 90))
+        x = max(20, (sw - w) // 2)
+        y = max(20, (sh - h) // 2 - 25)
+        self.win.geometry(f"{w}x{h}+{x}+{y}")
+        self.win.minsize(460, 480)
+        self.win.resizable(True, True)
         self.win.protocol("WM_DELETE_WINDOW", self._on_close)
 
-        # Top Header Bar
-        header = tk.Frame(self.win, bg=self.theme.surface, pady=8, padx=14)
+        # --- 1. TOP HEADER BAR ---
+        header = tk.Frame(self.win, bg=self.theme.surface, pady=8, padx=12)
         header.pack(fill=tk.X)
 
         title_col = tk.Frame(header, bg=self.theme.surface)
-        title_col.pack(side=tk.LEFT)
+        title_col.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         self.title_lbl = tk.Label(title_col, text="[*] BOCCHI CHATBOT IA [*]",
-                                  font=(self.theme.font_family, self.theme.font_size + 2, "bold"),
+                                  font=(self.theme.font_family, self.theme.font_size + 1, "bold"),
                                   fg=self.theme.accent, bg=self.theme.surface)
         self.title_lbl.pack(anchor="w")
 
         self.header_status = tk.Label(
             title_col,
-            text=f"[ONLINE] Conectado con: {self.user_info.username} | IP: {self.user_info.public_ip}",
-            font=(self.theme.font_family, self.theme.font_size - 1),
+            text=f"[ONLINE] {self.user_info.username} | IP: {self.user_info.public_ip}",
+            font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
             fg=self.theme.success, bg=self.theme.surface
         )
         self.header_status.pack(anchor="w")
 
-        # Right header toolbar buttons
+        # Botones de herramientas en la cabecera
         tool_col = tk.Frame(header, bg=self.theme.surface)
         tool_col.pack(side=tk.RIGHT)
 
@@ -2205,84 +2217,66 @@ class ChatWindow:
                                    command=self.toggle_troll,
                                    bg=self.theme.surface_variant,
                                    fg=self.theme.danger if (self.shimeji and getattr(self.shimeji, "troll_mode", False)) else self.theme.text_dim,
-                                   font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                   font=(self.theme.font_family, max(8, self.theme.font_size - 2), "bold"),
                                    activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
         self.troll_btn.pack(side=tk.LEFT, padx=2)
 
         self.doxx_btn = tk.Button(tool_col, text="[*] Doxx",
                                   command=lambda: self.shimeji.open_doxx() if self.shimeji else None,
                                   bg=self.theme.surface_variant, fg=self.theme.text,
-                                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
-                                  activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+                                  font=(self.theme.font_family, max(8, self.theme.font_size - 2), "bold"),
+                                  activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=5, pady=2, cursor="hand2")
         self.doxx_btn.pack(side=tk.LEFT, padx=2)
 
         self.bg_btn = tk.Button(tool_col, text="[IMG] Fondo", command=self.open_bg_menu,
                                 bg=self.theme.surface_variant, fg=self.theme.text,
-                                font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
-                                activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+                                font=(self.theme.font_family, max(8, self.theme.font_size - 2), "bold"),
+                                activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=5, pady=2, cursor="hand2")
         self.bg_btn.pack(side=tk.LEFT, padx=2)
 
-        self.theme_btn = tk.Button(tool_col, text="[*] Apariencia", command=self.open_appearance,
+        self.theme_btn = tk.Button(tool_col, text="[*] Tema", command=self.open_appearance,
                                    bg=self.theme.surface_variant, fg=self.theme.text,
-                                   font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
-                                   activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+                                   font=(self.theme.font_family, max(8, self.theme.font_size - 2), "bold"),
+                                   activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=5, pady=2, cursor="hand2")
         self.theme_btn.pack(side=tk.LEFT, padx=2)
-
-        self.opacity_btn = tk.Button(tool_col, text="[o] Opacidad", command=self.toggle_opacity,
-                                     bg=self.theme.surface_variant, fg=self.theme.text,
-                                     font=(self.theme.font_family, self.theme.font_size - 1),
-                                     activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
-        self.opacity_btn.pack(side=tk.LEFT, padx=2)
 
         self.clear_btn = tk.Button(tool_col, text="[x] Limpiar", command=self.clear_chat,
                                    bg=self.theme.surface_variant, fg=self.theme.text_dim,
-                                   font=(self.theme.font_family, self.theme.font_size - 1),
-                                   activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+                                   font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                                   activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=5, pady=2, cursor="hand2")
         self.clear_btn.pack(side=tk.LEFT, padx=2)
 
-        # Mode Selection Bar
-        mode_frame = tk.Frame(self.win, bg=self.theme.bg, pady=4, padx=12)
-        mode_frame.pack(fill=tk.X)
+        # --- 2. BARRA DE CONTROL DE IA COMPACTA E INTEGRADA (1 SOLA LINEA) ---
+        ai_bar = tk.Frame(self.win, bg=self.theme.surface, padx=10, pady=5,
+                          highlightbackground=self.theme.border, highlightthickness=1)
+        ai_bar.pack(fill=tk.X, padx=10, pady=(4, 2))
 
-        self.rb_local = tk.Radiobutton(mode_frame, text="[-] Local (Qwen Charla)", variable=self.mode_var, value="local",
-                                       bg=self.theme.bg, fg=self.theme.text, selectcolor=self.theme.surface,
-                                       activebackground=self.theme.bg, activeforeground=self.theme.accent,
-                                       font=(self.theme.font_family, self.theme.font_size), command=self._toggle_mode)
-        self.rb_local.pack(side=tk.LEFT, padx=(0, 14))
+        # Selector de modo (Local vs API) a la izquierda
+        self.rb_local = tk.Radiobutton(ai_bar, text="Local (Qwen)", variable=self.mode_var, value="local",
+                                       bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                                       activebackground=self.theme.surface, activeforeground=self.theme.accent,
+                                       font=(self.theme.font_family, max(8, self.theme.font_size - 1)), command=self._toggle_mode)
+        self.rb_local.pack(side=tk.LEFT, padx=(0, 6))
 
-        self.rb_api = tk.Radiobutton(mode_frame, text="[*] API (Gemini)", variable=self.mode_var, value="api",
-                                     bg=self.theme.bg, fg=self.theme.text, selectcolor=self.theme.surface,
-                                     activebackground=self.theme.bg, activeforeground=self.theme.accent,
-                                     font=(self.theme.font_family, self.theme.font_size), command=self._toggle_mode)
-        self.rb_api.pack(side=tk.LEFT)
+        self.rb_api = tk.Radiobutton(ai_bar, text="API (Gemini)", variable=self.mode_var, value="api",
+                                     bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                                     activebackground=self.theme.surface, activeforeground=self.theme.accent,
+                                     font=(self.theme.font_family, max(8, self.theme.font_size - 1)), command=self._toggle_mode)
+        self.rb_api.pack(side=tk.LEFT, padx=(0, 8))
 
-        # API Key Row (para modo API)
-        self.kf = tk.Frame(self.win, bg=self.theme.surface, padx=10, pady=5,
-                           highlightbackground=self.theme.border, highlightthickness=1)
+        # Botón de prueba de conexión a la derecha
+        self.verify_btn = tk.Button(ai_bar, text="[?] Probar IA", command=self.verify_connection,
+                                    bg=self.theme.surface_variant, fg=self.theme.accent,
+                                    font=(self.theme.font_family, max(8, self.theme.font_size - 1), "bold"),
+                                    activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=8, pady=2, cursor="hand2")
+        self.verify_btn.pack(side=tk.RIGHT)
 
-        self.api_lbl = tk.Label(self.kf, text="[KEY] API Key:", bg=self.theme.surface, fg=self.theme.text_dim,
-                                font=(self.theme.font_family, self.theme.font_size))
-        self.api_lbl.pack(side=tk.LEFT)
+        # Subframe central para Modelo Local o API Key
+        self.ai_subframe = tk.Frame(ai_bar, bg=self.theme.surface)
+        self.ai_subframe.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=(4, 8))
 
-        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
-        self.api_entry = tk.Entry(self.kf, textvariable=self.api_key_var, show="*",
-                                  bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg,
-                                  font=(self.theme.font_family, self.theme.font_size), bd=0, relief=tk.FLAT)
-        self.api_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6, ipady=3)
-
-        self.show_key_btn = tk.Button(self.kf, text="[*]", command=self.toggle_key_vis,
-                                      bg=self.theme.surface_variant, fg=self.theme.text,
-                                      font=(self.theme.font_family, self.theme.font_size - 1),
-                                      activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=6, cursor="hand2")
-        self.show_key_btn.pack(side=tk.LEFT, padx=(0, 4))
-
-        # Local Model Row (para modo local sin API)
-        self.local_frame = tk.Frame(self.win, bg=self.theme.surface, padx=10, pady=5,
-                                    highlightbackground=self.theme.border, highlightthickness=1)
-        self.local_lbl = tk.Label(self.local_frame, text="[IA] Modelo:", bg=self.theme.surface, fg=self.theme.text_dim,
-                                  font=(self.theme.font_family, self.theme.font_size))
-        self.local_lbl.pack(side=tk.LEFT)
-
+        # Marco local (selector de modelo)
+        self.local_frame = tk.Frame(self.ai_subframe, bg=self.theme.surface)
         saved_local_model = self.config.get("local_model", "Qwen/Qwen2.5-0.5B-Instruct")
         self.local_model_var = tk.StringVar(value=saved_local_model)
         self.model_combo = ttk.Combobox(
@@ -2293,56 +2287,40 @@ class ChatWindow:
                 "Qwen/Qwen2.5-1.5B-Instruct",
                 "HuggingFaceTB/SmolLM2-360M-Instruct"
             ],
-            font=(self.theme.font_family, self.theme.font_size - 1)
+            font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+            state="readonly"
         )
-        self.model_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
+        self.model_combo.pack(fill=tk.X, expand=True)
         self.model_combo.bind("<<ComboboxSelected>>", self._on_local_model_change)
-        self.model_combo.bind("<Return>", self._on_local_model_change)
 
-        # Test IA Button
-        self.verify_btn = tk.Button(self.win, text="[?] Probar Conexion / Estado de la IA", command=self.verify_connection,
-                                    bg=self.theme.surface, fg=self.theme.accent,
-                                    font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
-                                    activebackground=self.theme.surface_variant, bd=0, relief=tk.FLAT, pady=4, cursor="hand2",
-                                    highlightbackground=self.theme.border, highlightthickness=1)
-        self.verify_btn.pack(fill=tk.X, padx=12, pady=(2, 4))
+        # Marco API Key (para modo Gemini)
+        self.kf = tk.Frame(self.ai_subframe, bg=self.theme.surface)
+        entry_fg = self._get_entry_fg()
+        self.api_entry = tk.Entry(self.kf, textvariable=self.api_key_var, show="*",
+                                  bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg,
+                                  font=(self.theme.font_family, max(8, self.theme.font_size - 1)), bd=0, relief=tk.FLAT)
+        self.api_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4), ipady=2)
+        self.show_key_btn = tk.Button(self.kf, text="[*]", command=self.toggle_key_vis,
+                                      bg=self.theme.surface_variant, fg=self.theme.text,
+                                      font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                                      activebackground=self.theme.surface, bd=0, relief=tk.FLAT, padx=4, cursor="hand2")
+        self.show_key_btn.pack(side=tk.RIGHT)
 
-        # Empaquetar la fila correspondiente al modo actual
-        if saved_mode == "api":
-            self.kf.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
-        else:
-            self.local_frame.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
+        # --- 3. DOCK INFERIOR (PACKED IN BOTTOM): CHIPS + ENTRADA DE TEXTO ---
+        # Este contenedor está anclado en tk.BOTTOM con máxima prioridad visual
+        bottom_box = tk.Frame(self.win, bg=self.theme.bg)
+        bottom_box.pack(side=tk.BOTTOM, fill=tk.X)
 
-        # 1. Input Area - Empaquetado en BOTTOM para garantizar visibilidad al 100%
-        inp = tk.Frame(self.win, bg=self.theme.bg, padx=12, pady=6)
-        inp.pack(side=tk.BOTTOM, fill=tk.X)
-
-        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
-        self.entry = tk.Entry(inp, bg=self.theme.entry_bg, fg=entry_fg,
-                              insertbackground=entry_fg,
-                              font=(self.theme.font_family, self.theme.font_size + 1),
-                              bd=0, relief=tk.FLAT, highlightbackground=self.theme.border, highlightthickness=1)
-        self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6, padx=(0, 6))
-        self.entry.bind("<Return>", lambda e: self.send_message())
-        self.entry.focus_set()
-
-        self.send_btn = tk.Button(inp, text="Enviar >>", command=self.send_message,
-                                  bg=self.theme.accent, fg=self.theme.accent_text,
-                                  font=(self.theme.font_family, self.theme.font_size, "bold"),
-                                  activebackground=self.theme.surface_variant,
-                                  bd=0, relief=tk.FLAT, padx=14, cursor="hand2")
-        self.send_btn.pack(side=tk.RIGHT)
-
-        # 2. Quick action chips - Empaquetado en BOTTOM justo encima del cuadro de entrada
-        chips_frame = tk.Frame(self.win, bg=self.theme.bg, padx=12, pady=2)
-        chips_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        # Chips de accion rapida
+        chips_frame = tk.Frame(bottom_box, bg=self.theme.bg, padx=10, pady=3)
+        chips_frame.pack(side=tk.TOP, fill=tk.X)
 
         chips = [
+            ("[WSL] Arch", lambda: self.send_custom("abre arch")),
+            ("[JARVIS] Archivos", lambda: self.send_custom("/list")),
+            ("[JARVIS] Buscar", lambda: self.insert_chip("/find ")),
             ("[JARVIS] Renombrar", lambda: self.insert_chip("/ren ")),
             ("[JARVIS] Crear", lambda: self.insert_chip("/create ")),
-            ("[JARVIS] Archivos", lambda: self.send_custom("/list")),
-            ("[WSL] Arch", lambda: self.send_custom("abre arch")),
-            ("[*] Alias", lambda: self.insert_chip("/alias ")),
             ("[!] Troll Mode", lambda: self.toggle_troll()),
             ("[?] Quien soy?", lambda: self.send_custom("Quien soy yo y cual es mi IP real?")),
             ("[IMG] Fondo", self.open_bg_menu),
@@ -2354,17 +2332,66 @@ class ChatWindow:
         for chip_text, chip_cmd in chips:
             btn = tk.Button(chips_frame, text=chip_text, command=chip_cmd,
                             bg=self.theme.surface_variant, fg=self.theme.text_dim,
-                            font=(self.theme.font_family, self.theme.font_size - 1),
+                            font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
                             activebackground=self.theme.surface, activeforeground=self.theme.accent,
                             bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
             btn.pack(side=tk.LEFT, padx=(0, 4))
             self.chip_btns.append(btn)
 
-        # 3. Chat display area con Canvas - Empaquetado en TOP con fill=BOTH expand=True
-        # para tomar todo el espacio entre la barra superior y los controles inferiores
+        # Barra de entrada de texto: caja destacada, con borde de acento y alto contraste
+        self.inp_frame = tk.Frame(
+            bottom_box, bg=self.theme.surface, padx=8, pady=6,
+            highlightbackground=self.theme.accent, highlightthickness=2
+        )
+        self.inp_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(2, 8))
+
+        self.placeholder_text = "Escribe un mensaje a Bocchi... (Presiona Enter para enviar)"
+        self._is_placeholder = True
+
+        self.entry = tk.Entry(
+            self.inp_frame,
+            bg=self.theme.entry_bg,
+            fg=self.theme.text_dim,
+            insertbackground=entry_fg,
+            font=(self.theme.font_family, self.theme.font_size + 1),
+            bd=0, relief=tk.FLAT
+        )
+        self.entry.insert(0, self.placeholder_text)
+        self.entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6, padx=(6, 8))
+
+        def _on_entry_focus_in(event):
+            if getattr(self, "_is_placeholder", False):
+                self.entry.delete(0, tk.END)
+                self.entry.configure(fg=self._get_entry_fg())
+                self._is_placeholder = False
+
+        def _on_entry_focus_out(event):
+            if not self.entry.get().strip():
+                self.entry.delete(0, tk.END)
+                self.entry.insert(0, self.placeholder_text)
+                self.entry.configure(fg=self.theme.text_dim)
+                self._is_placeholder = True
+
+        self.entry.bind("<FocusIn>", _on_entry_focus_in)
+        self.entry.bind("<FocusOut>", _on_entry_focus_out)
+        self.entry.bind("<Return>", lambda e: self.send_message())
+
+        self.send_btn = tk.Button(
+            self.inp_frame,
+            text="Enviar ➤",
+            command=self.send_message,
+            bg=self.theme.accent,
+            fg=self.theme.accent_text,
+            font=(self.theme.font_family, self.theme.font_size, "bold"),
+            activebackground=self.theme.surface_variant,
+            bd=0, relief=tk.FLAT, padx=16, pady=4, cursor="hand2"
+        )
+        self.send_btn.pack(side=tk.RIGHT)
+
+        # --- 4. ZONA CENTRAL DE MENSAJES (CANVAS SCROLLABLE) ---
         self.chat_container = tk.Frame(self.win, bg=self.theme.surface,
                                        highlightthickness=1, highlightbackground=self.theme.border)
-        self.chat_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=12, pady=(4, 4))
+        self.chat_container.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=(2, 4))
 
         self.chat_canvas = tk.Canvas(self.chat_container, bg=self.theme.surface, bd=0, highlightthickness=0)
         self.chat_scroll = ttk.Scrollbar(self.chat_container, orient=tk.VERTICAL, command=self._on_canvas_scroll)
@@ -2376,8 +2403,8 @@ class ChatWindow:
         self.chat_canvas.bind("<MouseWheel>", self._on_mousewheel)
 
         # Asegurar foco al hacer clic en el chat o en la ventana
-        self.win.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
-        self.chat_canvas.bind("<Button-1>", lambda e: self.entry.focus_set(), add="+")
+        self.win.bind("<Button-1>", lambda e: self._focus_entry_if_idle(e), add="+")
+        self.chat_canvas.bind("<Button-1>", lambda e: self._focus_entry_if_idle(e), add="+")
 
         self._toggle_mode()
         self.load_bg_asset(self.bg_image_path, initial=True)
@@ -2388,6 +2415,18 @@ class ChatWindow:
         self.user_info.add_listener(self._on_ip_update)
         self.win.update_idletasks()
         self._redraw_all_messages()
+        # Dar foco inicial directo a la barra de texto
+        self.win.after(150, self._focus_entry_ready)
+
+    def _focus_entry_ready(self):
+        if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win):
+            self.entry.focus_set()
+
+    def _focus_entry_if_idle(self, event=None):
+        if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win):
+            if event and hasattr(event, "widget") and event.widget in (self.entry, self.send_btn):
+                return
+            self.entry.focus_set()
 
     def open_bg_menu(self):
         m = tk.Menu(self.win, tearoff=0,
@@ -2785,39 +2824,43 @@ class ChatWindow:
         self.win.configure(bg=self.theme.bg)
         self.win.attributes("-alpha", self.theme.opacity)
         self.title_lbl.configure(fg=self.theme.accent, bg=self.theme.surface,
-                                 font=(self.theme.font_family, self.theme.font_size + 2, "bold"))
-        self.header_status.configure(font=(self.theme.font_family, self.theme.font_size - 1))
+                                 font=(self.theme.font_family, self.theme.font_size + 1, "bold"))
+        self.header_status.configure(font=(self.theme.font_family, max(8, self.theme.font_size - 2)))
         self.chat_container.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
         if not self.bg_frames:
             self.chat_canvas.configure(bg=self.theme.surface)
-        entry_fg = getattr(self.theme, "entry_fg", "#ffffff" if self.theme._calc_brightness(self.theme.entry_bg) < 130 else "#111620")
-        self.entry.configure(bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg,
-                             font=(self.theme.font_family, self.theme.font_size + 1),
-                             highlightbackground=self.theme.border)
+        entry_fg = self._get_entry_fg()
+        if hasattr(self, "inp_frame") and self.inp_frame:
+            self.inp_frame.configure(bg=self.theme.surface, highlightbackground=self.theme.accent)
+        if hasattr(self, "entry") and self.entry:
+            self.entry.configure(
+                bg=self.theme.entry_bg,
+                fg=self.theme.text_dim if getattr(self, "_is_placeholder", False) else entry_fg,
+                insertbackground=entry_fg,
+                font=(self.theme.font_family, self.theme.font_size + 1)
+            )
         if hasattr(self, "api_entry") and self.api_entry:
             self.api_entry.configure(bg=self.theme.entry_bg, fg=entry_fg, insertbackground=entry_fg)
         if hasattr(self, "local_frame") and self.local_frame:
-            self.local_frame.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
-        if hasattr(self, "local_lbl") and self.local_lbl:
-            self.local_lbl.configure(bg=self.theme.surface, fg=self.theme.text_dim, font=(self.theme.font_family, self.theme.font_size))
+            self.local_frame.configure(bg=self.theme.surface)
         if hasattr(self, "rb_local") and self.rb_local:
-            self.rb_local.configure(bg=self.theme.bg, fg=self.theme.text, selectcolor=self.theme.surface, font=(self.theme.font_family, self.theme.font_size))
+            self.rb_local.configure(bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant)
         if hasattr(self, "rb_api") and self.rb_api:
-            self.rb_api.configure(bg=self.theme.bg, fg=self.theme.text, selectcolor=self.theme.surface, font=(self.theme.font_family, self.theme.font_size))
-        self.send_btn.configure(bg=self.theme.accent, fg=self.theme.accent_text,
-                                font=(self.theme.font_family, self.theme.font_size, "bold"))
-        self.verify_btn.configure(bg=self.theme.surface, fg=self.theme.accent,
-                                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
-                                  highlightbackground=self.theme.border)
+            self.rb_api.configure(bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant)
+        if hasattr(self, "send_btn") and self.send_btn:
+            self.send_btn.configure(bg=self.theme.accent, fg=self.theme.accent_text,
+                                    font=(self.theme.font_family, self.theme.font_size, "bold"))
+        if hasattr(self, "verify_btn") and self.verify_btn:
+            self.verify_btn.configure(bg=self.theme.surface_variant, fg=self.theme.accent)
         for btn in getattr(self, "chip_btns", []):
             btn.configure(bg=self.theme.surface_variant, fg=self.theme.text_dim,
-                          font=(self.theme.font_family, self.theme.font_size - 1))
+                          font=(self.theme.font_family, max(8, self.theme.font_size - 2)))
         self._redraw_all_messages()
 
     def _on_ip_update(self, info):
         if self.win and tk.Toplevel.winfo_exists(self.win):
             self.parent.after(0, lambda: self.header_status.configure(
-                text=f"[ONLINE] Conectado con: {self.user_info.username} | IP: {self.user_info.public_ip}"
+                text=f"[ONLINE] {self.user_info.username} | IP: {self.user_info.public_ip}"
             ))
 
     def toggle_opacity(self):
@@ -2847,12 +2890,18 @@ class ChatWindow:
         self.show_key_btn.configure(text="[x]" if self.show_key else "[*]")
 
     def insert_chip(self, text):
+        if getattr(self, "_is_placeholder", False):
+            self.entry.delete(0, tk.END)
+            self.entry.configure(fg=self._get_entry_fg())
+            self._is_placeholder = False
         curr = self.entry.get()
         space = " " if curr and not curr.endswith(" ") else ""
         self.entry.insert(tk.END, space + text)
-        self.entry.focus()
+        self.entry.focus_set()
 
     def send_custom(self, text):
+        self._is_placeholder = False
+        self.entry.configure(fg=self._get_entry_fg())
         self.entry.delete(0, tk.END)
         self.entry.insert(0, text)
         self.send_message()
@@ -2874,11 +2923,13 @@ class ChatWindow:
         if mode == "api":
             if hasattr(self, "local_frame"):
                 self.local_frame.pack_forget()
-            self.kf.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
+            if hasattr(self, "kf"):
+                self.kf.pack(fill=tk.X, expand=True)
         else:
-            self.kf.pack_forget()
+            if hasattr(self, "kf"):
+                self.kf.pack_forget()
             if hasattr(self, "local_frame"):
-                self.local_frame.pack(fill=tk.X, padx=12, pady=(0, 4), before=self.verify_btn)
+                self.local_frame.pack(fill=tk.X, expand=True)
 
     def verify_connection(self):
         self.verify_btn.configure(state=tk.DISABLED, text="[..] Verificando...")
@@ -2990,11 +3041,14 @@ class ChatWindow:
         self.parent.after(0, lambda: self.verify_btn.configure(state=tk.NORMAL, text="[?] Probar Conexion / Estado de la IA"))
 
     def send_message(self):
+        if getattr(self, "_is_placeholder", False):
+            return
         text = self.entry.get().strip()
-        if not text:
+        if not text or text == getattr(self, "placeholder_text", ""):
             return
         self.entry.delete(0, tk.END)
         self._append_user(text)
+        self.entry.focus_set()
 
         # 1. Intentar procesar como comando directo o lenguaje natural de JARVIS
         handled, msg, speech = self.jarvis.parse_and_execute(text)
@@ -3244,14 +3298,17 @@ class ChatWindow:
         if actions:
             for act in actions:
                 self._append_system(act)
-        self.send_btn.configure(state=tk.NORMAL, text="Enviar >>")
+        self.send_btn.configure(state=tk.NORMAL, text="Enviar ➤")
+        if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win):
+            self.entry.focus_set()
         short_speech = display_text[:50] + ("..." if len(display_text) > 50 else "")
         self.shimeji.show_speech(short_speech)
 
     def _show_error(self, msg):
         self.parent.after(0, lambda: (
             self._append_system(f"[!] {msg}"),
-            self.send_btn.configure(state=tk.NORMAL, text="Enviar >>")
+            self.send_btn.configure(state=tk.NORMAL, text="Enviar ➤"),
+            self.entry.focus_set() if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win) else None
         ))
 
     def _on_close(self):
