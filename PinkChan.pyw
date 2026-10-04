@@ -29,6 +29,39 @@ try:
 except Exception:
     winreg = None
 
+def _setup_python_paths():
+    """Garantiza que el ejecutable o script pueda encontrar paquetes instalados como transformers y torch."""
+    import glob
+    local_appdata = os.environ.get("LOCALAPPDATA", "")
+    if local_appdata:
+        for pat in [
+            os.path.join(local_appdata, "Python", "pythoncore-*", "Lib", "site-packages"),
+            os.path.join(local_appdata, "Programs", "Python", "Python*", "Lib", "site-packages"),
+        ]:
+            for p in glob.glob(pat):
+                if os.path.isdir(p) and p not in sys.path:
+                    sys.path.append(p)
+                    for sub in ("torch\\lib", "numpy.libs"):
+                        libpath = os.path.join(p, sub)
+                        if os.path.isdir(libpath) and hasattr(os, "add_dll_directory"):
+                            try:
+                                os.add_dll_directory(libpath)
+                            except Exception:
+                                pass
+    appdata = os.environ.get("APPDATA", "")
+    if appdata:
+        for p in glob.glob(os.path.join(appdata, "Python", "Python*", "site-packages")):
+            if os.path.isdir(p) and p not in sys.path:
+                sys.path.append(p)
+
+    for pf in (os.environ.get("ProgramFiles", ""), os.environ.get("ProgramFiles(x86)", "")):
+        if pf:
+            for p in glob.glob(os.path.join(pf, "Python*", "Lib", "site-packages")):
+                if os.path.isdir(p) and p not in sys.path:
+                    sys.path.append(p)
+
+_setup_python_paths()
+
 # Habilitar DPI Awareness en Windows para evitar desajustes de pantalla y coordenadas
 if sys.platform == "win32":
     try:
@@ -2851,6 +2884,57 @@ class ChatWindow:
         self.verify_btn.configure(state=tk.DISABLED, text="[..] Verificando...")
         threading.Thread(target=self._run_verification, daemon=True).start()
 
+    def _run_python_worker_inference(self, model_id, msgs):
+        try:
+            import glob
+            worker_code = (
+                "import sys, json\n"
+                "from transformers import pipeline\n"
+                "try:\n"
+                "    data = json.loads(sys.stdin.read())\n"
+                "    pipe = pipeline('text-generation', model=data['model'])\n"
+                "    res = pipe(data['msgs'], max_new_tokens=140, do_sample=True, temperature=0.7, top_p=0.9, repetition_penalty=1.12)\n"
+                "    reply = res[0]['generated_text'][-1]['content']\n"
+                "    print(json.dumps({'status': 'ok', 'reply': reply}))\n"
+                "except Exception as e:\n"
+                "    print(json.dumps({'status': 'error', 'error': str(e)}))\n"
+            )
+            input_payload = json.dumps({"model": model_id, "msgs": msgs})
+
+            py_candidates = ["py", "python", "python3"]
+            local_appdata = os.environ.get("LOCALAPPDATA", "")
+            if local_appdata:
+                for p in glob.glob(os.path.join(local_appdata, "Python", "pythoncore-*", "python.exe")):
+                    py_candidates.insert(0, p)
+                for p in glob.glob(os.path.join(local_appdata, "Programs", "Python", "Python*", "python.exe")):
+                    py_candidates.insert(0, p)
+
+            for py_bin in py_candidates:
+                try:
+                    proc = subprocess.Popen(
+                        [py_bin, "-c", worker_code],
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        encoding="utf-8",
+                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                    )
+                    stdout, stderr = proc.communicate(input=input_payload, timeout=60)
+                    if stdout.strip():
+                        for line in reversed(stdout.strip().splitlines()):
+                            try:
+                                d = json.loads(line)
+                                if d.get("status") == "ok":
+                                    return d.get("reply", "")
+                            except Exception:
+                                pass
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return None
+
     def _run_verification(self):
         mode = self.mode_var.get()
         if mode == "api":
@@ -2878,15 +2962,28 @@ class ChatWindow:
                     self._show_error("Error al conectar con la API de Gemini (revisa tu key o internet)")
         else:
             try:
-                pipeline = importlib.import_module("transformers").pipeline
                 model_id = self.local_model_var.get().strip() if hasattr(self, "local_model_var") else "Qwen/Qwen2.5-0.5B-Instruct"
                 if " " in model_id:
                     model_id = model_id.split()[0].strip()
                 self.parent.after(0, lambda m=model_id: self._append_system(f"[..] Verificando modelo local de charla: {m}..."))
-                if not self.local_pipe or getattr(self, "_current_loaded_model", None) != model_id:
-                    self.local_pipe = pipeline("text-generation", model=model_id, low_cpu_mem_usage=True)
-                    self._current_loaded_model = model_id
-                self.parent.after(0, lambda m=model_id: self._append_system(f"[+] Modelo local de charla ({m}) cargado y listo offline!\n(Configurado exclusivamente para hablar, sin código)"))
+                
+                success = False
+                try:
+                    pipeline = importlib.import_module("transformers").pipeline
+                    if not self.local_pipe or getattr(self, "_current_loaded_model", None) != model_id:
+                        self.local_pipe = pipeline("text-generation", model=model_id)
+                        self._current_loaded_model = model_id
+                    success = True
+                except Exception:
+                    # Fallback al worker de Python
+                    test_resp = self._run_python_worker_inference(model_id, [{"role": "user", "content": "ping"}])
+                    if test_resp:
+                        success = True
+
+                if success:
+                    self.parent.after(0, lambda m=model_id: self._append_system(f"[+] Modelo local de charla ({m}) cargado y listo offline!\n(Configurado exclusivamente para hablar, sin código)"))
+                else:
+                    self._show_error("No se pudo cargar el modelo local. Verifica tener transformers y torch instalados.")
             except Exception as e:
                 self._show_error(f"Error al cargar modelo local: {e}")
 
@@ -2918,31 +3015,39 @@ class ChatWindow:
 
     def _call_local(self, text):
         try:
-            pipeline = importlib.import_module("transformers").pipeline
             model_id = self.local_model_var.get().strip() if hasattr(self, "local_model_var") else "Qwen/Qwen2.5-0.5B-Instruct"
             if " " in model_id:
                 model_id = model_id.split()[0].strip()
-
-            if not self.local_pipe or getattr(self, "_current_loaded_model", None) != model_id:
-                self.parent.after(0, lambda m=model_id: self._append_system(f"[..] Cargando modelo local de charla ({m})...\n(La primera vez tomará unos momentos mientras carga)"))
-                self.local_pipe = pipeline("text-generation", model=model_id, low_cpu_mem_usage=True)
-                self._current_loaded_model = model_id
 
             sys_prompt = self.get_local_chat_system_prompt()
             msgs = [
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": text}
             ]
-            out = self.local_pipe(
-                msgs,
-                max_new_tokens=140,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-                repetition_penalty=1.12,
-                clean_up_tokenization_spaces=False
-            )
-            raw_reply = out[0]['generated_text'][-1]['content'].strip()
+
+            raw_reply = None
+            try:
+                pipeline = importlib.import_module("transformers").pipeline
+                if not self.local_pipe or getattr(self, "_current_loaded_model", None) != model_id:
+                    self.parent.after(0, lambda m=model_id: self._append_system(f"[..] Cargando modelo local de charla ({m})...\n(La primera vez tomará unos momentos mientras carga)"))
+                    self.local_pipe = pipeline("text-generation", model=model_id)
+                    self._current_loaded_model = model_id
+
+                out = self.local_pipe(
+                    msgs,
+                    max_new_tokens=140,
+                    do_sample=True,
+                    temperature=0.7,
+                    top_p=0.9,
+                    repetition_penalty=1.12
+                )
+                raw_reply = out[0]['generated_text'][-1]['content'].strip()
+            except Exception as in_proc_err:
+                # Fallback al worker de Python
+                self.parent.after(0, lambda: self._append_system("[..] Consultando modelo local a través del entorno de Python del sistema..."))
+                raw_reply = self._run_python_worker_inference(model_id, msgs)
+                if not raw_reply:
+                    raise in_proc_err
 
             # FILTRO ESTRICTO: Solo charla, nada de coding
             # Eliminar bloques de código markdown si la IA intentara generar alguno
