@@ -9,23 +9,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
-        <!-- Header con Título y Logo -->
+        <!-- Header con Diseno Azul Pastel Cielo -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="18dp">
 
             <ImageView
-                android:layout_width="54dp"
-                android:layout_height="54dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@drawable/ic_launcher"
-                android:layout_marginRight="12dp"
-                android:contentDescription="Icono" />
+                android:layout_marginRight="14dp"
+                android:contentDescription="Icono Shimeji" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -36,20 +36,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="PinkChan Shimeji"
-                    android:textColor="@color/accent_pink"
-                    android:textSize="22sp"
+                    android:textColor="@color/accent_sky"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mascota flotante sobre tus aplicaciones"
-                    android:textColor="@color/text_dim"
+                    android:text="Mascota flotante para Android"
+                    android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Tarjeta 1: Permiso de Superposición -->
+        <!-- Tarjeta 1: Permiso de Superposicion -->
         <LinearLayout
             android:id="@+id/card_permission"
             android:layout_width="match_parent"
@@ -70,9 +70,9 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Permiso de Superposición"
-                    android:textColor="@color/text_light"
-                    android:textSize="15sp"
+                    android:text="Permiso de Superposicion"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -81,7 +81,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/badge_status_warn"
                     android:text="PENDIENTE"
-                    android:textColor="@color/error_red"
+                    android:textColor="@color/error_color"
                     android:textSize="11sp"
                     android:textStyle="bold"
                     android:paddingLeft="10dp"
@@ -93,8 +93,8 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Requerido para que el personaje pueda caminar encima de WhatsApp, YouTube, TikTok y tus juegos."
-                android:textColor="@color/text_dim"
+                android:text="Permite que el Shimeji se sobreponga y camine encima de tus otras aplicaciones en pantalla."
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:layout_marginBottom="12dp" />
 
@@ -103,10 +103,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:background="@drawable/btn_accent"
-                android:text="CONCEDER PERMISO DE SUPERPOSICIÓN"
+                android:text="CONCEDER PERMISO DE SUPERPOSICION"
                 android:textColor="@color/bg_dark"
                 android:textStyle="bold"
-                android:textSize="13sp" />
+                android:textSize="12sp" />
         </LinearLayout>
 
         <!-- Tarjeta 2: Control de Servicio -->
@@ -121,11 +121,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Estado del Shimeji"
-                android:textColor="@color/text_light"
-                android:textSize="15sp"
+                android:text="Control de Shimeji"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="12dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -135,24 +135,26 @@
                 <Button
                     android:id="@+id/btn_start_shimeji"
                     android:layout_width="0dp"
-                    android:layout_height="46dp"
+                    android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginRight="6dp"
                     android:background="@drawable/btn_accent"
-                    android:text="▶ INICIAR"
+                    android:text="INICIAR"
                     android:textColor="@color/bg_dark"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:textSize="13sp" />
 
                 <Button
                     android:id="@+id/btn_stop_shimeji"
                     android:layout_width="0dp"
-                    android:layout_height="46dp"
+                    android:layout_height="44dp"
                     android:layout_weight="1"
                     android:layout_marginLeft="6dp"
                     android:background="@drawable/btn_danger"
-                    android:text="⏹ DETENER"
-                    android:textColor="@color/error_red"
-                    android:textStyle="bold" />
+                    android:text="DETENER"
+                    android:textColor="@color/error_color"
+                    android:textStyle="bold"
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <Button
@@ -160,13 +162,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="38dp"
                 android:layout_marginTop="10dp"
-                android:background="@drawable/card_bg"
-                android:text="🎯 Reaparecer en el centro de la pantalla"
-                android:textColor="@color/accent_blue"
+                android:background="@drawable/btn_outline"
+                android:text="Centrar en pantalla"
+                android:textColor="@color/accent_sky"
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Tarjeta 3: Selección de Skin -->
+        <!-- Tarjeta 3: Seleccion de Skin -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -178,9 +180,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Selecciona tu Personaje (Skin)"
-                android:textColor="@color/text_light"
-                android:textSize="15sp"
+                android:text="Personaje (Skin)"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -193,8 +195,8 @@
                     android:id="@+id/rb_konata"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="⭐ Konata Izumi (Lucky Star)"
-                    android:textColor="@color/text_light"
+                    android:text="Konata Izumi (Lucky Star)"
+                    android:textColor="@color/text_primary"
                     android:checked="true"
                     android:paddingTop="6dp"
                     android:paddingBottom="6dp" />
@@ -203,8 +205,8 @@
                     android:id="@+id/rb_bocchi"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🎸 Bocchi-chan (Bocchi the Rock!)"
-                    android:textColor="@color/text_light"
+                    android:text="Bocchi-chan (Bocchi the Rock!)"
+                    android:textColor="@color/text_primary"
                     android:paddingTop="6dp"
                     android:paddingBottom="6dp" />
 
@@ -212,8 +214,8 @@
                     android:id="@+id/rb_monika"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💚 Monika (DDLC)"
-                    android:textColor="@color/text_light"
+                    android:text="Monika (DDLC)"
+                    android:textColor="@color/text_primary"
                     android:paddingTop="6dp"
                     android:paddingBottom="6dp" />
 
@@ -221,8 +223,8 @@
                     android:id="@+id/rb_natsuki"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🧁 Natsuki (DDLC)"
-                    android:textColor="@color/text_light"
+                    android:text="Natsuki (DDLC)"
+                    android:textColor="@color/text_primary"
                     android:paddingTop="6dp"
                     android:paddingBottom="6dp" />
 
@@ -230,8 +232,8 @@
                     android:id="@+id/rb_sayori"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💙 Sayori (DDLC)"
-                    android:textColor="@color/text_light"
+                    android:text="Sayori (DDLC)"
+                    android:textColor="@color/text_primary"
                     android:paddingTop="6dp"
                     android:paddingBottom="6dp" />
 
@@ -239,14 +241,14 @@
                     android:id="@+id/rb_yuri"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="💜 Yuri (DDLC)"
-                    android:textColor="@color/text_light"
+                    android:text="Yuri (DDLC)"
+                    android:textColor="@color/text_primary"
                     android:paddingTop="6dp"
                     android:paddingBottom="6dp" />
             </RadioGroup>
         </LinearLayout>
 
-        <!-- Tarjeta 4: Tamaño y Físicas -->
+        <!-- Tarjeta 4: Ajustes de Tamano y Movimiento -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -258,17 +260,17 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ajustes de Tamaño y Físicas"
-                android:textColor="@color/text_light"
-                android:textSize="15sp"
+                android:text="Tamano y Movimiento"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tamaño en pantalla:"
-                android:textColor="@color/text_dim"
+                android:text="Escala del personaje:"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:layout_marginBottom="4dp" />
 
@@ -284,8 +286,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Pequeño"
-                    android:textColor="@color/text_light" />
+                    android:text="Pequeno"
+                    android:textColor="@color/text_primary" />
 
                 <RadioButton
                     android:id="@+id/rb_size_normal"
@@ -293,7 +295,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Normal"
-                    android:textColor="@color/text_light"
+                    android:textColor="@color/text_primary"
                     android:checked="true" />
 
                 <RadioButton
@@ -302,18 +304,26 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Grande"
-                    android:textColor="@color/text_light" />
+                    android:textColor="@color/text_primary" />
             </RadioGroup>
 
             <CheckBox
                 android:id="@+id/cb_zero_gravity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🪂 Gravedad Cero (flotar sin caer)"
-                android:textColor="@color/text_light" />
+                android:text="Modo Flotante (Gravedad Cero)"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tip: Manten presionado al Shimeji en pantalla para abrir su menu de acciones."
+                android:textColor="@color/accent_sky"
+                android:textSize="11sp"
+                android:layout_marginTop="8dp" />
         </LinearLayout>
 
-        <!-- Tarjeta 5: Acciones Rápidas -->
+        <!-- Tarjeta 5: Acciones Rapidas -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -325,9 +335,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Acciones Rápidas en Vivo"
-                android:textColor="@color/text_light"
-                android:textSize="15sp"
+                android:text="Acciones en Vivo"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="10dp" />
 
@@ -342,9 +352,9 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:layout_marginRight="4dp"
-                    android:background="@drawable/card_bg"
-                    android:text="🎸 Guitarra"
-                    android:textColor="@color/text_light"
+                    android:background="@drawable/chip_action_bg"
+                    android:text="Guitarra"
+                    android:textColor="@color/text_primary"
                     android:textSize="12sp" />
 
                 <Button
@@ -354,9 +364,9 @@
                     android:layout_weight="1"
                     android:layout_marginLeft="4dp"
                     android:layout_marginRight="4dp"
-                    android:background="@drawable/card_bg"
-                    android:text="📦 Caja"
-                    android:textColor="@color/text_light"
+                    android:background="@drawable/chip_action_bg"
+                    android:text="Caja"
+                    android:textColor="@color/text_primary"
                     android:textSize="12sp" />
 
                 <Button
@@ -365,9 +375,9 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:layout_marginLeft="4dp"
-                    android:background="@drawable/card_bg"
-                    android:text="💬 Hablar"
-                    android:textColor="@color/text_light"
+                    android:background="@drawable/chip_action_bg"
+                    android:text="Hablar"
+                    android:textColor="@color/text_primary"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>

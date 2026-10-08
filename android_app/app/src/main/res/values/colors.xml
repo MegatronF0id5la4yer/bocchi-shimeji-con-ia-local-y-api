@@ -1,14 +1,18 @@
 <resources>
-    <color name="bg_dark">#181825</color>
-    <color name="surface_dark">#1e1e2e</color>
-    <color name="surface_variant">#313244</color>
-    <color name="accent_pink">#ff79c6</color>
-    <color name="accent_blue">#89b4fa</color>
-    <color name="text_light">#cdd6f4</color>
-    <color name="text_dim">#a6adc8</color>
-    <color name="success_green">#a6e3a1</color>
-    <color name="error_red">#f38ba8</color>
-    <color name="bubble_bg">#f01e1e2e</color>
+    <!-- Paleta Azul Pastel Cielo (Sky Pastel Blue) -->
+    <color name="bg_dark">#0f172a</color>
+    <color name="surface_dark">#1e293b</color>
+    <color name="surface_variant">#334155</color>
+    <color name="accent_sky">#7dd3fc</color>
+    <color name="accent_sky_light">#e0f2fe</color>
+    <color name="accent_sky_dark">#38bdf8</color>
+    <color name="text_primary">#f8fafc</color>
+    <color name="text_secondary">#94a3b8</color>
+    <color name="success_color">#86efac</color>
+    <color name="success_green">#86efac</color>
+    <color name="error_color">#fca5a5</color>
+    <color name="error_red">#fca5a5</color>
+    <color name="bubble_bg">#f00f172a</color>
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
 </resources>

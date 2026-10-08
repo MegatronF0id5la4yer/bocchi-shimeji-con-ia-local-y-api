@@ -239,7 +239,7 @@ public class MainActivity extends Activity {
                 );
                 startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION);
             } else {
-                Toast.makeText(this, "¡Permiso ya concedido!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permiso ya concedido", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -248,24 +248,24 @@ public class MainActivity extends Activity {
         boolean granted = checkOverlayPermission();
         if (granted) {
             tvPermissionStatus.setText("CONCEDIDO");
-            tvPermissionStatus.setTextColor(getResources().getColor(R.color.success_green));
+            tvPermissionStatus.setTextColor(getResources().getColor(R.color.success_color));
             tvPermissionStatus.setBackgroundResource(R.drawable.badge_status_ok);
             btnGrantPermission.setEnabled(false);
             btnGrantPermission.setText("PERMISO CONCEDIDO [OK]");
             btnGrantPermission.setAlpha(0.6f);
         } else {
             tvPermissionStatus.setText("PENDIENTE");
-            tvPermissionStatus.setTextColor(getResources().getColor(R.color.error_red));
+            tvPermissionStatus.setTextColor(getResources().getColor(R.color.error_color));
             tvPermissionStatus.setBackgroundResource(R.drawable.badge_status_warn);
             btnGrantPermission.setEnabled(true);
-            btnGrantPermission.setText("CONCEDER PERMISO DE SUPERPOSICIÓN");
+            btnGrantPermission.setText("CONCEDER PERMISO DE SUPERPOSICION");
             btnGrantPermission.setAlpha(1.0f);
         }
     }
 
     private void startShimeji() {
         if (!checkOverlayPermission()) {
-            Toast.makeText(this, "Primero concede el permiso de superposición", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Primero concede el permiso de superposicion", Toast.LENGTH_LONG).show();
             requestOverlayPermission();
             return;
         }
@@ -282,7 +282,7 @@ public class MainActivity extends Activity {
             startService(intent);
         }
 
-        Toast.makeText(this, "¡Shimeji activado! Aparecerá en tu pantalla", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Shimeji activado", Toast.LENGTH_SHORT).show();
     }
 
     private void stopShimeji() {
@@ -303,7 +303,7 @@ public class MainActivity extends Activity {
         if (requestCode == REQUEST_OVERLAY_PERMISSION) {
             updatePermissionUI();
             if (checkOverlayPermission()) {
-                Toast.makeText(this, "¡Permiso concedido! Ya puedes iniciar el Shimeji", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permiso concedido. Ya puedes iniciar el Shimeji", Toast.LENGTH_SHORT).show();
             }
         }
     }

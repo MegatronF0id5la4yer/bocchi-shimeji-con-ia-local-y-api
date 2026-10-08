@@ -11,7 +11,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -24,6 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.InputStream;
@@ -55,17 +55,22 @@ public class ShimejiService extends Service {
     private View overlayView;
     private ImageView ivSprite;
     private TextView tvSpeechBubble;
+    private LinearLayout layoutLongPressMenu;
+
     private WindowManager.LayoutParams params;
 
     private SkinData currentSkin;
     private int sizePx;
     private boolean zeroGravity = false;
 
-    // Física y Estados
+    // Posición y física libre en toda la pantalla
     private float posX, posY;
     private float velX, velY;
+    private float currentFloorY;
     private int facing = 1; // 1: derecha, -1: izquierda
-    private String state = "STAND"; // STAND, WALK, FALL, SIT, CLIMB_LEFT, CLIMB_RIGHT, GUITAR, BOX
+
+    // Estados: STAND, WALK, ROAM, CLIMB_LEFT, CLIMB_RIGHT, CEILING, FALL, SIT, GUITAR, BOX
+    private String state = "STAND";
     private int stateTimer = 90;
     private int tickCount = 0;
     private final Random random = new Random();
@@ -73,21 +78,23 @@ public class ShimejiService extends Service {
     // Cache de Bitmaps cargados
     private final Map<String, Bitmap> bitmapCache = new HashMap<>();
 
-    // Pantalla
+    // Dimensiones reales de pantalla
     private int screenWidth;
     private int screenHeight;
 
-    // Drag & Drop
+    // Drag, Touch y Detección de Long Press
     private boolean isDragging = false;
     private float touchStartX, touchStartY;
     private float initialPosX, initialPosY;
     private long touchStartTime;
     private float lastMoveX, lastMoveY;
     private long lastMoveTime;
+    private boolean isLongPressTriggered = false;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable loopRunnable;
     private Runnable hideBubbleRunnable;
+    private Runnable longPressRunnable;
 
     private Vibrator vibrator;
 
@@ -116,7 +123,7 @@ public class ShimejiService extends Service {
                 "PinkChan Shimeji Overlay",
                 NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription("Control de Shimeji flotante en pantalla");
+            channel.setDescription("Control de Shimeji en pantalla");
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(channel);
@@ -156,9 +163,10 @@ public class ShimejiService extends Service {
     }
 
     private void updateScreenDimensions() {
-        DisplayMetrics dm = getResources().getDisplayMetrics();
-        screenWidth = dm.widthPixels;
-        screenHeight = dm.heightPixels;
+        DisplayMetrics realMetrics = new DisplayMetrics();
+        windowManager.getDefaultDisplay().getRealMetrics(realMetrics);
+        screenWidth = realMetrics.widthPixels;
+        screenHeight = realMetrics.heightPixels;
     }
 
     private void setupOverlayView() {
@@ -167,6 +175,9 @@ public class ShimejiService extends Service {
 
         ivSprite = overlayView.findViewById(R.id.shimeji_image_view);
         tvSpeechBubble = overlayView.findViewById(R.id.shimeji_speech_bubble);
+        layoutLongPressMenu = overlayView.findViewById(R.id.shimeji_longpress_menu);
+
+        setupMenuListeners();
 
         int layoutType;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -176,7 +187,7 @@ public class ShimejiService extends Service {
         }
 
         params = new WindowManager.LayoutParams(
-            sizePx,
+            WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             layoutType,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -185,7 +196,8 @@ public class ShimejiService extends Service {
 
         params.gravity = Gravity.TOP | Gravity.START;
         posX = screenWidth / 2f - (sizePx / 2f);
-        posY = getFloorY();
+        currentFloorY = screenHeight - sizePx - dpToPx(40);
+        posY = currentFloorY;
         params.x = (int) posX;
         params.y = (int) posY;
 
@@ -195,9 +207,100 @@ public class ShimejiService extends Service {
         showRandomSpeech();
     }
 
-    private int getFloorY() {
-        // Altura del suelo considerando la barra de navegación
-        return screenHeight - sizePx - dpToPx(35);
+    private void setupMenuListeners() {
+        // 1. Siguiente Skin
+        overlayView.findViewById(R.id.btn_menu_skin).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cycleNextSkin();
+                hideLongPressMenu();
+            }
+        });
+
+        // 2. Acariciar / Mimar
+        overlayView.findViewById(R.id.btn_menu_pet).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                triggerHaptic(60);
+                state = "STAND";
+                stateTimer = 80;
+                say("Que calido... me gusta.", 2500);
+                hideLongPressMenu();
+            }
+        });
+
+        // 3. Guitarra
+        overlayView.findViewById(R.id.btn_menu_guitar).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                state = "GUITAR";
+                stateTimer = 140;
+                say("Solo de guitarra en vivo.", 2500);
+                hideLongPressMenu();
+            }
+        });
+
+        // 4. Caja
+        overlayView.findViewById(R.id.btn_menu_box).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                state = "BOX";
+                stateTimer = 140;
+                say("Modo caja seguro.", 2500);
+                hideLongPressMenu();
+            }
+        });
+
+        // 5. Flotar / Gravedad
+        overlayView.findViewById(R.id.btn_menu_gravity).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                zeroGravity = !zeroGravity;
+                state = "ROAM";
+                velY = -dpToPx(4);
+                velX = (random.nextBoolean() ? 1 : -1) * dpToPx(2);
+                say(zeroGravity ? "Gravedad cero activada." : "Gravedad normal.", 2000);
+                hideLongPressMenu();
+            }
+        });
+
+        // 6. Cerrar
+        overlayView.findViewById(R.id.btn_menu_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideLongPressMenu();
+            }
+        });
+    }
+
+    private void cycleNextSkin() {
+        String nextId = SkinData.getNextSkin(currentSkin.id);
+        currentSkin = SkinData.get(nextId);
+        bitmapCache.clear();
+        triggerHaptic(40);
+        updateSprite();
+        say("Skin cambiada: " + currentSkin.name, 2500);
+
+        NotificationManager nm = getSystemService(NotificationManager.class);
+        if (nm != null) nm.notify(NOTIFICATION_ID, buildNotification());
+    }
+
+    private void showLongPressMenu() {
+        isLongPressTriggered = true;
+        triggerHaptic(50);
+        if (layoutLongPressMenu != null) {
+            layoutLongPressMenu.setVisibility(View.VISIBLE);
+            tvSpeechBubble.setVisibility(View.GONE);
+            state = "STAND";
+            velX = 0;
+            velY = 0;
+        }
+    }
+
+    private void hideLongPressMenu() {
+        if (layoutLongPressMenu != null) {
+            layoutLongPressMenu.setVisibility(View.GONE);
+        }
     }
 
     private void setupTouchEvents() {
@@ -207,6 +310,7 @@ public class ShimejiService extends Service {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         isDragging = true;
+                        isLongPressTriggered = false;
                         touchStartTime = System.currentTimeMillis();
                         touchStartX = event.getRawX();
                         touchStartY = event.getRawY();
@@ -220,14 +324,33 @@ public class ShimejiService extends Service {
                         state = "FALL";
                         velX = 0;
                         velY = 0;
-                        triggerHaptic(25);
                         updateSprite();
+
+                        // Programar detección de Long Press (420 ms)
+                        longPressRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                if (isDragging && !isLongPressTriggered) {
+                                    showLongPressMenu();
+                                }
+                            }
+                        };
+                        handler.postDelayed(longPressRunnable, 420);
                         return true;
 
                     case MotionEvent.ACTION_MOVE:
                         if (!isDragging) return false;
                         float curX = event.getRawX();
                         float curY = event.getRawY();
+
+                        float distMove = (float) Math.hypot(curX - touchStartX, curY - touchStartY);
+                        if (distMove > dpToPx(10)) {
+                            // Si se mueve más de 10dp, cancelar long press
+                            handler.removeCallbacks(longPressRunnable);
+                            if (layoutLongPressMenu.getVisibility() == View.VISIBLE) {
+                                hideLongPressMenu();
+                            }
+                        }
 
                         posX = initialPosX + (curX - touchStartX);
                         posY = initialPosY + (curY - touchStartY);
@@ -244,25 +367,35 @@ public class ShimejiService extends Service {
                     case MotionEvent.ACTION_UP:
                         if (!isDragging) return false;
                         isDragging = false;
+                        handler.removeCallbacks(longPressRunnable);
+
+                        if (isLongPressTriggered) {
+                            return true;
+                        }
 
                         float totalDist = (float) Math.hypot(event.getRawX() - touchStartX, event.getRawY() - touchStartY);
                         long duration = System.currentTimeMillis() - touchStartTime;
 
-                        // Si fue un toque rápido y corto -> POKE / TAP
-                        if (totalDist < dpToPx(12) && duration < 350) {
+                        // Tap corto: POKE
+                        if (totalDist < dpToPx(12) && duration < 380) {
                             onPoke();
                         } else {
+                            // Establecer la nueva altura virtual para que no esté obligado a caer al fondo
+                            currentFloorY = Math.min(screenHeight - sizePx - dpToPx(20), Math.max(dpToPx(40), posY));
+
                             // Calcular velocidad de lanzamiento
                             long dt = System.currentTimeMillis() - lastMoveTime;
                             if (dt > 0 && dt < 150) {
-                                velX = (event.getRawX() - lastMoveX) * 0.8f;
-                                velY = (event.getRawY() - lastMoveY) * 0.8f;
+                                velX = (event.getRawX() - lastMoveX) * 0.9f;
+                                velY = (event.getRawY() - lastMoveY) * 0.9f;
                             } else {
                                 velX = 0;
-                                velY = 1f;
+                                velY = zeroGravity ? 0 : 2f;
                             }
-                            velX = Math.max(-25f, Math.min(25f, velX));
-                            velY = Math.max(-30f, Math.min(30f, velY));
+                            velX = Math.max(-28f, Math.min(28f, velX));
+                            velY = Math.max(-32f, Math.min(32f, velY));
+
+                            state = zeroGravity ? "ROAM" : "FALL";
                             triggerHaptic(15);
                         }
                         return true;
@@ -273,14 +406,14 @@ public class ShimejiService extends Service {
     }
 
     private void onPoke() {
-        triggerHaptic(40);
+        triggerHaptic(35);
         state = "STAND";
         stateTimer = 50;
 
         String[] poked = currentSkin.poked;
         if (poked.length > 0) {
             String text = poked[random.nextInt(poked.length)];
-            say(text, 2800);
+            say(text, 2500);
         }
     }
 
@@ -306,7 +439,7 @@ public class ShimejiService extends Service {
     private void showRandomSpeech() {
         String[] dl = currentSkin.dialogues;
         if (dl.length > 0) {
-            say(dl[random.nextInt(dl.length)], 3200);
+            say(dl[random.nextInt(dl.length)], 3000);
         }
     }
 
@@ -333,40 +466,40 @@ public class ShimejiService extends Service {
         if (isDragging || overlayView == null) return;
 
         updateScreenDimensions();
-        int floor = getFloorY();
-        int ceiling = dpToPx(20);
-        int leftWall = -dpToPx(15);
-        int rightWall = screenWidth - sizePx + dpToPx(15);
+        int bottomEdge = screenHeight - sizePx - dpToPx(35);
+        int topEdge = dpToPx(30);
+        int leftEdge = -dpToPx(12);
+        int rightEdge = screenWidth - sizePx + dpToPx(12);
 
         tickCount++;
 
-        // 1. Estado de Caída libre o Gravedad Cero
+        // 1. Estado de Caída
         if ("FALL".equals(state)) {
-            float gravity = zeroGravity ? 0.15f : 1.8f;
+            float gravity = zeroGravity ? 0.05f : 1.6f;
             velY += gravity;
             posX += velX;
             posY += velY;
 
-            // Rebotar en paredes laterales
-            if (posX < leftWall) {
-                posX = leftWall;
-                velX = -velX * 0.5f;
-                if (!zeroGravity && random.nextFloat() < 0.4f) {
+            // Rebotar en paredes laterales y posiblemente trepar
+            if (posX <= leftEdge) {
+                posX = leftEdge;
+                velX = -velX * 0.4f;
+                if (random.nextFloat() < 0.45f) {
                     state = "CLIMB_LEFT";
-                    velY = -dpToPx(2);
+                    velY = -dpToPx(2.2f);
                 }
-            } else if (posX > rightWall) {
-                posX = rightWall;
-                velX = -velX * 0.5f;
-                if (!zeroGravity && random.nextFloat() < 0.4f) {
+            } else if (posX >= rightEdge) {
+                posX = rightEdge;
+                velX = -velX * 0.4f;
+                if (random.nextFloat() < 0.45f) {
                     state = "CLIMB_RIGHT";
-                    velY = -dpToPx(2);
+                    velY = -dpToPx(2.2f);
                 }
             }
 
-            // Aterrizaje en el suelo
-            if (posY >= floor) {
-                posY = floor;
+            // Aterrizaje en su plataforma o en el suelo
+            if (posY >= currentFloorY) {
+                posY = currentFloorY;
                 velY = 0;
                 velX *= 0.5f;
                 state = "STAND";
@@ -374,25 +507,37 @@ public class ShimejiService extends Service {
                 triggerHaptic(10);
             }
         }
-        // 2. Caminar por el suelo
+        // 2. Caminar libremente por la pantalla en su nivel horizontal actual
         else if ("WALK".equals(state)) {
             posX += velX;
-            posY = floor;
 
-            if (posX <= leftWall) {
-                posX = leftWall;
-                if (random.nextFloat() < 0.35f) {
+            // Choque con pared izquierda
+            if (posX <= leftEdge) {
+                posX = leftEdge;
+                float choice = random.nextFloat();
+                if (choice < 0.4f) {
                     state = "CLIMB_LEFT";
-                    velY = -dpToPx(2);
+                    velY = -dpToPx(2.2f);
+                } else if (choice < 0.7f) {
+                    state = "ROAM";
+                    velY = (random.nextBoolean() ? 1 : -1) * dpToPx(2);
+                    velX = dpToPx(2);
                 } else {
                     facing = 1;
                     velX = Math.abs(velX);
                 }
-            } else if (posX >= rightWall) {
-                posX = rightWall;
-                if (random.nextFloat() < 0.35f) {
+            }
+            // Choque con pared derecha
+            else if (posX >= rightEdge) {
+                posX = rightEdge;
+                float choice = random.nextFloat();
+                if (choice < 0.4f) {
                     state = "CLIMB_RIGHT";
-                    velY = -dpToPx(2);
+                    velY = -dpToPx(2.2f);
+                } else if (choice < 0.7f) {
+                    state = "ROAM";
+                    velY = (random.nextBoolean() ? 1 : -1) * dpToPx(2);
+                    velX = -dpToPx(2);
                 } else {
                     facing = -1;
                     velX = -Math.abs(velX);
@@ -402,39 +547,99 @@ public class ShimejiService extends Service {
             stateTimer--;
             if (stateTimer <= 0) pickRandomState();
         }
-        // 3. Escalar pared izquierda
+        // 3. Vuelo / Desplazamiento 2D libre por TODA la pantalla (ROAM)
+        else if ("ROAM".equals(state)) {
+            posX += velX;
+            posY += velY;
+
+            // Rebotes suaves en cualquier borde de la pantalla
+            if (posX <= leftEdge) {
+                posX = leftEdge;
+                velX = Math.abs(velX);
+                facing = 1;
+            } else if (posX >= rightEdge) {
+                posX = rightEdge;
+                velX = -Math.abs(velX);
+                facing = -1;
+            }
+
+            if (posY <= topEdge) {
+                posY = topEdge;
+                velY = Math.abs(velY);
+                if (random.nextFloat() < 0.5f) {
+                    state = "CEILING";
+                    velX = facing * dpToPx(1.8f);
+                }
+            } else if (posY >= bottomEdge) {
+                posY = bottomEdge;
+                velY = -Math.abs(velY);
+            }
+
+            currentFloorY = posY;
+
+            stateTimer--;
+            if (stateTimer <= 0) pickRandomState();
+        }
+        // 4. Trepar pared izquierda desde abajo hasta arriba
         else if ("CLIMB_LEFT".equals(state)) {
-            posX = leftWall;
-            posY += (velY != 0 ? velY : -dpToPx(2));
+            posX = leftEdge;
+            posY += (velY != 0 ? velY : -dpToPx(2.2f));
             facing = 1;
 
-            if (posY <= ceiling) {
-                posY = ceiling;
-                state = "FALL";
-                velY = 1;
+            if (posY <= topEdge) {
+                posY = topEdge;
+                state = "CEILING";
+                facing = 1;
+                velX = dpToPx(2f);
+            } else if (posY >= bottomEdge) {
+                posY = bottomEdge;
+                state = "WALK";
+                velX = dpToPx(2f);
             }
         }
-        // 4. Escalar pared derecha
+        // 5. Trepar pared derecha desde abajo hasta arriba
         else if ("CLIMB_RIGHT".equals(state)) {
-            posX = rightWall;
-            posY += (velY != 0 ? velY : -dpToPx(2));
+            posX = rightEdge;
+            posY += (velY != 0 ? velY : -dpToPx(2.2f));
             facing = -1;
 
-            if (posY <= ceiling) {
-                posY = ceiling;
-                state = "FALL";
-                velY = 1;
+            if (posY <= topEdge) {
+                posY = topEdge;
+                state = "CEILING";
+                facing = -1;
+                velX = -dpToPx(2f);
+            } else if (posY >= bottomEdge) {
+                posY = bottomEdge;
+                state = "WALK";
+                velX = -dpToPx(2f);
             }
         }
-        // 5. Estados estáticos (STAND, SIT, GUITAR, BOX)
+        // 6. Caminar boca abajo por el techo
+        else if ("CEILING".equals(state)) {
+            posY = topEdge;
+            posX += velX;
+
+            if (posX <= leftEdge || posX >= rightEdge || random.nextFloat() < 0.02f) {
+                state = "FALL";
+                velY = dpToPx(1.5f);
+            }
+        }
+        // 7. Estados estáticos (STAND, SIT, GUITAR, BOX)
         else {
-            posY = floor;
             stateTimer--;
             if (stateTimer <= 0) pickRandomState();
         }
 
-        // Diálogos aleatorios espontáneos (1 cada ~25 segundos)
-        if (random.nextInt(800) == 42 && tvSpeechBubble.getVisibility() != View.VISIBLE) {
+        // Mantener dentro de bordes verticales globales
+        if (posY > bottomEdge) {
+            posY = bottomEdge;
+            currentFloorY = bottomEdge;
+        } else if (posY < topEdge && !"CEILING".equals(state)) {
+            posY = topEdge;
+        }
+
+        // Diálogos aleatorios espontáneos
+        if (random.nextInt(850) == 77 && tvSpeechBubble.getVisibility() != View.VISIBLE && layoutLongPressMenu.getVisibility() != View.VISIBLE) {
             showRandomSpeech();
         }
 
@@ -447,36 +652,47 @@ public class ShimejiService extends Service {
 
     private void pickRandomState() {
         float r = random.nextFloat();
-        if (r < 0.40f) {
+        if (r < 0.35f) {
             state = "WALK";
             facing = random.nextBoolean() ? 1 : -1;
             velX = facing * (dpToPx(1.5f) + random.nextFloat() * dpToPx(1.5f));
             stateTimer = 90 + random.nextInt(120);
-        } else if (r < 0.70f) {
+        } else if (r < 0.60f) {
+            // Movimiento libre en 2D por la pantalla
+            state = "ROAM";
+            facing = random.nextBoolean() ? 1 : -1;
+            velX = facing * (dpToPx(1.2f) + random.nextFloat() * dpToPx(1.5f));
+            velY = (random.nextBoolean() ? 1 : -1) * (dpToPx(1f) + random.nextFloat() * dpToPx(1.5f));
+            stateTimer = 80 + random.nextInt(100);
+        } else if (r < 0.80f) {
             state = "STAND";
             velX = 0;
-            stateTimer = 60 + random.nextInt(100);
-        } else if (r < 0.85f) {
+            velY = 0;
+            stateTimer = 60 + random.nextInt(90);
+        } else if (r < 0.90f) {
             state = "SIT";
             velX = 0;
+            velY = 0;
             stateTimer = 80 + random.nextInt(90);
-        } else if (r < 0.93f) {
+        } else if (r < 0.95f) {
             state = "GUITAR";
             velX = 0;
-            stateTimer = 100 + random.nextInt(80);
+            velY = 0;
+            stateTimer = 110 + random.nextInt(80);
         } else {
             state = "BOX";
             velX = 0;
-            stateTimer = 90 + random.nextInt(80);
+            velY = 0;
+            stateTimer = 100 + random.nextInt(80);
         }
     }
 
     private void updateSprite() {
         String frameName = "stand1";
 
-        if ("FALL".equals(state)) {
-            frameName = "fall1";
-        } else if ("WALK".equals(state)) {
+        if ("FALL".equals(state) || "ROAM".equals(state)) {
+            frameName = (Math.abs(velY) > dpToPx(3)) ? "fall1" : "stand1";
+        } else if ("WALK".equals(state) || "CEILING".equals(state)) {
             String[] walkFrames = {"walk1", "walk2", "walk3", "walk4", "walk5"};
             int idx = (tickCount / 5) % walkFrames.length;
             frameName = walkFrames[idx];
@@ -523,7 +739,6 @@ public class ShimejiService extends Service {
 
             Bitmap finalBmp;
             if (dir == -1) {
-                // Voltear horizontalmente
                 Matrix matrix = new Matrix();
                 matrix.preScale(-1, 1);
                 finalBmp = Bitmap.createBitmap(raw, 0, 0, raw.getWidth(), raw.getHeight(), matrix, false);
@@ -534,7 +749,6 @@ public class ShimejiService extends Service {
             bitmapCache.put(cacheKey, finalBmp);
             return finalBmp;
         } catch (Exception e) {
-            // Si falta el frame específico, intentar stand1 de fallback
             if (!"stand1".equals(frameName)) {
                 return loadSkinBitmap(skinFolder, "stand1", dir);
             }
@@ -563,19 +777,20 @@ public class ShimejiService extends Service {
             } else if (ACTION_SET_SIZE.equals(action)) {
                 int dp = intent.getIntExtra(EXTRA_SIZE_DP, 128);
                 sizePx = dpToPx(dp);
-                params.width = sizePx;
                 ivSprite.getLayoutParams().width = sizePx;
                 ivSprite.getLayoutParams().height = sizePx;
                 ivSprite.requestLayout();
                 windowManager.updateViewLayout(overlayView, params);
             } else if (ACTION_SET_GRAVITY.equals(action)) {
                 zeroGravity = intent.getBooleanExtra(EXTRA_ZERO_GRAVITY, false);
-                state = "FALL";
-                velY = -dpToPx(4);
+                state = "ROAM";
+                velY = -dpToPx(3);
+                velX = (random.nextBoolean() ? 1 : -1) * dpToPx(2);
             } else if (ACTION_CENTER.equals(action)) {
                 updateScreenDimensions();
                 posX = screenWidth / 2f - (sizePx / 2f);
-                posY = getFloorY();
+                posY = screenHeight / 2f - (sizePx / 2f);
+                currentFloorY = posY;
                 params.x = (int) posX;
                 params.y = (int) posY;
                 state = "STAND";
@@ -583,17 +798,17 @@ public class ShimejiService extends Service {
                 velY = 0;
                 windowManager.updateViewLayout(overlayView, params);
                 triggerHaptic(20);
-                say("¡Aquí estoy de nuevo! UwU", 2500);
+                say("Reapareciendo en el centro.", 2500);
             } else if (ACTION_TRIGGER.equals(action)) {
                 String trig = intent.getStringExtra(EXTRA_TRIGGER_ACTION);
                 if ("guitar".equals(trig)) {
                     state = "GUITAR";
-                    stateTimer = 120;
-                    say("¡Solo de guitarra épico! 🎸🎵", 2800);
+                    stateTimer = 140;
+                    say("Solo de guitarra.", 2500);
                 } else if ("box".equals(trig)) {
                     state = "BOX";
-                    stateTimer = 120;
-                    say("Modo caja seguro 📦", 2800);
+                    stateTimer = 140;
+                    say("Modo caja seguro.", 2500);
                 } else if ("talk".equals(trig)) {
                     showRandomSpeech();
                 }

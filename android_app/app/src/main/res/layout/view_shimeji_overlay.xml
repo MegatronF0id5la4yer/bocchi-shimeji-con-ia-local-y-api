@@ -7,7 +7,126 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- Bocadillo de diálogo flotante -->
+    <!-- Menu de interaccion al mantener presionado (Long Press) -->
+    <LinearLayout
+        android:id="@+id/shimeji_longpress_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/menu_bubble_bg"
+        android:padding="8dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="6dp"
+        android:visibility="gone"
+        android:elevation="10dp">
+
+        <TextView
+            android:id="@+id/tv_menu_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Interacciones de Shimeji"
+            android:textColor="@color/accent_sky"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/btn_menu_skin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/chip_action_bg"
+                android:text="Siguiente Skin"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                android:paddingLeft="8dp"
+                android:paddingTop="5dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="5dp"
+                android:layout_marginRight="4dp" />
+
+            <TextView
+                android:id="@+id/btn_menu_pet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/chip_action_bg"
+                android:text="Acariciar"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                android:paddingLeft="8dp"
+                android:paddingTop="5dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="5dp"
+                android:layout_marginRight="4dp" />
+
+            <TextView
+                android:id="@+id/btn_menu_guitar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/chip_action_bg"
+                android:text="Guitarra"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                android:paddingLeft="8dp"
+                android:paddingTop="5dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="5dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_menu_box"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/chip_action_bg"
+                android:text="Caja"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                android:paddingLeft="8dp"
+                android:paddingTop="5dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="5dp"
+                android:layout_marginRight="4dp" />
+
+            <TextView
+                android:id="@+id/btn_menu_gravity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/chip_action_bg"
+                android:text="Flotar / Caer"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                android:paddingLeft="8dp"
+                android:paddingTop="5dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="5dp"
+                android:layout_marginRight="4dp" />
+
+            <TextView
+                android:id="@+id/btn_menu_close"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/chip_action_bg"
+                android:text="Cerrar"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:paddingLeft="8dp"
+                android:paddingTop="5dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="5dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bocadillo de dialogo flotante -->
     <TextView
         android:id="@+id/shimeji_speech_bubble"
         android:layout_width="wrap_content"
@@ -17,7 +136,7 @@
         android:paddingTop="6dp"
         android:paddingRight="12dp"
         android:paddingBottom="6dp"
-        android:textColor="@color/white"
+        android:textColor="@color/text_primary"
         android:textSize="12sp"
         android:textStyle="bold"
         android:gravity="center"

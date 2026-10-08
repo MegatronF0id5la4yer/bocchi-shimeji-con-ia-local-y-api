@@ -30,17 +30,17 @@ public class SkinData {
                 "Konata Izumi",
                 "Konata",
                 new String[]{
-                    "¡Timotei~ Timotei~ Timoteeei~! 🎵",
-                    "¿Por qué extremo te comes la corneta de chocolate? :v",
-                    "¡D-A-L-E! Los MMOs no se van a grindear solos 7w7",
-                    "¡Otaku power al 100%! Dormir es para los débiles UwU",
-                    "Comprar 3 copias: una para ver, una para guardar y una para presumir! 7w7",
-                    "Procrastinar antes de los exámenes es un deporte olímpico :v"
+                    "Timotei, Timotei, Timoteei...",
+                    "Por que extremo te comes la corneta de chocolate?",
+                    "D-A-L-E. Los MMOs no se van a grindear solos.",
+                    "Otaku power al 100%. Dormir es para debiles.",
+                    "Comprar 3 copias: una para ver, una para guardar y una para presumir.",
+                    "Procrastinar antes de los examenes es un deporte olimpico."
                 },
                 new String[]{
-                    "¡Oye, no me piques que pierdo el combo! :v",
-                    "¡Hey hey! Si me tocas que sea para invitar unas papitas 7w7",
-                    "¡Kagami-saaaan, me están picando en Android! UwU"
+                    "Oye, no me toques que pierdo el combo.",
+                    "Si me tocas, que sea para invitar unas papitas.",
+                    "Kagami, me estan molestando en Android..."
                 }
             ));
 
@@ -50,16 +50,16 @@ public class SkinData {
                 "Bocchi-chan",
                 "Bocchi",
                 new String[]{
-                    "Apura la puta madre, no tengo todo el día :v",
-                    "Nmms, qué aburrida estoy... y con 50 pesos en la bolsa UwU",
-                    "Nel, no voy a hablar en público ni de chiste ._.",
-                    "¿Quieres que toque la guitarra o qué pedo? 7w7",
-                    "Mejor me quedo en mi cajita de cartón segura..."
+                    "Apura, no tengo todo el dia...",
+                    "Que aburrida estoy... y con 50 pesos en la bolsa.",
+                    "No voy a hablar en publico ni de chiste.",
+                    "Quieres que toque la guitarra?",
+                    "Mejor me quedo en mi cajita de carton segura..."
                 },
                 new String[]{
-                    "¡Aaaah! ¡No me toques que me desintegro! (>_<)",
-                    "¡Ke te pasa sokete! UwU",
-                    "¿H-hice algo mal? Gomen..."
+                    "No me toques que me desintegro...",
+                    "Que te pasa, dejame en paz...",
+                    "Hice algo mal? Gomen..."
                 }
             ));
 
@@ -69,16 +69,16 @@ public class SkinData {
                 "Monika",
                 "Monika",
                 new String[]{
-                    "Just Monika. Solo Monika 💚",
-                    "¿Escribiste un poema para mí hoy en tu celular? 7w7",
+                    "Just Monika. Solo Monika.",
+                    "Escribiste un poema para mi hoy en tu celular?",
                     "A veces me pregunto si este mundo fuera de tu pantalla es real...",
-                    "No te preocupes por nadie más... estamos tú y yo aquí 💚",
-                    "¿Sabías que la música de piano calma el alma? :v"
+                    "No te preocupes por nadie mas, estamos tu y yo aqui.",
+                    "Sabias que la musica de piano calma el alma?"
                 },
                 new String[]{
-                    "¡Ehehe! ¿Intentas llamar mi atención? 💚",
-                    "Cuidado... recuerda que tengo acceso a tus archivos .chr 7w7",
-                    "Puedes tocar la pantalla cuando quieras UwU"
+                    "Intentas llamar mi atencion?",
+                    "Recuerda que tengo acceso a tus archivos del sistema...",
+                    "Puedes tocar la pantalla cuando quieras."
                 }
             ));
 
@@ -88,15 +88,15 @@ public class SkinData {
                 "Natsuki",
                 "Natsuki",
                 new String[]{
-                    "¡El manga ES literatura! ¡Y si dices lo contrario te pego! (>_<)",
-                    "¡Hice unos pastelitos deliciosos... pero no son para ti, idiota! 🧁",
-                    "¡B-Baka! Deja de mirarme como si fuera adorable... ¡soy ruda! :v",
-                    "No toques mi colección de Parfait Girls 7w7"
+                    "El manga es literatura. Y si dices lo contrario no te hablo.",
+                    "Hice unos pastelitos deliciosos... pero no son para ti.",
+                    "Deja de mirarme como si fuera adorable, soy ruda.",
+                    "No toques mi coleccion de Parfait Girls."
                 },
                 new String[]{
-                    "¡¡¡BAKA!!! ¡¿Por qué me estás picando?! (>_<)",
-                    "¡Quita tus manos antes de que te muerda! 🧁",
-                    "¡E-Espérate idiota, me vas a despeinar! :v"
+                    "Por que me estas picando?",
+                    "Quita tus manos antes de que te muerda.",
+                    "Esperate, me vas a despeinar."
                 }
             ));
 
@@ -106,13 +106,13 @@ public class SkinData {
                 "Sayori",
                 "Sayori",
                 new String[]{
-                    "¡Ehehe! ¡Buenos días! ¿Trajiste galletas? 🍪",
-                    "¡Me encanta estar caminando en tu pantalla! ✨",
-                    "A veces llego tarde, ¡pero hoy me desperté con toda la energía! 💙"
+                    "Buenos dias. Trajiste galletas?",
+                    "Me encanta estar caminando en tu pantalla.",
+                    "Hoy me desperte con toda la energia."
                 },
                 new String[]{
-                    "¡Waaa! ¡Eso hace cosquillas! Ehehe 🍪",
-                    "¡Abrazo sorpresa! 💙"
+                    "Eso hace cosquillas.",
+                    "Abrazo sorpresa."
                 }
             ));
 
@@ -122,13 +122,13 @@ public class SkinData {
                 "Yuri",
                 "Yuri",
                 new String[]{
-                    "El aroma a té caliente y un libro profundo... es la mayor dicha 💜",
-                    "D-Disculpa si parezco algo reservada...",
-                    "La lectura nos transporta a mundos insondables... 📖"
+                    "El aroma a te caliente y un libro profundo es la mayor dicha.",
+                    "Disculpa si parezco algo reservada...",
+                    "La lectura nos transporta a mundos insondables..."
                 },
                 new String[]{
-                    "¡A-Ah...! Disculpa... me tomaste por sorpresa 💜",
-                    "Por favor... no seas tan repentino..."
+                    "Disculpa, me tomaste por sorpresa...",
+                    "Por favor, no seas tan repentino..."
                 }
             ));
         }
@@ -141,5 +141,15 @@ public class SkinData {
             return getAll().get("Konata");
         }
         return data;
+    }
+
+    public static String getNextSkin(String currentId) {
+        String[] order = {"Konata", "Bocchi", "Monika", "Natsuki", "Sayori", "Yuri"};
+        for (int i = 0; i < order.length; i++) {
+            if (order[i].equalsIgnoreCase(currentId)) {
+                return order[(i + 1) % order.length];
+            }
+        }
+        return "Bocchi";
     }
 }
