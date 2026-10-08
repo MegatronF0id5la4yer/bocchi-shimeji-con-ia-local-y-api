@@ -1,8 +1,10 @@
 package com.bocchi.pinkchan.shimeji;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,6 +21,8 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private static final int REQUEST_OVERLAY_PERMISSION = 2001;
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 2002;
+
     private static final String PREFS_NAME = "pinkchan_shimeji_prefs";
     private static final String KEY_SKIN = "selected_skin";
     private static final String KEY_SIZE = "selected_size";
@@ -32,6 +36,10 @@ public class MainActivity extends Activity {
     private RadioGroup rgSkins;
     private RadioGroup rgSize;
     private CheckBox cbZeroGravity;
+
+    private Button btnAddShimeji;
+    private Button btnClearExtras;
+    private Button btnVoiceAssistant;
 
     private Button btnGuitar;
     private Button btnBox;
@@ -60,6 +68,10 @@ public class MainActivity extends Activity {
         rgSkins = findViewById(R.id.rg_skins);
         rgSize = findViewById(R.id.rg_size);
         cbZeroGravity = findViewById(R.id.cb_zero_gravity);
+
+        btnAddShimeji = findViewById(R.id.btn_add_shimeji);
+        btnClearExtras = findViewById(R.id.btn_clear_extras);
+        btnVoiceAssistant = findViewById(R.id.btn_voice_assistant);
 
         btnGuitar = findViewById(R.id.btn_action_guitar);
         btnBox = findViewById(R.id.btn_action_box);
@@ -98,6 +110,46 @@ public class MainActivity extends Activity {
                 } else {
                     Toast.makeText(MainActivity.this, "Inicia el Shimeji primero", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        // Multi-Shimeji: Agregar otro
+        btnAddShimeji.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ShimejiService.isRunning) {
+                    Intent intent = new Intent(MainActivity.this, ShimejiService.class);
+                    intent.setAction(ShimejiService.ACTION_ADD_SHIMEJI);
+                    startService(intent);
+                } else {
+                    Toast.makeText(MainActivity.this, "Inicia el Shimeji primero", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // Multi-Shimeji: Quitar extras
+        btnClearExtras.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ShimejiService.isRunning) {
+                    Intent intent = new Intent(MainActivity.this, ShimejiService.class);
+                    intent.setAction(ShimejiService.ACTION_CLEAR_EXTRAS);
+                    startService(intent);
+                } else {
+                    Toast.makeText(MainActivity.this, "Inicia el Shimeji primero", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        // Asistente de Voz
+        btnVoiceAssistant.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!ShimejiService.isRunning) {
+                    Toast.makeText(MainActivity.this, "Inicia el Shimeji primero", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                checkAndStartVoiceAssistant();
             }
         });
 
@@ -165,6 +217,34 @@ public class MainActivity extends Activity {
                 triggerAction("talk");
             }
         });
+    }
+
+    private void checkAndStartVoiceAssistant() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO_PERMISSION);
+                return;
+            }
+        }
+        triggerVoiceAssistantService();
+    }
+
+    private void triggerVoiceAssistantService() {
+        Intent intent = new Intent(this, ShimejiService.class);
+        intent.setAction(ShimejiService.ACTION_START_VOICE);
+        startService(intent);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                triggerVoiceAssistantService();
+            } else {
+                Toast.makeText(this, "Permiso de microfono necesario para el reconocimiento de voz", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void triggerAction(String actionName) {

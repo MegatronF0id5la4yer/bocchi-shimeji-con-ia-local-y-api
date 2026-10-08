@@ -323,7 +323,119 @@
                 android:layout_marginTop="8dp" />
         </LinearLayout>
 
-        <!-- Tarjeta 5: Acciones Rapidas -->
+        <!-- Tarjeta 5: Multi-Shimeji en Pantalla -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Multi-Shimeji (Varios en Pantalla)"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Puedes invocar hasta 6 Shimejis simultaneos. Cada uno se mueve, interactua y deambula libremente."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_add_shimeji"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="6dp"
+                    android:background="@drawable/btn_accent"
+                    android:text="+ AGREGAR OTRO (+1)"
+                    android:textColor="@color/bg_dark"
+                    android:textStyle="bold"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btn_clear_extras"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="6dp"
+                    android:background="@drawable/btn_outline"
+                    android:text="QUITAR EXTRAS"
+                    android:textColor="@color/accent_sky"
+                    android:textStyle="bold"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tarjeta 6: Asistente de Voz y Control de Apps -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Asistente de Voz y Control de Apps"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Toca el boton y habla. Tambien puedes activarlo manteniendo presionado al Shimeji en pantalla."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btn_voice_assistant"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/btn_accent"
+                android:text="HABLAR CON EL SHIMEJI"
+                android:textColor="@color/bg_dark"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:layout_marginBottom="14dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Comandos de voz disponibles:"
+                android:textColor="@color/accent_sky"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="* Saludos: 'hola', 'buenos dias', 'que tal'&#10;* Hora: 'que hora es', 'hora'&#10;* Abrir Apps: 'abre whatsapp', 'abre youtube', 'abre camara', 'abre chrome', 'abre calculadora', 'abre ajustes'&#10;* Acciones: 'guitarra', 'caja', 'salta', 'flotar', 'acariciar'&#10;* Multi-Shimeji: 'invoca otro', 'clonar', 'limpiar extras'&#10;* Detener: 'detener', 'cerrar', 'adios'"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:lineSpacingExtra="3dp" />
+        </LinearLayout>
+
+        <!-- Tarjeta 7: Acciones Rapidas -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

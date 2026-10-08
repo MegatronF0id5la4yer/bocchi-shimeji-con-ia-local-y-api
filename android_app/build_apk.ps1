@@ -90,3 +90,4 @@ Write-Host " Raiz:      $ROOT_APK" -ForegroundColor Cyan
 $sizeMb = [math]::Round((Get-Item $FINAL_APK).Length / 1MB, 2)
 Write-Host " Tamano:    $sizeMb MB" -ForegroundColor Yellow
 Write-Host "==============================================" -ForegroundColor Green
+
