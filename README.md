@@ -56,22 +56,26 @@ Descarga directamente los ejecutables listos para usar sin necesidad de configur
 
 ### 📱 Versión Móvil para Android (App Nativa APK)
 - 🪟 **Superposición completa sobre otras apps:** Shimeji flota y camina libremente por encima de cualquier app activa (WhatsApp, YouTube, navegador, juegos).
+- 📲 **Compatibilidad Total Android 15 (API 35):** Cumple estrictamente con los nuevos requisitos de seguridad y servicios en primer plano (`SPECIAL_USE` foreground service type).
+- 🌌 **Atmósfera Shijima & Interfaz de 4 Pantallas:**
+  - **Featured:** Cuadrícula de personajes con badges premium, chips de categorías y previsualización animada.
+  - **Installed:** Lista interactiva de mascotas instaladas con soporte de importación y gestión de carpetas.
+  - **Inspector:** Vista de diagnóstico de la mascota activa con controles rápidos de interacción y decoraciones estilizadas.
+  - **Settings:** Sliders táctiles con perillas naturales (tamaño de Shimeji, tasa de refresco, número máximo de mascotas) y paleta dinámica de colores de acento en tiempo real.
 - 👥 **Soporte Multi-Shimeji:** Invoca hasta **6 Shimejis simultáneos** en pantalla. Cada uno cuenta con física 2D independiente, escalada de paredes, caminata por el techo y gravedad/flote.
 - 🎙️ **Asistente de Voz y Ejecución de Apps:**
   - Reconocimiento de voz nativo en español (`SpeechRecognizer`).
   - **Abrir aplicaciones por voz:** Di *"abre whatsapp"*, *"abre youtube"*, *"abre camara"*, *"abre chrome"*, *"abre calculadora"* o cualquier app instalada y el Shimeji la abrirá de inmediato.
   - **Comandos de voz:** Consulta de hora (*"que hora es"*), saludos (*"hola"*, *"buenos dias"*), acciones físicas (*"guitarra"*, *"caja"*, *"salta"*, *"flotar"*, *"acariciar"*), clonación (*"invoca otro"*, *"limpiar extras"*) y cierre (*"detener"*).
-- 👆 **Menú Contextual (Long-Press):** Mantén presionado al Shimeji en pantalla durante 400ms para desplegar su menú flotante:
-  - Fila 1: `Asistente`, `Skin`, `Acariciar`.
-  - Fila 2: `Guitarra`, `Caja`, `+1 Clon`.
-  - Fila 3: `Flotar`, `Quitar`, `Cerrar`.
-- 🎨 **Diseño Moderno Pastel:** Paleta estética en Azul Pastel Cielo (`#7dd3fc`) con fondos oscuros pizarra suave y sin emojis en la interfaz.
+- 🛠️ **Comandos Termux y Gestión de Archivos:** Integración para ejecutar comandos útiles de Termux y crear directorios o archivos en `Documents/Shijima`.
+- 👆 **Menú Contextual (Long-Press):** Mantén presionado al Shimeji en pantalla para desplegar su menú flotante con animaciones y mini-juegos (baile, rodar, saltar).
+- 🚫 **Cero Emojis:** Interfaz limpia con tipografía e iconografía nativa elegante.
 
 ---
 
 ## 🎭 Personajes & Skins Animadas
 
-Elige entre 6 personajes con físicas completas, personalidad y diálogos únicos (en PC desde el menú contextual con clic derecho, el comando `/skin <nombre>` o el botón `[🎭] Skins`; en Android desde el selector o el menú de pulsación prolongada):
+Elige entre 9 personajes con físicas completas, personalidad y sprites de alta resolución (en PC desde el menú contextual con clic derecho; en Android desde el selector o el menú de pulsación prolongada):
 
 | Personaje | Animación | Origen / Descripción | Comando |
 | :---: | :---: | :--- | :---: |
@@ -81,6 +85,9 @@ Elige entre 6 personajes con físicas completas, personalidad y diálogos único
 | **Natsuki** | <img src="img/gifs/natsuki.gif" width="96" height="96" alt="Natsuki" /> | *Doki Doki Literature Club!* - Fan del manga y la repostería | `/skin natsuki` |
 | **Sayori** | <img src="img/gifs/sayori.gif" width="96" height="96" alt="Sayori" /> | *Doki Doki Literature Club!* - Dulce y siempre alegre | `/skin sayori` |
 | **Yuri** | <img src="img/gifs/yuri.gif" width="96" height="96" alt="Yuri" /> | *Doki Doki Literature Club!* - Lectora apasionada y tímida | `/skin yuri` |
+| **Hachi** *(Hachiware)* | 🐾 | *Chiikawa* - El gatito optimista y valiente | `/skin hachi` |
+| **Usagi** | 🐰 | *Chiikawa* - El conejito hiperactivo e intrépido | `/skin usagi` |
+| **Pusheen** | 🐱 | *Pusheen the Cat* - La gatita rechoncha y adorable | `/skin pusheen` |
 
 ---
 
