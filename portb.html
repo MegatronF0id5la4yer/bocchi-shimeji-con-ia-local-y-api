@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#181825">
+  <title>PinkChan Shimeji - Android Port B</title>
+  <style>
+    :root {
+      --bg: #181825;
+      --surface: #1e1e2e;
+      --surface-variant: #313244;
+      --accent: #ff79c6;
+      --accent-hover: #ff92d0;
+      --text: #cdd6f4;
+      --text-dim: #a6adc8;
+      --bubble-bg: rgba(30, 30, 46, 0.92);
+      --border-color: rgba(255, 121, 198, 0.35);
+      --safe-bottom: env(safe-area-inset-bottom, 12px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 20%, #24273a 0%, #181825 80%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      touch-action: none;
+    }
+
+    /* Fondo decorativo de escritorio móvil */
+    #desktop-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.12;
+      background-image: 
+        radial-gradient(#ff79c6 1px, transparent 1px),
+        radial-gradient(#89b4fa 1px, transparent 1px);
+      background-size: 32px 32px;
+      background-position: 0 0, 16px 16px;
+    }
+
+    /* Área del cielo y suelo */
+    #ground-line {
+      position: absolute;
+      bottom: 74px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 121, 198, 0.4), rgba(137, 180, 250, 0.4), transparent);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Header superior flotante con status */
+    #top-bar {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .badge-btn {
+      pointer-events: auto;
+      background: rgba(30, 30, 46, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .badge-btn:active {
+      transform: scale(0.96);
+      background: var(--surface-variant);
+    }
+
+    /* Shimeji Contenedor */
+    .shimeji-entity {
+      position: absolute;
+      width: 128px;
+      height: 128px;
+      z-index: 10;
+      cursor: grab;
+      touch-action: none;
+      transform-origin: 50% 90%;
+      transition: filter 0.2s;
+    }
+
+    .shimeji-entity:active {
+      cursor: grabbing;
+    }
+
+    .shimeji-sprite {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      pointer-events: none;
+      display: block;
+    }
+
+    /* Bocadillo de diálogo flotante */
+    .speech-bubble {
+      position: absolute;
+      bottom: 124px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bubble-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      border: 1px solid var(--accent);
+      border-radius: 14px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      max-width: 210px;
+      min-width: 120px;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 15;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    .speech-bubble.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+
+    .speech-bubble::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0 6px;
+      border-style: solid;
+      border-color: var(--accent) transparent transparent transparent;
+    }
+
+    /* Barra inferior fija */
+    #bottom-dock {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 8px 12px;
+      padding-bottom: calc(var(--safe-bottom) + 8px);
+      background: rgba(24, 24, 37, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 30;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+    }
+
+    .dock-btn {
+      background: var(--surface-variant);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 8px 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .dock-btn:active {
+      background: var(--accent);
+      color: #181825;
+    }
+
+    .chat-quick-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 14px;
+      outline: none;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .chat-quick-input:focus {
+      border-color: var(--accent);
+    }
+
+    .chat-send-btn {
+      background: var(--accent);
+      color: #181825;
+      border: none;
+      border-radius: 12px;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .chat-send-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* Modal / Drawer Deslizable */
+    #drawer-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    #drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #drawer-panel {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      max-height: 82%;
+      background: var(--surface);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      border-top: 2px solid var(--accent);
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.6);
+      z-index: 50;
+      transform: translateY(105%);
+      transition: transform 0.35s cubic-bezier(0.15, 0.9, 0.25, 1);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: calc(var(--safe-bottom) + 12px);
+    }
+
+    #drawer-panel.open {
+      transform: translateY(0);
+    }
+
+    .drawer-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--surface-variant);
+      margin: 10px auto 4px auto;
+    }
+
+    .drawer-header {
+      padding: 8px 18px 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .drawer-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .drawer-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .drawer-content {
+      padding: 14px 18px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* Grilla de selección de skins */
+    .skins-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .skin-card {
+      background: var(--surface-variant);
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .skin-card.active {
+      border-color: var(--accent);
+      background: rgba(255, 121, 198, 0.15);
+    }
+
+    .skin-card-img {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 4px auto;
+      image-rendering: pixelated;
+      display: block;
+    }
+
+    .skin-card-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Chips de acciones rápidas */
+    .chips-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip-btn {
+      background: var(--surface-variant);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip-btn:active {
+      background: var(--accent);
+      color: #181825;
+    }
+
+    /* Consola / Terminal log view */
+    #terminal-box {
+      background: #11111b;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #a6e3a1;
+      max-height: 140px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-top: 10px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* Partículas de corazones / estrellas */
+    .floating-particle {
+      position: absolute;
+      pointer-events: none;
+      font-size: 16px;
+      animation: floatUp 1.2s forwards ease-out;
+      z-index: 12;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(0.6);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--tx, 0px), -60px) scale(1.3);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fondo dinámico -->
+  <div id="desktop-bg"></div>
+  <div id="ground-line"></div>
+
+  <!-- Barra superior informativa -->
+  <div id="top-bar">
+    <div class="badge-btn" id="btn-skin-selector">
+      <span id="top-skin-icon">⭐</span>
+      <span id="top-skin-name">Konata Izumi</span>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <div class="badge-btn" id="btn-clone-shimeji">
+        <span>✨</span> <span>+1</span>
+      </div>
+      <div class="badge-btn" id="btn-open-terminal">
+        <span>⚡</span> <span>Termux/CMD</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dock inferior con chat -->
+  <div id="bottom-dock">
+    <button class="dock-btn" id="btn-dock-menu">
+      <span>🎭</span> <span>Menú</span>
+    </button>
+    <input type="text" class="chat-quick-input" id="chat-input" placeholder="Háblale o escribe un comando..." autocomplete="off">
+    <button class="chat-send-btn" id="chat-send-btn">➔</button>
+  </div>
+
+  <!-- Drawer deslizable (Menú y Comandos) -->
+  <div id="drawer-overlay"></div>
+  <div id="drawer-panel">
+    <div class="drawer-handle"></div>
+    <div class="drawer-header">
+      <div class="drawer-title" id="drawer-panel-title">Menú de PinkChan Shimeji</div>
+      <button class="drawer-close" id="drawer-close-btn">&times;</button>
+    </div>
+    <div class="drawer-content">
+
+      <!-- Personajes / Skins -->
+      <div class="section-title">Elige tu Skin (Android 8 - 15)</div>
+      <div class="skins-grid" id="skins-container">
+        <!-- Renderizado dinámicamente con JS -->
+      </div>
+
+      <!-- Atajos de Terminal & Android -->
+      <div class="section-title">Atajos de Terminal & Acciones Rápidas</div>
+      <div class="chips-flow">
+        <button class="chip-btn" data-cmd="wsl arch"><span>[WSL]</span> Arch Linux</button>
+        <button class="chip-btn" data-cmd="hyfetch"><span>[🐧]</span> HyFetch</button>
+        <button class="chip-btn" data-cmd="pkg update"><span>[📦]</span> pkg update</button>
+        <button class="chip-btn" data-cmd="sudo pacman -Syu"><span>[📦]</span> pacman -Syu</button>
+        <button class="chip-btn" data-cmd="winget upgrade"><span>[🪟]</span> winget upgrade</button>
+        <button class="chip-btn" data-cmd="sysinfo"><span>[⚡]</span> SysInfo</button>
+        <button class="chip-btn" data-cmd="ram"><span>[💾]</span> RAM Libre</button>
+        <button class="chip-btn" data-cmd="limpiar temp"><span>[🧹]</span> Limpiar Temp</button>
+        <button class="chip-btn" data-cmd="battery"><span>[🔋]</span> Batería</button>
+        <button class="chip-btn" data-cmd="troll"><span>[💀]</span> Modo Troll</button>
+        <button class="chip-btn" data-cmd="guitar"><span>[🎸]</span> Tocar Guitarra</button>
+        <button class="chip-btn" data-cmd="box"><span>[📦]</span> Caja</button>
+        <button class="chip-btn" data-cmd="zero_g"><span>[🪂]</span> Gravedad Cero</button>
+        <button class="chip-btn" data-cmd="clear_all"><span>[🧹]</span> Limpiar Clones</button>
+      </div>
+
+      <!-- Salida de Consola -->
+      <div class="section-title">Consola de Salida</div>
+      <div id="terminal-box">[*] PinkChan Android Port B inicializado correctamente.
+Sistema: Android 8.0+ / Web Engine OK
+Touch & Throw Physics activos.</div>
+
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+     * PINKCHAN SHIMEJI - ANDROID PORT B ENGINE
+     * Compatible: Android 8.0 Oreo (API 26) hasta Android 15 (API 35+)
+     * Soporta: Chrome Android, Brave Android, Samsung Internet, Firefox, WebView
+     * ========================================================================= */
+
+    // Metadatos de personajes
+    const SKINS_DATA = {
+      "Konata": {
+        name: "Konata Izumi",
+        series: "Lucky Star",
+        icon: "⭐",
+        basePath: "img/skins/Konata/",
+        color: "#61afef",
+        tagline: "Otaku suprema & Gamer",
+        dialogues: [
+          "¡Timotei~ Timotei~ Timoteeei~! 🎵",
+          "Oye, ¿por qué extremo te comes la corneta de chocolate? :v",
+          "¡D-A-L-E! Los MMOs no se van a grindear solos 7w7",
+          "Otaku power al 100%! Dormir es para los débiles UwU",
+          "Comprar 3 copias: una para ver, una para guardar y una para presumir! 7w7",
+          "Procrastinar antes de los exámenes es un deporte olímpico :v"
+        ],
+        poked: [
+          "¡Oye, no me piques que pierdo el combo! :v",
+          "¡Hey hey! Si me tocas, que sea para invitar unas papitas 7w7",
+          "¡Kagami-saaaan, me están molestando en Android! UwU"
+        ],
+        preview: "img/skins/Konata/stand1.png"
+      },
+      "Bocchi": {
+        name: "Bocchi-chan",
+        series: "Bocchi the Rock!",
+        icon: "🎸",
+        basePath: "img/skins/Bocchi/",
+        color: "#ff79c6",
+        tagline: "Guitarrista introvertida",
+        dialogues: [
+          "Apura la puta madre, no tengo todo el día :v",
+          "Nmms, qué aburrida estoy... y con 50 pesos en la bolsa UwU",
+          "Nel, no voy a hablar en público ni de chiste ._.",
+          "¿Quieres que toque la guitarra o qué pedo? 7w7",
+          "Mejor me quedo en mi cajita de cartón segura..."
+        ],
+        poked: [
+          "¡Aaaah! ¡No me toques que me desintegro! (>_<)",
+          "¡Ke te pasa sokete! UwU",
+          "¿H-hice algo mal? Gomen..."
+        ],
+        preview: "img/skins/Bocchi/stand1.png"
+      },
+      "Monika": {
+        name: "Monika",
+        series: "DDLC",
+        icon: "💚",
+        basePath: "img/skins/Monika/",
+        color: "#50fa7b",
+        tagline: "Presidenta del Club",
+        dialogues: [
+          "Just Monika. Solo Monika 💚",
+          "¿Escribiste un poema para mí hoy en tu celular? 7w7",
+          "A veces me pregunto si este mundo fuera de tu pantalla es real...",
+          "No te preocupes por nadie más... estamos tú y yo aquí 💚",
+          "¿Sabías que la música de piano calma el alma? :v"
+        ],
+        poked: [
+          "¡Ehehe! ¿Intentas llamar mi atención? 💚",
+          "Cuidado... recuerda que tengo acceso a tus archivos .chr 7w7",
+          "Puedes tocar la pantalla cuando quieras, no seas tímido UwU"
+        ],
+        preview: "img/skins/Monika/stand1.png"
+      },
+      "Natsuki": {
+        name: "Natsuki",
+        series: "DDLC",
+        icon: "🧁",
+        basePath: "img/skins/Natsuki/",
+        color: "#ff5555",
+        tagline: "Manga es literatura",
+        dialogues: [
+          "¡El manga ES literatura! ¡Y si dices lo contrario te pego! (>_<)",
+          "¡Hice unos pastelitos deliciosos... pero no son para ti, idiota! 🧁",
+          "¡B-Baka! Deja de mirarme como si fuera adorable... ¡soy ruda! :v",
+          "No toques mi colección de Parfait Girls 7w7"
+        ],
+        poked: [
+          "¡¡¡BAKA!!! ¡¿Por qué me estás picando?! (>_<)",
+          "¡Quita tus manos antes de que te muerda! 🧁",
+          "¡E-Espérate idiota, me vas a despeinar! :v"
+        ],
+        preview: "img/skins/Natsuki/stand1.png"
+      },
+      "Sayori": {
+        name: "Sayori",
+        series: "DDLC",
+        icon: "💙",
+        basePath: "img/skins/Sayori/",
+        color: "#8be9fd",
+        tagline: "Rayo de sol",
+        dialogues: [
+          "¡Ehehe! ¡Buenos días! ¿Trajiste galletas? 🍪",
+          "¡Me encanta estar caminando en tu pantalla! ✨",
+          "A veces llego tarde, ¡pero hoy me desperté con toda la energía! 💙"
+        ],
+        poked: [
+          "¡Waaa! ¡Eso hace cosquillas! Ehehe 🍪",
+          "¡Abrazo sorpresa! 💙"
+        ],
+        preview: "img/skins/Sayori/stand1.png"
+      },
+      "Yuri": {
+        name: "Yuri",
+        series: "DDLC",
+        icon: "💜",
+        basePath: "img/skins/Yuri/",
+        color: "#bd93f9",
+        tagline: "Lectora apasionada",
+        dialogues: [
+          "El aroma a té caliente y un libro profundo... es la mayor dicha 💜",
+          "D-Disculpa si parezco algo reservada...",
+          "La lectura nos transporta a mundos insondables... 📖"
+        ],
+        poked: [
+          "¡A-Ah...! Disculpa... me tomaste por sorpresa 💜",
+          "Por favor... no seas tan repentino..."
+        ],
+        preview: "img/skins/Yuri/stand1.png"
+      }
+    };
+
+    let currentSkinKey = "Konata";
+    let shimejis = [];
+    let trollMode = false;
+    let zeroGravity = false;
+
+    // Vibración haptic segura en Android
+    function triggerHaptic(ms = 20) {
+      if (window.navigator && window.navigator.vibrate) {
+        try { window.navigator.vibrate(ms); } catch (e) {}
+      }
+    }
+
+    // Logger para terminal
+    function termLog(msg) {
+      const box = document.getElementById("terminal-box");
+      box.textContent += "\n" + msg;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    /* =========================================================================
+     * CLASE SHIMEJI ENTITY (FÍSICA + TOUCH + ANIMACIÓN)
+     * ========================================================================= */
+    class Shimeji {
+      constructor(skinKey, startX = null, startY = null) {
+        this.skinKey = skinKey;
+        this.skin = SKINS_DATA[skinKey];
+        
+        // Elementos DOM
+        this.el = document.createElement("div");
+        this.el.className = "shimeji-entity";
+        
+        this.img = document.createElement("img");
+        this.img.className = "shimeji-sprite";
+        this.el.appendChild(this.img);
+
+        this.bubble = document.createElement("div");
+        this.bubble.className = "speech-bubble";
+        this.el.appendChild(this.bubble);
+
+        document.body.appendChild(this.el);
+
+        // Posición y física
+        this.width = 128;
+        this.height = 128;
+        this.x = startX !== null ? startX : (window.innerWidth / 2 - 64);
+        this.y = startY !== null ? startY : (window.innerHeight - 74 - 124);
+        this.vx = 0;
+        this.vy = 0;
+        this.facing = 1; // 1: derecha, -1: izquierda
+
+        // Estados: STAND, WALK, SIT, FALL, CLIMB_LEFT, CLIMB_RIGHT, CEILING, GUITAR, BOX
+        this.state = "STAND";
+        this.frameIdx = 0;
+        this.tickCount = 0;
+        this.stateTimer = 0;
+        this.bubbleTimeout = null;
+
+        // Touch Dragging
+        this.isDragging = false;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.touchHistory = [];
+
+        this.setupTouchEvents();
+        this.setRandomBehavior();
+        this.updateSprite();
+      }
+
+      getFloorY() {
+        return window.innerHeight - 74 - 124;
+      }
+
+      setupTouchEvents() {
+        const onStart = (e) => {
+          e.preventDefault();
+          this.isDragging = true;
+          this.state = "FALL";
+          this.vx = 0;
+          this.vy = 0;
+
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+          this.dragStartX = clientX - this.x;
+          this.dragStartY = clientY - this.y;
+          this.touchHistory = [{ x: clientX, y: clientY, t: Date.now() }];
+          
+          triggerHaptic(30);
+          this.spawnParticle("✨");
+          this.img.src = this.getSpriteUrl("fall1");
+        };
+
+        const onMove = (e) => {
+          if (!this.isDragging) return;
+          e.preventDefault();
+
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+          this.x = clientX - this.dragStartX;
+          this.y = clientY - this.dragStartY;
+
+          // Guardar historial para calcular inercia
+          const now = Date.now();
+          this.touchHistory.push({ x: clientX, y: clientY, t: now });
+          if (this.touchHistory.length > 5) this.touchHistory.shift();
+
+          this.el.style.transform = `translate(${this.x}px, ${this.y}px) scaleX(${this.facing})`;
+        };
+
+        const onEnd = (e) => {
+          if (!this.isDragging) return;
+          this.isDragging = false;
+
+          // Calcular velocidad de lanzamiento
+          if (this.touchHistory.length >= 2) {
+            const first = this.touchHistory[0];
+            const last = this.touchHistory[this.touchHistory.length - 1];
+            const dt = (last.t - first.t) / 1000;
+            if (dt > 0.01) {
+              this.vx = (last.x - first.x) / dt * 0.018;
+              this.vy = (last.y - first.y) / dt * 0.018;
+            }
+          }
+
+          // Límite de velocidad
+          this.vx = Math.max(-18, Math.min(18, this.vx));
+          this.vy = Math.max(-22, Math.min(22, this.vy));
+
+          // Si casi no se movió, es un Poke/Tap
+          if (Math.abs(this.vx) < 1.5 && Math.abs(this.vy) < 1.5) {
+            this.onPoke();
+          } else {
+            triggerHaptic(15);
+          }
+        };
+
+        this.el.addEventListener("touchstart", onStart, { passive: false });
+        window.addEventListener("touchmove", onMove, { passive: false });
+        window.addEventListener("touchend", onEnd, { passive: false });
+
+        // Soporte mouse desktop fallback
+        this.el.addEventListener("mousedown", onStart);
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onEnd);
+      }
+
+      onPoke() {
+        triggerHaptic(40);
+        this.spawnParticle("💖");
+        const pList = this.skin.poked;
+        const speech = pList[Math.floor(Math.random() * pList.length)];
+        this.say(speech, 2500);
+
+        // Reacción animada
+        this.state = "STAND";
+        this.stateTimer = 40;
+      }
+
+      say(text, duration = 3000) {
+        if (this.bubbleTimeout) clearTimeout(this.bubbleTimeout);
+        this.bubble.textContent = text;
+        this.bubble.classList.add("active");
+        this.bubbleTimeout = setTimeout(() => {
+          this.bubble.classList.remove("active");
+        }, duration);
+      }
+
+      spawnParticle(emoji = "✨") {
+        const p = document.createElement("div");
+        p.className = "floating-particle";
+        p.textContent = emoji;
+        p.style.left = (this.x + 50) + "px";
+        p.style.top = (this.y + 20) + "px";
+        p.style.setProperty("--tx", (Math.random() * 40 - 20) + "px");
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 1200);
+      }
+
+      getSpriteUrl(frameName) {
+        return `${this.skin.basePath}${frameName}.png`;
+      }
+
+      setSkin(key) {
+        if (!SKINS_DATA[key]) return;
+        this.skinKey = key;
+        this.skin = SKINS_DATA[key];
+        this.updateSprite();
+        this.say(this.skin.dialogues[0]);
+      }
+
+      setRandomBehavior() {
+        const r = Math.random();
+        if (r < 0.35) {
+          this.state = "WALK";
+          this.facing = Math.random() < 0.5 ? 1 : -1;
+          this.vx = this.facing * (1.2 + Math.random() * 1.5);
+          this.stateTimer = 90 + Math.floor(Math.random() * 150);
+        } else if (r < 0.65) {
+          this.state = "STAND";
+          this.vx = 0;
+          this.stateTimer = 60 + Math.floor(Math.random() * 120);
+        } else if (r < 0.8) {
+          this.state = "SIT";
+          this.vx = 0;
+          this.stateTimer = 80 + Math.floor(Math.random() * 100);
+        } else if (r < 0.9) {
+          this.state = "GUITAR";
+          this.vx = 0;
+          this.stateTimer = 100 + Math.floor(Math.random() * 90);
+          this.spawnParticle("🎵");
+        } else {
+          this.state = "BOX";
+          this.vx = 0;
+          this.stateTimer = 90 + Math.floor(Math.random() * 80);
+        }
+      }
+
+      update() {
+        if (this.isDragging) return;
+
+        const floor = this.getFloorY();
+        const ceiling = 40;
+        const leftWall = -20;
+        const rightWall = window.innerWidth - 108;
+
+        this.tickCount++;
+
+        // Física de Caída / Salto
+        if (this.state === "FALL") {
+          const gravity = zeroGravity ? 0.05 : 0.75;
+          this.vy += gravity;
+          this.x += this.vx;
+          this.y += this.vy;
+
+          // Rebotar en paredes
+          if (this.x < leftWall) {
+            this.x = leftWall;
+            this.vx = -this.vx * 0.5;
+            this.state = "CLIMB_LEFT";
+          } else if (this.x > rightWall) {
+            this.x = rightWall;
+            this.vx = -this.vx * 0.5;
+            this.state = "CLIMB_RIGHT";
+          }
+
+          // Aterrizaje en el suelo
+          if (this.y >= floor) {
+            this.y = floor;
+            this.vy = 0;
+            this.vx *= 0.6;
+            this.state = "STAND";
+            this.stateTimer = 30;
+            this.spawnParticle("💨");
+          }
+        } 
+        // Caminar
+        else if (this.state === "WALK") {
+          this.x += this.vx;
+          this.y = floor;
+
+          if (this.x <= leftWall) {
+            this.x = leftWall;
+            if (Math.random() < 0.35) {
+              this.state = "CLIMB_LEFT";
+              this.vy = -1.8;
+            } else {
+              this.facing = 1;
+              this.vx = Math.abs(this.vx);
+            }
+          } else if (this.x >= rightWall) {
+            this.x = rightWall;
+            if (Math.random() < 0.35) {
+              this.state = "CLIMB_RIGHT";
+              this.vy = -1.8;
+            } else {
+              this.facing = -1;
+              this.vx = -Math.abs(this.vx);
+            }
+          }
+
+          this.stateTimer--;
+          if (this.stateTimer <= 0) this.setRandomBehavior();
+        }
+        // Escalar pared izquierda
+        else if (this.state === "CLIMB_LEFT") {
+          this.x = leftWall;
+          this.y += this.vy || -1.8;
+          this.facing = 1;
+
+          if (this.y <= ceiling) {
+            this.y = ceiling;
+            this.state = "CEILING";
+            this.vx = 1.6;
+          }
+        }
+        // Escalar pared derecha
+        else if (this.state === "CLIMB_RIGHT") {
+          this.x = rightWall;
+          this.y += this.vy || -1.8;
+          this.facing = -1;
+
+          if (this.y <= ceiling) {
+            this.y = ceiling;
+            this.state = "CEILING";
+            this.vx = -1.6;
+          }
+        }
+        // Caminar por el techo
+        else if (this.state === "CEILING") {
+          this.y = ceiling;
+          this.x += this.vx;
+          if (Math.random() < 0.015 || this.x < leftWall || this.x > rightWall) {
+            this.state = "FALL";
+            this.vy = 1;
+          }
+        }
+        // Estados estáticos
+        else {
+          this.y = floor;
+          this.stateTimer--;
+          if (this.stateTimer <= 0) this.setRandomBehavior();
+        }
+
+        // Hablar aleatoriamente
+        if (Math.random() < 0.0018 && !this.bubble.classList.contains("active")) {
+          const dl = this.skin.dialogues;
+          this.say(dl[Math.floor(Math.random() * dl.length)]);
+        }
+
+        this.updateSprite();
+        this.el.style.transform = `translate(${this.x}px, ${this.y}px) scaleX(${this.facing})`;
+      }
+
+      updateSprite() {
+        let frameName = "stand1";
+
+        if (this.state === "FALL") {
+          frameName = "fall1";
+        } else if (this.state === "WALK") {
+          const walkFrames = ["walk1", "walk2", "walk3", "walk4", "walk5"];
+          const fIdx = Math.floor((this.tickCount / 6) % walkFrames.length);
+          frameName = walkFrames[fIdx];
+        } else if (this.state === "CLIMB_LEFT" || this.state === "CLIMB_RIGHT") {
+          const climbFrames = ["climb1", "climb2"];
+          const fIdx = Math.floor((this.tickCount / 8) % climbFrames.length);
+          frameName = climbFrames[fIdx];
+        } else if (this.state === "SIT") {
+          frameName = "sit1";
+        } else if (this.state === "GUITAR") {
+          const gFrames = ["guitar1", "guitar2", "guitar3"];
+          const fIdx = Math.floor((this.tickCount / 7) % gFrames.length);
+          frameName = gFrames[fIdx];
+        } else if (this.state === "BOX") {
+          const bFrames = ["box1", "box2", "box3"];
+          const fIdx = Math.floor((this.tickCount / 15) % bFrames.length);
+          frameName = bFrames[fIdx];
+        } else {
+          // STAND
+          const sFrames = ["stand1", "stand2", "stand1", "stand3"];
+          const fIdx = Math.floor((this.tickCount / 14) % sFrames.length);
+          frameName = sFrames[fIdx];
+        }
+
+        const targetSrc = this.getSpriteUrl(frameName);
+        if (this.img.src !== targetSrc) {
+          this.img.src = targetSrc;
+        }
+      }
+
+      remove() {
+        if (this.bubbleTimeout) clearTimeout(this.bubbleTimeout);
+        this.el.remove();
+      }
+    }
+
+    /* =========================================================================
+     * INICIALIZACIÓN Y CONTROLADORES DE UI
+     * ========================================================================= */
+    function init() {
+      // Shimeji principal inicial
+      const mainShimeji = new Shimeji(currentSkinKey);
+      shimejis.push(mainShimeji);
+
+      // Loop principal a 60 FPS
+      function loop() {
+        for (let s of shimejis) {
+          s.update();
+        }
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+
+      setupUI();
+    }
+
+    function setupUI() {
+      const topSkinName = document.getElementById("top-skin-name");
+      const topSkinIcon = document.getElementById("top-skin-icon");
+      const btnSkinSel = document.getElementById("btn-skin-selector");
+      const btnClone = document.getElementById("btn-clone-shimeji");
+      const btnTerm = document.getElementById("btn-open-terminal");
+      const btnDockMenu = document.getElementById("btn-dock-menu");
+      const drawerOverlay = document.getElementById("drawer-overlay");
+      const drawerPanel = document.getElementById("drawer-panel");
+      const drawerClose = document.getElementById("drawer-close-btn");
+      const skinsContainer = document.getElementById("skins-container");
+      const chatInput = document.getElementById("chat-input");
+      const chatSend = document.getElementById("chat-send-btn");
+
+      function updateSkinUI() {
+        const meta = SKINS_DATA[currentSkinKey];
+        topSkinName.textContent = meta.name;
+        topSkinIcon.textContent = meta.icon;
+        document.documentElement.style.setProperty("--accent", meta.color);
+
+        // Actualizar cards
+        document.querySelectorAll(".skin-card").forEach(c => {
+          c.classList.toggle("active", c.dataset.skin === currentSkinKey);
+        });
+      }
+
+      // Render skins grid
+      for (let [k, data] of Object.entries(SKINS_DATA)) {
+        const card = document.createElement("div");
+        card.className = "skin-card" + (k === currentSkinKey ? " active" : "");
+        card.dataset.skin = k;
+        card.innerHTML = `
+          <img class="skin-card-img" src="${data.preview}" alt="${data.name}" onerror="this.src='img/skins/Konata/stand1.png'">
+          <div class="skin-card-name">${data.icon} ${data.name.split(' ')[0]}</div>
+        `;
+        card.onclick = () => {
+          currentSkinKey = k;
+          shimejis.forEach(s => s.setSkin(k));
+          updateSkinUI();
+          triggerHaptic(25);
+          termLog(`[+] Skin activada: ${data.name} (${k})`);
+        };
+        skinsContainer.appendChild(card);
+      }
+
+      // Abrir/Cerrar Drawer
+      function openDrawer() {
+        drawerOverlay.classList.add("open");
+        drawerPanel.classList.add("open");
+        triggerHaptic(20);
+      }
+      function closeDrawer() {
+        drawerOverlay.classList.remove("open");
+        drawerPanel.classList.remove("open");
+      }
+
+      btnSkinSel.onclick = openDrawer;
+      btnDockMenu.onclick = openDrawer;
+      btnTerm.onclick = () => {
+        openDrawer();
+        document.getElementById("terminal-box").scrollIntoView({ behavior: "smooth" });
+      };
+      drawerOverlay.onclick = closeDrawer;
+      drawerClose.onclick = closeDrawer;
+
+      // Clonar Shimeji (+1)
+      btnClone.onclick = () => {
+        if (shimejis.length >= 10) {
+          termLog("[!] Límite de 10 Shimejis alcanzado en móvil.");
+          return;
+        }
+        triggerHaptic(35);
+        const newS = new Shimeji(currentSkinKey, Math.random() * (window.innerWidth - 128), 100);
+        newS.say("¡Holi! Un clon más 7w7");
+        shimejis.push(newS);
+        termLog(`[+] Shimeji clonado. Total activos: ${shimejis.length}`);
+      };
+
+      // Manejador de Chat y Comandos
+      function handleCommand(raw) {
+        const text = raw.trim();
+        if (!text) return;
+
+        chatInput.value = "";
+        termLog(`> ${text}`);
+        triggerHaptic(25);
+
+        const lower = text.toLowerCase();
+
+        // Acciones específicas
+        if (lower.includes("wsl arch") || lower.includes("arch")) {
+          termLog("[+] Lanzando comando WSL Arch Linux: archlinux");
+          shimejis[0]?.say("Iniciando Arch Linux en WSL... UwU");
+        } else if (lower.includes("hyfetch") || lower.includes("neofetch")) {
+          termLog(`
+   .-.       OS: Arch Linux x86_64
+  /v\\      Host: Android Termux Environment
+ // \\\\     Kernel: 5.15.0-android
+/(   )\\\\    Shell: zsh 5.9
+ ^~^       WM: PinkChan Shimeji Engine
+          `);
+          shimejis[0]?.say("¡HyFetch ejecutado en terminal! [OK]");
+        } else if (lower.includes("pkg update") || lower.includes("pkg install")) {
+          termLog("[+] Termux: Actualizando repositorios APT/PKG...");
+          shimejis[0]?.say("Actualizando paquetes de Termux... 📦");
+        } else if (lower.includes("pacman")) {
+          termLog("[+] sudo pacman -S: paquetes sincronizados con mirrors de Arch");
+          shimejis[0]?.say("Instalando con Pacman en Arch Linux [*]");
+        } else if (lower.includes("winget")) {
+          termLog("[+] winget upgrade --all: Sistema de paquetes verificado");
+          shimejis[0]?.say("Comando Winget ejecutado en Windows [OK]");
+        } else if (lower.includes("sysinfo") || lower.includes("sistema")) {
+          const info = `[*] Android Device:
+User-Agent: ${navigator.userAgent.slice(0, 70)}...
+Pantalla: ${window.innerWidth}x${window.innerHeight} px
+Conexión: ${navigator.onLine ? "Online [OK]" : "Offline"}
+Memoria JS: ${(performance && performance.memory ? Math.round(performance.memory.usedJSHeapSize/1048576) + " MB" : "N/A")}`;
+          termLog(info);
+          shimejis[0]?.say("¡Ahí tienes la info del sistema! :v");
+        } else if (lower.includes("ram")) {
+          termLog("[*] RAM Status: 4.8 GB Total / 2.3 GB Libre");
+          shimejis[0]?.say("Tienes suficiente RAM para jugar y chatear 7w7");
+        } else if (lower.includes("battery") || lower.includes("bateria")) {
+          if (navigator.getBattery) {
+            navigator.getBattery().then(b => {
+              termLog(`[🔋] Batería: ${Math.round(b.level * 100)}% (${b.charging ? "Cargando ⚡" : "Descargando"})`);
+              shimejis[0]?.say(`Batería al ${Math.round(b.level * 100)}% UwU`);
+            });
+          } else {
+            termLog("[🔋] Batería disponible a través de Termux-API");
+          }
+        } else if (lower.includes("troll")) {
+          trollMode = !trollMode;
+          termLog(`[!] Modo Troll: ${trollMode ? "ACTIVADO 7w7" : "DESACTIVADO UwU"}`);
+          shimejis.forEach(s => s.say(trollMode ? "¡Modo Troll activado! Cuidado con tus ventanas 7w7" : "Modo Troll apagado UwU"));
+        } else if (lower.includes("zero_g") || lower.includes("gravedad")) {
+          zeroGravity = !zeroGravity;
+          termLog(`[🪂] Gravedad Cero: ${zeroGravity ? "ACTIVADA" : "DESACTIVADA"}`);
+          shimejis.forEach(s => {
+            s.state = "FALL";
+            s.vy = -6;
+            s.say(zeroGravity ? "¡A volar! 🪂" : "Aterrizando alv :v");
+          });
+        } else if (lower.includes("guitar")) {
+          shimejis.forEach(s => { s.state = "GUITAR"; s.say("¡Solo de guitarra! 🎸🎵"); });
+        } else if (lower.includes("box")) {
+          shimejis.forEach(s => { s.state = "BOX"; s.say("Modo caja seguro 📦"); });
+        } else if (lower.includes("clear_all")) {
+          while (shimejis.length > 1) {
+            shimejis.pop().remove();
+          }
+          termLog("[-] Clones eliminados. Queda el Shimeji principal.");
+        } else {
+          // Respuesta conversacional en personaje
+          const currentMeta = SKINS_DATA[currentSkinKey];
+          const responses = currentMeta.dialogues;
+          const reply = responses[Math.floor(Math.random() * responses.length)];
+          shimejis[0]?.say(reply, 3500);
+          termLog(`[${currentMeta.name}]: ${reply}`);
+        }
+      }
+
+      chatSend.onclick = () => handleCommand(chatInput.value);
+      chatInput.onkeydown = (e) => {
+        if (e.key === "Enter") handleCommand(chatInput.value);
+      };
+
+      // Chips clickeables
+      document.querySelectorAll(".chip-btn").forEach(btn => {
+        btn.onclick = () => {
+          const cmd = btn.dataset.cmd;
+          handleCommand(cmd);
+          closeDrawer();
+        };
+      });
+    }
+
+    // Arrancar al cargar el DOM
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>

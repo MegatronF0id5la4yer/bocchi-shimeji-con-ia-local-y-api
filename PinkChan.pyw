@@ -1771,6 +1771,57 @@ class JarvisAssistant:
         if k in ("git branch", "ramas git"):
             return self.run_cmd("git branch -a")
 
+        # 6. Lanzadores directos de Terminales y Aplicaciones Esenciales
+        if k in ("terminal", "wt", "consola", "abrir terminal", "abre terminal"):
+            cmd = 'start wt' if shutil.which("wt") else 'start powershell'
+            subprocess.Popen(cmd, shell=True)
+            return True, "[+] Abriendo Terminal de comandos..."
+
+        if k in ("powershell", "ps", "consola powershell", "abrir powershell", "abre powershell"):
+            subprocess.Popen('start powershell', shell=True)
+            return True, "[+] Abriendo Windows PowerShell..."
+
+        if k in ("cmd", "simbolo del sistema", "consola cmd", "abrir cmd", "abre cmd"):
+            subprocess.Popen('start cmd', shell=True)
+            return True, "[+] Abriendo Símbolo del Sistema (CMD)..."
+
+        if k in ("navegador", "browser", "abrir navegador", "abre navegador", "chrome", "brave"):
+            browsers = get_preferred_browsers()
+            if browsers:
+                try:
+                    subprocess.Popen([browsers[0]])
+                    return True, f"[+] Navegador abierto: {os.path.basename(browsers[0])} [OK]"
+                except Exception:
+                    pass
+            open_web_url("https://www.google.com")
+            return True, "[+] Abriendo navegador web (Chrome/Brave)..."
+
+        if k in ("notepad", "bloc de notas", "bloc", "notas", "abrir notepad", "abre notepad"):
+            subprocess.Popen('start notepad', shell=True)
+            return True, "[+] Abriendo Bloc de notas..."
+
+        if k in ("explorador", "explorer", "carpetas", "archivos explorador", "abrir explorador", "abre explorador"):
+            subprocess.Popen('start explorer', shell=True)
+            return True, "[+] Abriendo Explorador de archivos..."
+
+        if k in ("calc", "calculadora", "abrir calc", "abre calc", "abrir calculadora"):
+            subprocess.Popen('start calc', shell=True)
+            return True, "[+] Abriendo Calculadora..."
+
+        if k in ("configuracion", "ajustes", "settings", "abrir configuracion", "abre configuracion", "abrir ajustes"):
+            try:
+                os.startfile("ms-settings:")
+                return True, "[+] Abriendo Configuración de Windows..."
+            except Exception:
+                pass
+
+        if k in ("taskmgr", "administrador de tareas", "tareas", "abrir taskmgr", "abre taskmgr"):
+            try:
+                os.startfile("taskmgr.exe")
+                return True, "[+] Abriendo Administrador de tareas..."
+            except Exception:
+                pass
+
         return None
 
     def run_custom_command(self, cmd_str):
@@ -2230,7 +2281,13 @@ class JarvisAssistant:
                     ok, msg = self.shimeji.set_skin(found_skin)
                     return True, msg, f"Skin {found_skin} activada [OK]"
 
-        # Pacman en Arch Linux / WSL (sudo pacman -S <programa>)
+        # Pacman en Arch Linux / WSL (sudo pacman -S <programa> o sudo pacman -Syu)
+        if re.search(r'^(?:(?:hey\s+)?(?:sudo\s+)?pacman\s+-S[yYuU]+|actualizar\s+(?:arch|sistema|pacman))$', raw, re.IGNORECASE):
+            wt_avail = shutil.which("wt") is not None
+            cmd = 'start wt wsl -d archlinux sudo pacman -Syu' if wt_avail else 'start wsl -d archlinux sudo pacman -Syu'
+            subprocess.Popen(cmd, shell=True)
+            return True, "[+] Lanzando actualización completa del sistema en Arch Linux:\n  $ sudo pacman -Syu", "Actualizando Arch Linux [OK]"
+
         m_pacman = re.search(r'^(?:(?:hey\s+)?(?:sudo\s+)?pacman(?:\s+-S[yYuU]*)?|\/pacman|(?:hey\s+)?(?:instala(?:r)?|descarga(?:r)?)\s+(?:en\s+arch|con\s+pacman))\s+([a-zA-Z0-9_\-\.\+]+)$', raw, re.IGNORECASE)
         if m_pacman:
             pkg = m_pacman.group(1).strip()
@@ -2239,7 +2296,13 @@ class JarvisAssistant:
             subprocess.Popen(cmd, shell=True)
             return True, f"[+] Lanzando terminal interactiva para instalar con pacman en WSL Arch Linux:\n  $ sudo pacman -S {pkg}", f"Instalando {pkg} en Arch [OK]"
 
-        # Winget en Windows (winget install <programa> / winget search <programa>)
+        # Winget en Windows (winget install <programa> / winget search <programa> / winget upgrade)
+        if re.search(r'^(?:(?:hey\s+)?winget\s+(?:upgrade|update)|actualizar\s+(?:programas|apps|windows))$', raw, re.IGNORECASE):
+            wt_avail = shutil.which("wt") is not None
+            cmd = 'start wt winget upgrade --all' if wt_avail else 'start cmd /k winget upgrade --all'
+            subprocess.Popen(cmd, shell=True)
+            return True, "[+] Lanzando actualización de aplicaciones en Windows con winget:\n  > winget upgrade --all", "Actualizando aplicaciones [OK]"
+
         m_winget_search = re.search(r'^(?:(?:hey\s+)?winget\s+search|\/winget\s+search|(?:hey\s+)?(?:busca(?:r)?|encuentra)\s+(?:en\s+winget|programa))\s+([a-zA-Z0-9_\-\.\+]+)$', raw, re.IGNORECASE)
         if m_winget_search:
             pkg = m_winget_search.group(1).strip()
@@ -2253,6 +2316,12 @@ class JarvisAssistant:
             subprocess.Popen(cmd, shell=True)
             return True, f"[+] Iniciando instalación con winget en Windows:\n  > winget install {pkg}", f"Instalando {pkg} con winget [OK]"
 
+        # Ejecución directa de comandos en WSL Arch (ej: wsl ls, arch uname -a)
+        m_wsl_cmd = re.search(r'^(?:(?:wsl|arch)\s+(?:run\s+|exec\s+)?(.+))$', raw, re.IGNORECASE)
+        if m_wsl_cmd and not raw.lower().startswith(("wsl -", "wsl status", "wsl distros", "wsl arch")):
+            inner_cmd = m_wsl_cmd.group(1).strip()
+            return self.run_cmd(f"wsl -d archlinux {inner_cmd}")
+
         clean_trigger = lower
         for prefix in ("hey ", "porfa ", "favor de "):
             if clean_trigger.startswith(prefix):
@@ -2263,6 +2332,11 @@ class JarvisAssistant:
         if res_pre is not None:
             ok, msg = res_pre
             return True, msg, "Ejecutado [OK]"
+
+        # Chequeo directo de alias de programas comunes sin necesidad de escribir 'abre'
+        if clean_trigger in self.PROGRAM_ALIASES:
+            ok, msg = self.open_target(clean_trigger)
+            return True, msg, f"Abriendo {clean_trigger[:20]} [>]"
 
         # 0. Comprobación directa de comandos personalizados guardados
         # Chequear coincidencia exacta o sin prefijos como "hey ", "abre ", "corre ", "inicia "
@@ -2909,14 +2983,14 @@ class ChatWindow:
             ("[💻] Atajos", lambda: self.send_custom("/atajos")),
         ]
         chips2 = [
-            ("[JARVIS] Archivos", lambda: self.send_custom("/list")),
-            ("[JARVIS] Buscar", lambda: self.insert_chip("/find ")),
+            ("[📟] Terminal", lambda: self.send_custom("terminal")),
+            ("[🌐] Navegador", lambda: self.send_custom("navegador")),
+            ("[📝] Notepad", lambda: self.send_custom("notepad")),
+            ("[📁] Explorador", lambda: self.send_custom("explorador")),
             ("[🧹] Limpiar Temp", lambda: self.send_custom("limpiar temp")),
-            ("[🌐] Flush DNS", lambda: self.send_custom("flushdns")),
+            ("[JARVIS] Buscar", lambda: self.insert_chip("/find ")),
             ("[!] Troll Mode", lambda: self.toggle_troll()),
             ("[IMG] Fondo", self.open_bg_menu),
-            ("UwU", lambda: self.insert_chip("UwU")),
-            (":v", lambda: self.insert_chip(":v")),
         ]
 
         self.chip_btns = []
