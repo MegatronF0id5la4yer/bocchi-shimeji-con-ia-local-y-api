@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.bocchi.pinkchan.shimeji"
-    android:versionCode="1"
-    android:versionName="1.0">
+    android:versionCode="2"
+    android:versionName="2.0">
 
-    <!-- Permisos para sobreponerse sobre otras apps y ejecución continua -->
+    <!-- Compatibilidad completa con Android 8.0 (API 26) hasta Android 15 (API 35) -->
+    <uses-sdk
+        android:minSdkVersion="26"
+        android:targetSdkVersion="35" />
+
+    <!-- Permisos para sobreponerse sobre otras apps y ejecución continua en Android 15 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
@@ -21,7 +26,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- Actividad Principal (Panel de Control y Permisos) -->
+        <!-- Actividad Principal (Panel de Control de 4 Pantallas) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -33,7 +38,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Servicio de Superposición de Shimeji en Primer Plano -->
+        <!-- Servicio de Superposición de Shimeji en Primer Plano compatible con Android 15 -->
         <service
             android:name=".ShimejiService"
             android:enabled="true"
@@ -47,3 +52,4 @@
     </application>
 
 </manifest>
+

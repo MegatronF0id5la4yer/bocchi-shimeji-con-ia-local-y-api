@@ -1,498 +1,1374 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:background="@drawable/bg_gradient">
 
+    <!-- Top App Bar & Navigation Tabs (4 Screens) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp"
+        android:background="@color/bg_gradient_start">
 
-        <!-- Header con Diseno Azul Pastel Cielo -->
+        <!-- Header: Typography for "Shijima" with PREMIUM pill badge -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="18dp">
+            android:layout_marginBottom="12dp">
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:id="@+id/iv_app_logo"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
                 android:src="@drawable/ic_launcher"
-                android:layout_marginRight="14dp"
-                android:contentDescription="Icono Shimeji" />
+                android:layout_marginRight="10dp"
+                android:contentDescription="Shijima Logo" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tv_app_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PinkChan Shimeji"
-                    android:textColor="@color/accent_sky"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:text="Shijima"
+                    android:textColor="@color/text_primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mascota flotante para Android"
+                    android:text="Desktop &amp; Screen Companions"
                     android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/badge_premium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/badge_premium"
+                android:text="PREMIUM"
+                android:textColor="@color/badge_premium_text"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:paddingLeft="12dp"
+                android:paddingTop="5dp"
+                android:paddingRight="12dp"
+                android:paddingBottom="5dp" />
         </LinearLayout>
 
-        <!-- Tarjeta 1: Permiso de Superposicion -->
-        <LinearLayout
-            android:id="@+id/card_permission"
+        <!-- 4-Screen Selector Tabs -->
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="14dp">
+            android:scrollbars="none">
 
             <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tab_featured"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:background="@drawable/tab_item_selected"
+                    android:text="Featured"
+                    android:textColor="@color/accent_lavender_light"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:layout_marginRight="6dp" />
+
+                <TextView
+                    android:id="@+id/tab_installed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:background="@drawable/tab_item_unselected"
+                    android:text="Installed"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:layout_marginRight="6dp" />
+
+                <TextView
+                    android:id="@+id/tab_inspector"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:background="@drawable/tab_item_unselected"
+                    android:text="Inspector"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:layout_marginRight="6dp" />
+
+                <TextView
+                    android:id="@+id/tab_settings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:background="@drawable/tab_item_unselected"
+                    android:text="Settings"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- Main Content Area Scrollable -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- ======================================================== -->
+            <!-- 1. SCREEN 1: FEATURED (Grid & Overlay)                  -->
+            <!-- ======================================================== -->
+            <LinearLayout
+                android:id="@+id/screen_featured"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="visible">
 
-                <TextView
-                    android:layout_width="0dp"
+                <!-- Overlay Card: Change grid size -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Permiso de Superposicion"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical"
+                    android:background="@drawable/card_glass_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="12dp">
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Change grid size"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tv_active_overlay_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="1 Activo en pantalla"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:paddingLeft="10dp"
+                            android:paddingTop="3dp"
+                            android:paddingRight="10dp"
+                            android:paddingBottom="3dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/btn_grid_compact"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:background="@drawable/tab_item_selected"
+                            android:text="2x2 Compact"
+                            android:textColor="@color/accent_lavender_light"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:layout_marginRight="4dp" />
+
+                        <TextView
+                            android:id="@+id/btn_grid_standard"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:background="@drawable/tab_item_unselected"
+                            android:text="3x3 Standard"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginLeft="2dp"
+                            android:layout_marginRight="2dp" />
+
+                        <TextView
+                            android:id="@+id/btn_grid_wide"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:background="@drawable/tab_item_unselected"
+                            android:text="4x4 Wide"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginLeft="4dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Interactive Tags ("Add customize tags...") -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:gravity="center"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="+ Lucky Star"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:layout_marginRight="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:gravity="center"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="+ Bocchi"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:layout_marginRight="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:gravity="center"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="+ Doki Doki"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:layout_marginRight="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:gravity="center"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="+ Anime Mascots"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp"
+                            android:layout_marginRight="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="28dp"
+                            android:gravity="center"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="+ Add customize tags..."
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:paddingLeft="12dp"
+                            android:paddingRight="12dp" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- Grid of Square Character Cards (Row 1) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <!-- Card 1: Konata -->
+                    <LinearLayout
+                        android:id="@+id/card_char_konata"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginRight="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_konata"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Konata" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Konata Izumi"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lucky Star"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_konata"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Card 2: Bocchi -->
+                    <LinearLayout
+                        android:id="@+id/card_char_bocchi"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginLeft="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_bocchi"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Bocchi" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Bocchi-chan"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Bocchi the Rock!"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_bocchi"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Grid of Square Character Cards (Row 2) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <!-- Card 3: Monika -->
+                    <LinearLayout
+                        android:id="@+id/card_char_monika"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginRight="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_launcher"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Monika" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Monika"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="DDLC Club"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_monika"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Card 4: Natsuki -->
+                    <LinearLayout
+                        android:id="@+id/card_char_natsuki"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginLeft="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_launcher"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Natsuki" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Natsuki"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="DDLC Manga"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_natsuki"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Grid of Square Character Cards (Row 3) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Card 5: Sayori -->
+                    <LinearLayout
+                        android:id="@+id/card_char_sayori"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginRight="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_launcher"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Sayori" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sayori"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="DDLC Sunshine"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_sayori"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Card 6: Yuri -->
+                    <LinearLayout
+                        android:id="@+id/card_char_yuri"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginLeft="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_launcher"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Yuri" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Yuri"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="DDLC Reader"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_yuri"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- ======================================================== -->
+            <!-- 2. SCREEN 2: INSTALLED (Smooth List view)               -->
+            <!-- ======================================================== -->
+            <LinearLayout
+                android:id="@+id/screen_installed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <!-- Top Large Action Card 1: Import Shimeji -->
+                <LinearLayout
+                    android:id="@+id/btn_action_import"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_import_gradient"
+                    android:padding="18dp"
+                    android:layout_marginBottom="10dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/import_shimeji"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Import external ZIP packs or custom PNG animation sets."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Top Large Action Card 2: See Import Guide -->
+                <LinearLayout
+                    android:id="@+id/btn_action_guide"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_import_gradient"
+                    android:padding="18dp"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/see_import_guide"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Instructions on 128x128 sprite formats and custom actions."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Section: Installed Mascots -->
                 <TextView
-                    android:id="@+id/tv_permission_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/badge_status_warn"
-                    android:text="PENDIENTE"
-                    android:textColor="@color/error_color"
-                    android:textSize="11sp"
+                    android:text="Installed Mascots"
+                    android:textColor="@color/accent_lavender"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:paddingLeft="10dp"
-                    android:paddingTop="3dp"
-                    android:paddingRight="10dp"
-                    android:paddingBottom="3dp" />
+                    android:layout_marginBottom="10dp" />
+
+                <!-- Mascot Item 1: Mascot 457 (Konata) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_konata"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mascot 457"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Konata Izumi • 128x128"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_konata"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 2: Default Mascot (Bocchi) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_bocchi"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Default Mascot"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Bocchi-chan • Guitarist"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_bocchi"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 3: Literature President (Monika) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="18dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_launcher"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Literature President"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Monika • DDLC Club"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_monika"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Large Prominent Button: Add Categories -->
+                <Button
+                    android:id="@+id/btn_add_categories"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/btn_pill_violet"
+                    android:text="Add categories"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="20dp" />
+
             </LinearLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Permite que el Shimeji se sobreponga y camine encima de tus otras aplicaciones en pantalla."
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginBottom="12dp" />
-
-            <Button
-                android:id="@+id/btn_grant_permission"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:background="@drawable/btn_accent"
-                android:text="CONCEDER PERMISO DE SUPERPOSICION"
-                android:textColor="@color/bg_dark"
-                android:textStyle="bold"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- Tarjeta 2: Control de Servicio -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="14dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Control de Shimeji"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
-
+            <!-- ======================================================== -->
+            <!-- 3. SCREEN 3: INSPECTOR (Cozy Empty State & Tools)        -->
+            <!-- ======================================================== -->
             <LinearLayout
+                android:id="@+id/screen_inspector"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
 
-                <Button
-                    android:id="@+id/btn_start_shimeji"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:layout_marginRight="6dp"
-                    android:background="@drawable/btn_accent"
-                    android:text="INICIAR"
-                    android:textColor="@color/bg_dark"
-                    android:textStyle="bold"
-                    android:textSize="13sp" />
+                <!-- Cozy Hero Card & Mascot -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="20dp"
+                    android:gravity="center"
+                    android:layout_marginBottom="16dp">
 
-                <Button
-                    android:id="@+id/btn_stop_shimeji"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="6dp"
-                    android:background="@drawable/btn_danger"
-                    android:text="DETENER"
-                    android:textColor="@color/error_color"
-                    android:textStyle="bold"
-                    android:textSize="13sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="✦  ★  ✦"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/tv_inspector_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nothing to inspect. Try spawning some shimeji!"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:gravity="center"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Cozy Resting Mascot Character -->
+                    <ImageView
+                        android:id="@+id/iv_inspector_mascot"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:src="@drawable/ic_bocchi"
+                        android:layout_marginBottom="10dp"
+                        android:contentDescription="Mascot Resting" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Companions will roam freely across all your phone apps."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <!-- Action Buttons: Round, pill-shaped with soft-shaded gradient fills -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <Button
+                        android:id="@+id/btn_spawn_custom"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="+ Spawn Custom"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <Button
+                            android:id="@+id/btn_interaction_button"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/btn_pill_outline"
+                            android:text="Interaction button"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:layout_marginRight="4dp" />
+
+                        <Button
+                            android:id="@+id/btn_customize_views"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/btn_pill_outline"
+                            android:text="Customize views"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:layout_marginLeft="4dp" />
+                    </LinearLayout>
+
+                    <!-- Voice Assistant Button -->
+                    <Button
+                        android:id="@+id/btn_inspector_voice"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Asistente de Voz (Comandos)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+                </LinearLayout>
+
+                <!-- Live Quick Action Chips -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btn_inspector_guitar"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="Guitarra"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:layout_marginRight="4dp" />
+
+                    <Button
+                        android:id="@+id/btn_inspector_box"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="Caja"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:layout_marginLeft="2dp"
+                        android:layout_marginRight="2dp" />
+
+                    <Button
+                        android:id="@+id/btn_inspector_center"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="Centrar"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:layout_marginLeft="4dp" />
+                </LinearLayout>
+
             </LinearLayout>
 
-            <Button
-                android:id="@+id/btn_center_shimeji"
-                android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/btn_outline"
-                android:text="Centrar en pantalla"
-                android:textColor="@color/accent_sky"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- Tarjeta 3: Seleccion de Skin -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="14dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Personaje (Skin)"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <RadioGroup
-                android:id="@+id/rg_skins"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <RadioButton
-                    android:id="@+id/rb_konata"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Konata Izumi (Lucky Star)"
-                    android:textColor="@color/text_primary"
-                    android:checked="true"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp" />
-
-                <RadioButton
-                    android:id="@+id/rb_bocchi"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Bocchi-chan (Bocchi the Rock!)"
-                    android:textColor="@color/text_primary"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp" />
-
-                <RadioButton
-                    android:id="@+id/rb_monika"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Monika (DDLC)"
-                    android:textColor="@color/text_primary"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp" />
-
-                <RadioButton
-                    android:id="@+id/rb_natsuki"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Natsuki (DDLC)"
-                    android:textColor="@color/text_primary"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp" />
-
-                <RadioButton
-                    android:id="@+id/rb_sayori"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Sayori (DDLC)"
-                    android:textColor="@color/text_primary"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp" />
-
-                <RadioButton
-                    android:id="@+id/rb_yuri"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Yuri (DDLC)"
-                    android:textColor="@color/text_primary"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp" />
-            </RadioGroup>
-        </LinearLayout>
-
-        <!-- Tarjeta 4: Ajustes de Tamano y Movimiento -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="14dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tamano y Movimiento"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Escala del personaje:"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginBottom="4dp" />
-
-            <RadioGroup
-                android:id="@+id/rg_size"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
-
-                <RadioButton
-                    android:id="@+id/rb_size_small"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Pequeno"
-                    android:textColor="@color/text_primary" />
-
-                <RadioButton
-                    android:id="@+id/rb_size_normal"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Normal"
-                    android:textColor="@color/text_primary"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/rb_size_large"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Grande"
-                    android:textColor="@color/text_primary" />
-            </RadioGroup>
-
-            <CheckBox
-                android:id="@+id/cb_zero_gravity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Modo Flotante (Gravedad Cero)"
-                android:textColor="@color/text_primary" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Tip: Manten presionado al Shimeji en pantalla para abrir su menu de acciones."
-                android:textColor="@color/accent_sky"
-                android:textSize="11sp"
-                android:layout_marginTop="8dp" />
-        </LinearLayout>
-
-        <!-- Tarjeta 5: Multi-Shimeji en Pantalla -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="14dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Multi-Shimeji (Varios en Pantalla)"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Puedes invocar hasta 6 Shimejis simultaneos. Cada uno se mueve, interactua y deambula libremente."
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginBottom="12dp" />
-
+            <!-- ======================================================== -->
+            <!-- 4. SCREEN 4: SETTINGS (Polished Dashboard)               -->
+            <!-- ======================================================== -->
             <LinearLayout
+                android:id="@+id/screen_settings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
 
-                <Button
-                    android:id="@+id/btn_add_shimeji"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:layout_marginRight="6dp"
-                    android:background="@drawable/btn_accent"
-                    android:text="+ AGREGAR OTRO (+1)"
-                    android:textColor="@color/bg_dark"
-                    android:textStyle="bold"
-                    android:textSize="12sp" />
+                <!-- Card: Controls (Sliders & Badges) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp">
 
-                <Button
-                    android:id="@+id/btn_clear_extras"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="6dp"
-                    android:background="@drawable/btn_outline"
-                    android:text="QUITAR EXTRAS"
-                    android:textColor="@color/accent_sky"
-                    android:textStyle="bold"
-                    android:textSize="12sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Controls &amp; Performance"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Shimeji Size -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="6dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Shimeji size"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/badge_size_num"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="128 dp"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp" />
+                    </LinearLayout>
+
+                    <RadioGroup
+                        android:id="@+id/rg_settings_size"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="14dp">
+
+                        <RadioButton
+                            android:id="@+id/rb_size_96"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="96 dp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+
+                        <RadioButton
+                            android:id="@+id/rb_size_128"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:checked="true"
+                            android:text="128 dp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+
+                        <RadioButton
+                            android:id="@+id/rb_size_160"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="160 dp"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
+                    </RadioGroup>
+
+                    <!-- Animation Framerate -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="6dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Animation framerate"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/badge_framerate_num"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="25 FPS (Smooth)"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp" />
+                    </LinearLayout>
+
+                    <!-- Maximum Shimeji Count -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Maximum shimeji count"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/badge_count_num"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="6 Max"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Card: Selection & Toggles -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp">
+
+                    <CheckBox
+                        android:id="@+id/cb_settings_zerog"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Modo Flotante (Gravedad Cero)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="8dp" />
+
+                    <CheckBox
+                        android:id="@+id/cb_settings_boot"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Mantener activo en segundo plano"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:checked="true"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Overlay Permission Status Button -->
+                    <Button
+                        android:id="@+id/btn_settings_permission"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/btn_pill_outline"
+                        android:text="Permiso de Superposicion [OK]"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <!-- Card: Customization & Color Palette -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Accent Color"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Natural Color-Picking Circle Palette -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginBottom="14dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/color_circle_1"
+                            android:layout_marginRight="8dp"
+                            android:contentDescription="Color 1" />
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/color_circle_2"
+                            android:layout_marginRight="8dp"
+                            android:contentDescription="Color 2" />
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/color_circle_3"
+                            android:layout_marginRight="8dp"
+                            android:contentDescription="Color 3" />
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/color_circle_4"
+                            android:layout_marginRight="8dp"
+                            android:contentDescription="Color 4" />
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/color_circle_5"
+                            android:layout_marginRight="8dp"
+                            android:contentDescription="Color 5" />
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/color_circle_6"
+                            android:contentDescription="Color 6" />
+                    </LinearLayout>
+
+                    <!-- Text label Edit Icons paired with cozy annotations -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Edit Icons &amp; Theme"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Natural dark &amp; lavender colorway with smooth 3D depth."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- EDIT APP FILTER Button -->
+                    <Button
+                        android:id="@+id/btn_settings_app_filter"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:background="@drawable/btn_pill_outline"
+                        android:text="EDIT APP FILTER"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Dismissal buttons layered with deep dark natural bases -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btn_settings_clear_extras"
+                            android:layout_width="0dp"
+                            android:layout_height="42dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/btn_outline"
+                            android:text="Limpiar Extras"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:layout_marginRight="4dp" />
+
+                        <Button
+                            android:id="@+id/btn_settings_stop"
+                            android:layout_width="0dp"
+                            android:layout_height="42dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/btn_danger"
+                            android:text="Detener Todos"
+                            android:textColor="@color/error_color"
+                            android:textSize="11sp"
+                            android:layout_marginLeft="4dp" />
+                    </LinearLayout>
+                </LinearLayout>
+
             </LinearLayout>
-        </LinearLayout>
 
-        <!-- Tarjeta 6: Asistente de Voz y Control de Apps -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="14dp">
+        </FrameLayout>
+    </ScrollView>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Asistente de Voz y Control de Apps"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Toca el boton y habla. Tambien puedes activarlo manteniendo presionado al Shimeji en pantalla."
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                android:layout_marginBottom="12dp" />
-
-            <Button
-                android:id="@+id/btn_voice_assistant"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:background="@drawable/btn_accent"
-                android:text="HABLAR CON EL SHIMEJI"
-                android:textColor="@color/bg_dark"
-                android:textStyle="bold"
-                android:textSize="12sp"
-                android:layout_marginBottom="14dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Comandos de voz disponibles:"
-                android:textColor="@color/accent_sky"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="* Saludos: 'hola', 'buenos dias', 'que tal'&#10;* Hora: 'que hora es', 'hora'&#10;* Abrir Apps: 'abre whatsapp', 'abre youtube', 'abre camara', 'abre chrome', 'abre calculadora', 'abre ajustes'&#10;* Acciones: 'guitarra', 'caja', 'salta', 'flotar', 'acariciar'&#10;* Multi-Shimeji: 'invoca otro', 'clonar', 'limpiar extras'&#10;* Detener: 'detener', 'cerrar', 'adios'"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                android:lineSpacingExtra="3dp" />
-        </LinearLayout>
-
-        <!-- Tarjeta 7: Acciones Rapidas -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/card_bg"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Acciones en Vivo"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="10dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btn_action_guitar"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginRight="4dp"
-                    android:background="@drawable/chip_action_bg"
-                    android:text="Guitarra"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp" />
-
-                <Button
-                    android:id="@+id/btn_action_box"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="4dp"
-                    android:layout_marginRight="4dp"
-                    android:background="@drawable/chip_action_bg"
-                    android:text="Caja"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp" />
-
-                <Button
-                    android:id="@+id/btn_action_talk"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="4dp"
-                    android:background="@drawable/chip_action_bg"
-                    android:text="Hablar"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-    </LinearLayout>
-</ScrollView>
+</LinearLayout>

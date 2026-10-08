@@ -1,18 +1,63 @@
 <resources>
-    <!-- Paleta Azul Pastel Cielo (Sky Pastel Blue) -->
-    <color name="bg_dark">#0f172a</color>
-    <color name="surface_dark">#1e293b</color>
-    <color name="surface_variant">#334155</color>
-    <color name="accent_sky">#7dd3fc</color>
-    <color name="accent_sky_light">#e0f2fe</color>
-    <color name="accent_sky_dark">#38bdf8</color>
-    <color name="text_primary">#f8fafc</color>
-    <color name="text_secondary">#94a3b8</color>
-    <color name="success_color">#86efac</color>
-    <color name="success_green">#86efac</color>
-    <color name="error_color">#fca5a5</color>
-    <color name="error_red">#fca5a5</color>
-    <color name="bubble_bg">#f00f172a</color>
-    <color name="white">#ffffff</color>
+    <!-- Atmosphere: Deep dark-slate and warm violet gradient -->
+    <color name="bg_gradient_start">#0F0D1A</color>
+    <color name="bg_gradient_end">#161224</color>
+    <color name="bg_dark">#0F0D1A</color>
+
+    <!-- Surfaces with 3D natural depth -->
+    <color name="surface_dark">#1F1A2E</color>
+    <color name="surface_card">#221C34</color>
+    <color name="surface_card_soft">#261F3A</color>
+    <color name="surface_variant">#2D2545</color>
+    <color name="surface_glass">#221C34</color>
+    <color name="surface_import_start">#362557</color>
+    <color name="surface_import_end">#24183E</color>
+
+    <!-- Borders: Subtle, fine light-lavender -->
+    <color name="border_subtle">#3D3352</color>
+    <color name="border_light">#52446D</color>
+    <color name="border_lavender">#705B94</color>
+
+    <!-- Primary Accents: Gentle royal violet & soft lavender -->
+    <color name="accent_violet">#8A56E2</color>
+    <color name="accent_violet_dark">#7241C7</color>
+    <color name="accent_lavender">#B89FFF</color>
+    <color name="accent_lavender_soft">#D4A5FF</color>
+    <color name="accent_lavender_light">#E8DEFF</color>
+    <color name="accent_warm">#C4B5FD</color>
+    <color name="accent_sky">#B89FFF</color>
+    <color name="accent_sky_light">#E8DEFF</color>
+    <color name="accent_sky_dark">#8A56E2</color>
+
+    <!-- Pill Badges and Chips -->
+    <color name="badge_premium_bg">#3B2A63</color>
+    <color name="badge_premium_text">#D8B4FE</color>
+    <color name="chip_bg">#251E38</color>
+    <color name="chip_selected_bg">#3A2C59</color>
+
+    <!-- Typography: Soft white and muted lavender-gray -->
+    <color name="text_primary">#F3F0FA</color>
+    <color name="text_secondary">#A69DB8</color>
+    <color name="text_muted">#776B8A</color>
+    <color name="text_hint">#5E5470</color>
+
+    <!-- Status & Alerts (Muted, natural tones) -->
+    <color name="success_color">#86EFAC</color>
+    <color name="success_bg">#1A3D2A</color>
+    <color name="warn_color">#FDE047</color>
+    <color name="warn_bg">#3D361A</color>
+    <color name="error_color">#FCA5A5</color>
+    <color name="error_bg">#3D1E22</color>
+
+    <!-- Color Palette Picker in Settings -->
+    <color name="palette_color_1">#8A56E2</color>
+    <color name="palette_color_2">#B89FFF</color>
+    <color name="palette_color_3">#F472B6</color>
+    <color name="palette_color_4">#FCD34D</color>
+    <color name="palette_color_5">#6EE7B7</color>
+    <color name="palette_color_6">#38BDF8</color>
+
+    <color name="bubble_bg">#F21A1529</color>
+    <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
 </resources>

@@ -43,17 +43,22 @@ Write-Host "[3/7] Vinculando recursos y generando R.java..." -ForegroundColor Ye
   --manifest "$APP_SRC\AndroidManifest.xml" `
   --java "$BUILD_DIR\gen" `
   --auto-add-overlay `
+  --min-sdk-version 26 `
+  --target-sdk-version 35 `
   -o "$BUILD_DIR\base.apk"
+if ($LASTEXITCODE -ne 0) { throw "Error en aapt2 link" }
 
 # 4. Compilar codigo Java con javac
 Write-Host "[4/7] Compilando clases Java con OpenJDK 25 (--release 8)..." -ForegroundColor Yellow
 $javaSources = Get-ChildItem -Path "$APP_SRC\java", "$BUILD_DIR\gen" -Recurse -Filter "*.java" | Select-Object -ExpandProperty FullName
 & "$JAVA_DIR\javac.exe" --release 8 -cp $ANDROID_JAR -d "$BUILD_DIR\obj" $javaSources
+if ($LASTEXITCODE -ne 0) { throw "Error en javac" }
 
 # 5. Generar bytecode Dalvik con D8
 Write-Host "[5/7] Generando classes.dex con D8..." -ForegroundColor Yellow
 $classFiles = Get-ChildItem -Path "$BUILD_DIR\obj" -Recurse -Filter "*.class" | Select-Object -ExpandProperty FullName
 & "$SDK_BUILD_TOOLS\d8.bat" --release --min-api 26 --output "$BUILD_DIR\dex" $classFiles
+if ($LASTEXITCODE -ne 0) { throw "Error en d8" }
 
 # 6. Empaquetar classes.dex y assets en el APK
 Write-Host "[6/7] Empaquetando dex y skins assets en base.apk..." -ForegroundColor Yellow
