@@ -131,6 +131,63 @@ public class SkinData {
                     "Por favor, no seas tan repentino..."
                 }
             ));
+
+            // 7. Hachiware (Chiikawa)
+            registry.put("Hachi", new SkinData(
+                "Hachi",
+                "Hachiware",
+                "Hachi",
+                new String[]{
+                    "Nanto ka nare! Todo va a salir bien!",
+                    "A cantar la cancion de las plantas!",
+                    "Vamos por un delicioso tazon de ramen!",
+                    "Siempre hay que esforzarse con una sonrisa!",
+                    "Hoy sera un gran dia en tu celular!"
+                },
+                new String[]{
+                    "Waa! Que paso?",
+                    "Me asustaste un poquito!",
+                    "Nanto ka nare!"
+                }
+            ));
+
+            // 8. Usagi (Chiikawa)
+            registry.put("Usagi", new SkinData(
+                "Usagi",
+                "Usagi",
+                "Usagi",
+                new String[]{
+                    "Ura! Ura! Yahaha!",
+                    "Pulululu! Yayaya!",
+                    "Haa?! Iyaahaaa!",
+                    "Woohoo! Salto energetico!",
+                    "Uraaaaa!"
+                },
+                new String[]{
+                    "Uraaa?!",
+                    "Pululululu!",
+                    "Yaha!"
+                }
+            ));
+
+            // 9. Pusheen (The Cat)
+            registry.put("Pusheen", new SkinData(
+                "Pusheen",
+                "Pusheen",
+                "Pusheen",
+                new String[]{
+                    "Miau... hora de comer una pizza deliciosa.",
+                    "Dormir 18 horas al dia es un trabajo arduo.",
+                    "Donde estan mis donas con chispas de colores?",
+                    "Modo gato esponjoso activado.",
+                    "Purr purr purr... ronroneo relajante."
+                },
+                new String[]{
+                    "Miau?! Cosquillas!",
+                    "Purrrrr...",
+                    "Dame un snack primero."
+                }
+            ));
         }
         return registry;
     }
@@ -144,7 +201,7 @@ public class SkinData {
     }
 
     public static String getNextSkin(String currentId) {
-        String[] order = {"Konata", "Bocchi", "Monika", "Natsuki", "Sayori", "Yuri"};
+        String[] order = {"Konata", "Bocchi", "Monika", "Natsuki", "Sayori", "Yuri", "Hachi", "Usagi", "Pusheen"};
         for (int i = 0; i < order.length; i++) {
             if (order[i].equalsIgnoreCase(currentId)) {
                 return order[(i + 1) % order.length];

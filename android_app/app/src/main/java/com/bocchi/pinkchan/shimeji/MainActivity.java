@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -23,28 +25,42 @@ public class MainActivity extends Activity {
     private static final int REQUEST_OVERLAY_PERMISSION = 2001;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 2002;
 
-    private static final String PREFS_NAME = "pinkchan_shimeji_prefs";
-    private static final String KEY_SKIN = "selected_skin";
-    private static final String KEY_SIZE = "selected_size";
-    private static final String KEY_ZERO_G = "zero_gravity";
+    public static final String PREFS_NAME = "pinkchan_shimeji_prefs";
+    public static final String KEY_SKIN = "selected_skin";
+    public static final String KEY_SIZE = "selected_size";
+    public static final String KEY_ZERO_G = "zero_gravity";
+    public static final String KEY_ACCENT_INDEX = "selected_accent_index";
+
+    // Header & Badges
+    private TextView tvAppTitle;
+    private TextView badgePremium;
 
     // 4 Screens & Tabs
     private TextView tabFeatured, tabInstalled, tabInspector, tabSettings;
     private View screenFeatured, screenInstalled, screenInspector, screenSettings;
+    private int currentTabIndex = 0;
+    private int currentAccentColor = 0;
 
     // Screen 1: Featured
     private TextView btnGridCompact, btnGridStandard, btnGridWide;
     private TextView tvActiveOverlayCount;
     private Button btnSpawnKonata, btnSpawnBocchi, btnSpawnMonika, btnSpawnNatsuki, btnSpawnSayori, btnSpawnYuri;
+    private Button btnSpawnHachi, btnSpawnUsagi, btnSpawnPusheen;
+    private View cardCharKonata, cardCharBocchi, cardCharMonika, cardCharNatsuki, cardCharSayori, cardCharYuri;
+    private View cardCharHachi, cardCharUsagi, cardCharPusheen;
 
     // Screen 2: Installed
     private View btnActionImport, btnActionGuide;
-    private Button btnListSpawnKonata, btnListSpawnBocchi, btnListSpawnMonika, btnAddCategories;
+    private Button btnListSpawnKonata, btnListSpawnBocchi, btnListSpawnMonika;
+    private Button btnListSpawnNatsuki, btnListSpawnSayori, btnListSpawnYuri, btnListSpawnHachi, btnListSpawnUsagi, btnListSpawnPusheen;
+    private Button btnAddCategories;
 
     // Screen 3: Inspector
     private TextView tvInspectorStatus;
+    private ImageView ivInspectorMascot;
     private Button btnSpawnCustom, btnInteractionButton, btnCustomizeViews, btnInspectorVoice;
     private Button btnInspectorGuitar, btnInspectorBox, btnInspectorCenter;
+    private Button btnInspectorPlay, btnInspectorDance, btnInspectorTermux, btnInspectorFiles;
 
     // Screen 4: Settings
     private TextView badgeSizeNum;
@@ -84,11 +100,24 @@ public class MainActivity extends Activity {
         screenInspector = findViewById(R.id.screen_inspector);
         screenSettings = findViewById(R.id.screen_settings);
 
+        tvAppTitle = findViewById(R.id.tv_app_title);
+        badgePremium = findViewById(R.id.badge_premium);
+
         // Featured views
         tvActiveOverlayCount = findViewById(R.id.tv_active_overlay_count);
         btnGridCompact = findViewById(R.id.btn_grid_compact);
         btnGridStandard = findViewById(R.id.btn_grid_standard);
         btnGridWide = findViewById(R.id.btn_grid_wide);
+
+        cardCharKonata = findViewById(R.id.card_char_konata);
+        cardCharBocchi = findViewById(R.id.card_char_bocchi);
+        cardCharMonika = findViewById(R.id.card_char_monika);
+        cardCharNatsuki = findViewById(R.id.card_char_natsuki);
+        cardCharSayori = findViewById(R.id.card_char_sayori);
+        cardCharYuri = findViewById(R.id.card_char_yuri);
+        cardCharHachi = findViewById(R.id.card_char_hachi);
+        cardCharUsagi = findViewById(R.id.card_char_usagi);
+        cardCharPusheen = findViewById(R.id.card_char_pusheen);
 
         btnSpawnKonata = findViewById(R.id.btn_spawn_konata);
         btnSpawnBocchi = findViewById(R.id.btn_spawn_bocchi);
@@ -96,6 +125,9 @@ public class MainActivity extends Activity {
         btnSpawnNatsuki = findViewById(R.id.btn_spawn_natsuki);
         btnSpawnSayori = findViewById(R.id.btn_spawn_sayori);
         btnSpawnYuri = findViewById(R.id.btn_spawn_yuri);
+        btnSpawnHachi = findViewById(R.id.btn_spawn_hachi);
+        btnSpawnUsagi = findViewById(R.id.btn_spawn_usagi);
+        btnSpawnPusheen = findViewById(R.id.btn_spawn_pusheen);
 
         // Installed views
         btnActionImport = findViewById(R.id.btn_action_import);
@@ -103,10 +135,17 @@ public class MainActivity extends Activity {
         btnListSpawnKonata = findViewById(R.id.btn_list_spawn_konata);
         btnListSpawnBocchi = findViewById(R.id.btn_list_spawn_bocchi);
         btnListSpawnMonika = findViewById(R.id.btn_list_spawn_monika);
+        btnListSpawnNatsuki = findViewById(R.id.btn_list_spawn_natsuki);
+        btnListSpawnSayori = findViewById(R.id.btn_list_spawn_sayori);
+        btnListSpawnYuri = findViewById(R.id.btn_list_spawn_yuri);
+        btnListSpawnHachi = findViewById(R.id.btn_list_spawn_hachi);
+        btnListSpawnUsagi = findViewById(R.id.btn_list_spawn_usagi);
+        btnListSpawnPusheen = findViewById(R.id.btn_list_spawn_pusheen);
         btnAddCategories = findViewById(R.id.btn_add_categories);
 
         // Inspector views
         tvInspectorStatus = findViewById(R.id.tv_inspector_status);
+        ivInspectorMascot = findViewById(R.id.iv_inspector_mascot);
         btnSpawnCustom = findViewById(R.id.btn_spawn_custom);
         btnInteractionButton = findViewById(R.id.btn_interaction_button);
         btnCustomizeViews = findViewById(R.id.btn_customize_views);
@@ -114,6 +153,10 @@ public class MainActivity extends Activity {
         btnInspectorGuitar = findViewById(R.id.btn_inspector_guitar);
         btnInspectorBox = findViewById(R.id.btn_inspector_box);
         btnInspectorCenter = findViewById(R.id.btn_inspector_center);
+        btnInspectorPlay = findViewById(R.id.btn_inspector_play);
+        btnInspectorDance = findViewById(R.id.btn_inspector_dance);
+        btnInspectorTermux = findViewById(R.id.btn_inspector_termux);
+        btnInspectorFiles = findViewById(R.id.btn_inspector_files);
 
         // Settings views
         badgeSizeNum = findViewById(R.id.badge_size_num);
@@ -156,17 +199,23 @@ public class MainActivity extends Activity {
     }
 
     private void selectTab(int index) {
+        currentTabIndex = index;
+        int activeColor = (currentAccentColor != 0)
+            ? currentAccentColor
+            : getResources().getColor(R.color.accent_lavender_light);
+        int inactiveColor = getResources().getColor(R.color.text_secondary);
+
         tabFeatured.setBackgroundResource(index == 0 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
-        tabFeatured.setTextColor(getResources().getColor(index == 0 ? R.color.accent_lavender_light : R.color.text_secondary));
+        tabFeatured.setTextColor(index == 0 ? activeColor : inactiveColor);
 
         tabInstalled.setBackgroundResource(index == 1 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
-        tabInstalled.setTextColor(getResources().getColor(index == 1 ? R.color.accent_lavender_light : R.color.text_secondary));
+        tabInstalled.setTextColor(index == 1 ? activeColor : inactiveColor);
 
         tabInspector.setBackgroundResource(index == 2 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
-        tabInspector.setTextColor(getResources().getColor(index == 2 ? R.color.accent_lavender_light : R.color.text_secondary));
+        tabInspector.setTextColor(index == 2 ? activeColor : inactiveColor);
 
         tabSettings.setBackgroundResource(index == 3 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
-        tabSettings.setTextColor(getResources().getColor(index == 3 ? R.color.accent_lavender_light : R.color.text_secondary));
+        tabSettings.setTextColor(index == 3 ? activeColor : inactiveColor);
 
         screenFeatured.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
         screenInstalled.setVisibility(index == 1 ? View.VISIBLE : View.GONE);
@@ -194,54 +243,76 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Spawn handlers for 6 characters
-        btnSpawnKonata.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                spawnOrSelectSkin("Konata");
-            }
-        });
-        btnSpawnBocchi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                spawnOrSelectSkin("Bocchi");
-            }
-        });
-        btnSpawnMonika.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                spawnOrSelectSkin("Monika");
-            }
-        });
-        btnSpawnNatsuki.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                spawnOrSelectSkin("Natsuki");
-            }
-        });
-        btnSpawnSayori.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                spawnOrSelectSkin("Sayori");
-            }
-        });
-        btnSpawnYuri.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                spawnOrSelectSkin("Yuri");
-            }
-        });
+        // Spawn & Card click handlers for all 9 characters
+        View.OnClickListener clickKonata = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Konata"); }
+        };
+        btnSpawnKonata.setOnClickListener(clickKonata);
+        if (cardCharKonata != null) cardCharKonata.setOnClickListener(clickKonata);
+
+        View.OnClickListener clickBocchi = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Bocchi"); }
+        };
+        btnSpawnBocchi.setOnClickListener(clickBocchi);
+        if (cardCharBocchi != null) cardCharBocchi.setOnClickListener(clickBocchi);
+
+        View.OnClickListener clickMonika = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Monika"); }
+        };
+        btnSpawnMonika.setOnClickListener(clickMonika);
+        if (cardCharMonika != null) cardCharMonika.setOnClickListener(clickMonika);
+
+        View.OnClickListener clickNatsuki = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Natsuki"); }
+        };
+        btnSpawnNatsuki.setOnClickListener(clickNatsuki);
+        if (cardCharNatsuki != null) cardCharNatsuki.setOnClickListener(clickNatsuki);
+
+        View.OnClickListener clickSayori = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Sayori"); }
+        };
+        btnSpawnSayori.setOnClickListener(clickSayori);
+        if (cardCharSayori != null) cardCharSayori.setOnClickListener(clickSayori);
+
+        View.OnClickListener clickYuri = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Yuri"); }
+        };
+        btnSpawnYuri.setOnClickListener(clickYuri);
+        if (cardCharYuri != null) cardCharYuri.setOnClickListener(clickYuri);
+
+        View.OnClickListener clickHachi = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Hachi"); }
+        };
+        btnSpawnHachi.setOnClickListener(clickHachi);
+        if (cardCharHachi != null) cardCharHachi.setOnClickListener(clickHachi);
+
+        View.OnClickListener clickUsagi = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Usagi"); }
+        };
+        btnSpawnUsagi.setOnClickListener(clickUsagi);
+        if (cardCharUsagi != null) cardCharUsagi.setOnClickListener(clickUsagi);
+
+        View.OnClickListener clickPusheen = new View.OnClickListener() {
+            @Override public void onClick(View v) { spawnOrSelectSkin("Pusheen"); }
+        };
+        btnSpawnPusheen.setOnClickListener(clickPusheen);
+        if (cardCharPusheen != null) cardCharPusheen.setOnClickListener(clickPusheen);
     }
 
     private void setGridSizeTab(int idx) {
+        int activeColor = (currentAccentColor != 0)
+            ? currentAccentColor
+            : getResources().getColor(R.color.accent_lavender_light);
+        int inactiveColor = getResources().getColor(R.color.text_secondary);
+
         btnGridCompact.setBackgroundResource(idx == 0 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
-        btnGridCompact.setTextColor(getResources().getColor(idx == 0 ? R.color.accent_lavender_light : R.color.text_secondary));
+        btnGridCompact.setTextColor(idx == 0 ? activeColor : inactiveColor);
 
         btnGridStandard.setBackgroundResource(idx == 1 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
-        btnGridStandard.setTextColor(getResources().getColor(idx == 1 ? R.color.accent_lavender_light : R.color.text_secondary));
+        btnGridStandard.setTextColor(idx == 1 ? activeColor : inactiveColor);
 
         btnGridWide.setBackgroundResource(idx == 2 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
-        btnGridWide.setTextColor(getResources().getColor(idx == 2 ? R.color.accent_lavender_light : R.color.text_secondary));
+        btnGridWide.setTextColor(idx == 2 ? activeColor : inactiveColor);
     }
 
     private void setupInstalledScreen() {
@@ -280,6 +351,48 @@ public class MainActivity extends Activity {
             }
         });
 
+        btnListSpawnNatsuki.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spawnOrSelectSkin("Natsuki");
+            }
+        });
+
+        btnListSpawnSayori.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spawnOrSelectSkin("Sayori");
+            }
+        });
+
+        btnListSpawnYuri.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spawnOrSelectSkin("Yuri");
+            }
+        });
+
+        btnListSpawnHachi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spawnOrSelectSkin("Hachi");
+            }
+        });
+
+        btnListSpawnUsagi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spawnOrSelectSkin("Usagi");
+            }
+        });
+
+        btnListSpawnPusheen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                spawnOrSelectSkin("Pusheen");
+            }
+        });
+
         btnAddCategories.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -297,7 +410,8 @@ public class MainActivity extends Activity {
                     intent.setAction(ShimejiService.ACTION_ADD_SHIMEJI);
                     startService(intent);
                 } else {
-                    startShimejiWithSkin("Konata");
+                    String savedSkin = prefs.getString(KEY_SKIN, "Konata");
+                    startShimejiWithSkin(savedSkin);
                 }
             }
         });
@@ -350,6 +464,34 @@ public class MainActivity extends Activity {
                 } else {
                     Toast.makeText(MainActivity.this, "Inicia el Shimeji primero", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        btnInspectorPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                triggerAction("play");
+            }
+        });
+
+        btnInspectorDance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                triggerAction("dance");
+            }
+        });
+
+        btnInspectorTermux.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchTermux();
+            }
+        });
+
+        btnInspectorFiles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createDemoFilesAndFolders();
             }
         });
     }
@@ -422,6 +564,22 @@ public class MainActivity extends Activity {
                 stopShimeji();
             }
         });
+
+        setupColorPaletteListeners();
+    }
+
+    private void updateInspectorMascot(String skinId) {
+        if (ivInspectorMascot == null) return;
+        int resId = R.drawable.ic_konata;
+        if ("Bocchi".equalsIgnoreCase(skinId)) resId = R.drawable.ic_bocchi;
+        else if ("Monika".equalsIgnoreCase(skinId)) resId = R.drawable.ic_monika;
+        else if ("Natsuki".equalsIgnoreCase(skinId)) resId = R.drawable.ic_natsuki;
+        else if ("Sayori".equalsIgnoreCase(skinId)) resId = R.drawable.ic_sayori;
+        else if ("Yuri".equalsIgnoreCase(skinId)) resId = R.drawable.ic_yuri;
+        else if ("Hachi".equalsIgnoreCase(skinId)) resId = R.drawable.ic_hachi;
+        else if ("Usagi".equalsIgnoreCase(skinId)) resId = R.drawable.ic_usagi;
+        else if ("Pusheen".equalsIgnoreCase(skinId)) resId = R.drawable.ic_pusheen;
+        ivInspectorMascot.setImageResource(resId);
     }
 
     private void spawnOrSelectSkin(String skinId) {
@@ -432,13 +590,14 @@ public class MainActivity extends Activity {
         }
 
         prefs.edit().putString(KEY_SKIN, skinId).apply();
+        updateInspectorMascot(skinId);
 
         if (ShimejiService.isRunning) {
             Intent intent = new Intent(this, ShimejiService.class);
-            intent.setAction(ShimejiService.ACTION_ADD_SHIMEJI);
+            intent.setAction(ShimejiService.ACTION_SET_SKIN);
             intent.putExtra(ShimejiService.EXTRA_SKIN, skinId);
             startService(intent);
-            Toast.makeText(this, skinId + " invocado en pantalla", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, skinId + " activo en pantalla", Toast.LENGTH_SHORT).show();
         } else {
             startShimejiWithSkin(skinId);
         }
@@ -578,6 +737,166 @@ public class MainActivity extends Activity {
         }
 
         cbSettingsZeroG.setChecked(prefs.getBoolean(KEY_ZERO_G, false));
+
+        String savedSkin = prefs.getString(KEY_SKIN, "Konata");
+        updateInspectorMascot(savedSkin);
+
+        int savedAccent = prefs.getInt("selected_accent_index", 0);
+        int[] colorResIds = {
+            R.color.palette_color_1, R.color.palette_color_2, R.color.palette_color_3,
+            R.color.palette_color_4, R.color.palette_color_5, R.color.palette_color_6
+        };
+        String[] colorNames = {
+            "Violeta Real", "Lavanda Suave", "Rosa Pastel",
+            "Ambar Calido", "Menta Fresca", "Cielo Pastel"
+        };
+        if (savedAccent >= 0 && savedAccent < colorResIds.length) {
+            applyAccentColor(colorResIds[savedAccent], colorNames[savedAccent], savedAccent);
+        }
+    }
+
+    private void setupColorPaletteListeners() {
+        int[] colorCircleIds = {
+            R.id.iv_color_1, R.id.iv_color_2, R.id.iv_color_3,
+            R.id.iv_color_4, R.id.iv_color_5, R.id.iv_color_6
+        };
+        final int[] colorResIds = {
+            R.color.palette_color_1, R.color.palette_color_2, R.color.palette_color_3,
+            R.color.palette_color_4, R.color.palette_color_5, R.color.palette_color_6
+        };
+        final String[] colorNames = {
+            "Violeta Real", "Lavanda Suave", "Rosa Pastel",
+            "Ambar Calido", "Menta Fresca", "Cielo Pastel"
+        };
+
+        for (int i = 0; i < colorCircleIds.length; i++) {
+            final int index = i;
+            final View iv = findViewById(colorCircleIds[i]);
+            if (iv != null) {
+                iv.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        applyAccentColor(colorResIds[index], colorNames[index], index);
+                    }
+                });
+            }
+        }
+    }
+
+    private void applyAccentColor(int colorResId, String colorName, int index) {
+        currentAccentColor = getResources().getColor(colorResId);
+        prefs.edit().putInt("selected_accent_index", index).apply();
+
+        ColorStateList tintList = ColorStateList.valueOf(currentAccentColor);
+
+        int[] colorCircleIds = {
+            R.id.iv_color_1, R.id.iv_color_2, R.id.iv_color_3,
+            R.id.iv_color_4, R.id.iv_color_5, R.id.iv_color_6
+        };
+        for (int i = 0; i < colorCircleIds.length; i++) {
+            View circle = findViewById(colorCircleIds[i]);
+            if (circle != null) {
+                circle.setScaleX(i == index ? 1.3f : 1.0f);
+                circle.setScaleY(i == index ? 1.3f : 1.0f);
+                circle.setAlpha(i == index ? 1.0f : 0.6f);
+            }
+        }
+
+        // Tint all buttons across the application
+        Button[] allButtons = {
+            btnSpawnKonata, btnSpawnBocchi, btnSpawnMonika, btnSpawnNatsuki, btnSpawnSayori, btnSpawnYuri,
+            btnSpawnHachi, btnSpawnUsagi, btnSpawnPusheen,
+            btnListSpawnKonata, btnListSpawnBocchi, btnListSpawnMonika, btnListSpawnNatsuki, btnListSpawnSayori,
+            btnListSpawnYuri, btnListSpawnHachi, btnListSpawnUsagi, btnListSpawnPusheen, btnAddCategories,
+            btnSpawnCustom, btnInteractionButton, btnCustomizeViews, btnInspectorVoice, btnInspectorGuitar,
+            btnInspectorBox, btnInspectorCenter, btnInspectorPlay, btnInspectorDance, btnInspectorTermux,
+            btnInspectorFiles, btnSettingsPermission, btnSettingsAppFilter, btnSettingsClearExtras
+        };
+        for (Button b : allButtons) {
+            if (b != null) {
+                b.setBackgroundTintList(tintList);
+            }
+        }
+
+        if (badgePremium != null) {
+            badgePremium.setBackgroundTintList(tintList);
+        }
+
+        if (tvActiveOverlayCount != null) {
+            tvActiveOverlayCount.setTextColor(currentAccentColor);
+        }
+        if (badgeSizeNum != null) {
+            badgeSizeNum.setTextColor(currentAccentColor);
+        }
+        if (tvAppTitle != null) {
+            tvAppTitle.setTextColor(currentAccentColor);
+        }
+
+        if (cbSettingsZeroG != null) {
+            cbSettingsZeroG.setButtonTintList(tintList);
+        }
+        if (rgSettingsSize != null) {
+            for (int i = 0; i < rgSettingsSize.getChildCount(); i++) {
+                View child = rgSettingsSize.getChildAt(i);
+                if (child instanceof RadioButton) {
+                    ((RadioButton) child).setButtonTintList(tintList);
+                }
+            }
+        }
+
+        // Re-apply tab coloring with currentAccentColor
+        selectTab(currentTabIndex);
+
+        Toast.makeText(this, "Tema aplicado: " + colorName, Toast.LENGTH_SHORT).show();
+    }
+
+    private void launchTermux() {
+        PackageManager pm = getPackageManager();
+        Intent launch = pm.getLaunchIntentForPackage("com.termux");
+        if (launch != null) {
+            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(launch);
+            Toast.makeText(this, "Iniciando Termux...", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Termux no esta instalado (com.termux). Puedes descargarlo desde F-Droid.", Toast.LENGTH_LONG).show();
+            try {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://f-droid.org/packages/com.termux/"));
+                startActivity(browserIntent);
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private void createDemoFilesAndFolders() {
+        try {
+            java.io.File dir = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS), "Shijima");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            java.io.File file = new java.io.File(dir, "shijima_quick_notes.txt");
+            java.io.FileWriter writer = new java.io.FileWriter(file, false);
+            writer.write("# Shijima Desktop Companion - Comandos y Notas\n");
+            writer.write("Fecha de creacion: " + new java.util.Date() + "\n\n");
+            writer.write("Comandos utiles para Termux:\n");
+            writer.write("1. pkg update && pkg upgrade\n");
+            writer.write("2. pkg install python git curl neofetch\n");
+            writer.write("3. termux-setup-storage\n");
+            writer.write("4. ls -la ~/storage/shared/Documents/Shijima/\n");
+            writer.close();
+
+            java.io.File localDir = new java.io.File(getExternalFilesDir(null), "Shijima");
+            if (!localDir.exists()) localDir.mkdirs();
+            java.io.File localFile = new java.io.File(localDir, "shijima_quick_notes.txt");
+            java.io.FileWriter localWriter = new java.io.FileWriter(localFile, false);
+            localWriter.write("Notas creadas correctamente.\n");
+            localWriter.close();
+
+            Toast.makeText(this, "Carpeta y notas creadas en Documents/Shijima", Toast.LENGTH_LONG).show();
+            if (ShimejiService.isRunning) {
+                triggerAction("files");
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Notas guardadas en almacenamiento de la app", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

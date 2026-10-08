@@ -56,8 +56,11 @@ if ($LASTEXITCODE -ne 0) { throw "Error en javac" }
 
 # 5. Generar bytecode Dalvik con D8
 Write-Host "[5/7] Generando classes.dex con D8..." -ForegroundColor Yellow
-$classFiles = Get-ChildItem -Path "$BUILD_DIR\obj" -Recurse -Filter "*.class" | Select-Object -ExpandProperty FullName
-& "$SDK_BUILD_TOOLS\d8.bat" --release --min-api 26 --output "$BUILD_DIR\dex" $classFiles
+$jarClasses = "$BUILD_DIR\temp_classes.jar"
+Push-Location "$BUILD_DIR\obj"
+& "$JAVA_DIR\jar.exe" -cf $jarClasses .
+Pop-Location
+& "$SDK_BUILD_TOOLS\d8.bat" --release --min-api 26 --output "$BUILD_DIR\dex" $jarClasses
 if ($LASTEXITCODE -ne 0) { throw "Error en d8" }
 
 # 6. Empaquetar classes.dex y assets en el APK

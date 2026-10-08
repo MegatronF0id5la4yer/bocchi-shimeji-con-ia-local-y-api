@@ -225,6 +225,54 @@ public class VoiceAssistantManager {
             return;
         }
 
+        if (cmd.contains("baila") || cmd.contains("bailar") || cmd.contains("danza")) {
+            if (callback != null) {
+                callback.onActionTriggered("dance");
+                callback.onAssistantResponse("Bailando! Sigue el ritmo.");
+            }
+            return;
+        }
+
+        if (cmd.contains("rueda") || cmd.contains("girar") || cmd.contains("vuelta")) {
+            if (callback != null) {
+                callback.onActionTriggered("roll");
+                callback.onAssistantResponse("Vuelta acrobatica!");
+            }
+            return;
+        }
+
+        if (cmd.contains("brinca") || cmd.contains("salto alto")) {
+            if (callback != null) {
+                callback.onActionTriggered("jump");
+                callback.onAssistantResponse("Salto acrobatico!");
+            }
+            return;
+        }
+
+        if (cmd.contains("juega") || cmd.contains("jugar") || cmd.contains("minijuego")) {
+            if (callback != null) {
+                callback.onActionTriggered("play");
+                callback.onAssistantResponse("A jugar juntos!");
+            }
+            return;
+        }
+
+        if (cmd.contains("termux") || cmd.contains("consola") || cmd.contains("terminal")) {
+            if (callback != null) {
+                callback.onActionTriggered("termux");
+                callback.onAssistantResponse("Iniciando comandos de Termux.");
+            }
+            return;
+        }
+
+        if (cmd.contains("crea carpeta") || cmd.contains("crear carpeta") || cmd.contains("crea archivo") || cmd.contains("crear archivo") || cmd.contains("notas")) {
+            if (callback != null) {
+                callback.onActionTriggered("create_file");
+                callback.onAssistantResponse("Creando carpeta y notas en Documents/Shijima.");
+            }
+            return;
+        }
+
         if (cmd.contains("salta") || cmd.contains("muevete") || cmd.contains("vuela") || cmd.contains("flotar")) {
             if (callback != null) {
                 callback.onActionTriggered("roam");

@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -73,8 +74,12 @@ public class ShimejiService extends Service {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
-        currentSkin = SkinData.get("Konata");
-        sizePx = dpToPx(128);
+        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        String savedSkin = sp.getString(MainActivity.KEY_SKIN, "Konata");
+        currentSkin = SkinData.get(savedSkin);
+        int savedSize = sp.getInt(MainActivity.KEY_SIZE, 128);
+        sizePx = dpToPx(savedSize);
+        zeroGravity = sp.getBoolean(MainActivity.KEY_ZERO_G, false);
 
         updateScreenDimensions();
         createNotificationChannel();
@@ -272,6 +277,14 @@ public class ShimejiService extends Service {
     }
 
     public void triggerAction(String trig) {
+        if ("termux".equalsIgnoreCase(trig)) {
+            openTermux();
+            return;
+        } else if ("create_file".equalsIgnoreCase(trig) || "files".equalsIgnoreCase(trig)) {
+            createFilesAndFolder();
+            return;
+        }
+
         for (ShimejiEntity entity : shimejiList) {
             if ("guitar".equalsIgnoreCase(trig)) {
                 entity.state = "GUITAR";
@@ -281,6 +294,39 @@ public class ShimejiService extends Service {
                 entity.state = "BOX";
                 entity.stateTimer = 140;
                 entity.say("Modo caja seguro.", 2500);
+            } else if ("dance".equalsIgnoreCase(trig)) {
+                entity.state = "DANCE";
+                entity.stateTimer = 130;
+                entity.say("Bailando! Sigue el ritmo!", 2600);
+                triggerHaptic(30);
+            } else if ("roll".equalsIgnoreCase(trig)) {
+                entity.state = "ROLL";
+                entity.stateTimer = 110;
+                entity.velX = (entity.facing != 0 ? entity.facing : 1) * dpToPx(5f);
+                entity.say("Rodando por la pantalla!", 2500);
+                triggerHaptic(30);
+            } else if ("jump".equalsIgnoreCase(trig)) {
+                entity.state = "JUMP";
+                entity.velY = -dpToPx(7f);
+                entity.say("Salto acrobatico! Boing!", 2400);
+                triggerHaptic(35);
+            } else if ("play".equalsIgnoreCase(trig)) {
+                int game = random.nextInt(3);
+                triggerHaptic(40);
+                if (game == 0) {
+                    entity.state = "DANCE";
+                    entity.stateTimer = 130;
+                    entity.say("A bailar juntos!", 2500);
+                } else if (game == 1) {
+                    entity.state = "ROLL";
+                    entity.stateTimer = 110;
+                    entity.velX = (random.nextBoolean() ? 1 : -1) * dpToPx(4.5f);
+                    entity.say("Atrapame si puedes!", 2500);
+                } else {
+                    entity.state = "JUMP";
+                    entity.velY = -dpToPx(7.5f);
+                    entity.say("A jugar al salto alto!", 2500);
+                }
             } else if ("roam".equalsIgnoreCase(trig)) {
                 entity.state = "ROAM";
                 entity.velY = -dpToPx(3.5f);
@@ -297,6 +343,65 @@ public class ShimejiService extends Service {
                 }
             } else if ("cycle_skin".equalsIgnoreCase(trig)) {
                 entity.cycleSkin();
+            }
+        }
+    }
+
+    public void openTermux() {
+        try {
+            android.content.pm.PackageManager pm = getPackageManager();
+            Intent launch = pm.getLaunchIntentForPackage("com.termux");
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(launch);
+                triggerHaptic(40);
+                if (!shimejiList.isEmpty()) {
+                    shimejiList.get(0).say("Termux iniciado con exito.", 2800);
+                }
+            } else {
+                if (!shimejiList.isEmpty()) {
+                    shimejiList.get(0).say("Termux no instalado (com.termux).", 3000);
+                }
+            }
+        } catch (Exception e) {
+            if (!shimejiList.isEmpty()) {
+                shimejiList.get(0).say("Error al lanzar Termux.", 2500);
+            }
+        }
+    }
+
+    public void createFilesAndFolder() {
+        try {
+            java.io.File dir = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS), "Shijima");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            java.io.File file = new java.io.File(dir, "shijima_quick_notes.txt");
+            java.io.FileWriter writer = new java.io.FileWriter(file, false);
+            writer.write("# Shijima Companion - Notas y Comandos Termux\n");
+            writer.write("Generado: " + new java.util.Date() + "\n\n");
+            writer.write("Comandos utiles para Termux:\n");
+            writer.write("1. pkg update && pkg upgrade\n");
+            writer.write("2. pkg install python git curl neofetch clang\n");
+            writer.write("3. termux-setup-storage\n");
+            writer.write("4. ls -la ~/storage/shared/Documents/Shijima/\n");
+            writer.close();
+
+            // Guardar tambien copia interna de respaldo
+            java.io.File localDir = new java.io.File(getExternalFilesDir(null), "Shijima");
+            if (!localDir.exists()) localDir.mkdirs();
+            java.io.File localFile = new java.io.File(localDir, "shijima_quick_notes.txt");
+            java.io.FileWriter localWriter = new java.io.FileWriter(localFile, false);
+            localWriter.write("Notas creadas correctamente.\n");
+            localWriter.close();
+
+            triggerHaptic(50);
+            if (!shimejiList.isEmpty()) {
+                shimejiList.get(0).say("Archivo y carpeta creados en Documents/Shijima!", 3200);
+            }
+        } catch (Exception e) {
+            if (!shimejiList.isEmpty()) {
+                shimejiList.get(0).say("Guardado en almacenamiento de la app.", 2800);
             }
         }
     }
@@ -348,17 +453,36 @@ public class ShimejiService extends Service {
             if (ACTION_STOP.equals(action)) {
                 stopSelf();
                 return START_NOT_STICKY;
-            } else if (ACTION_SET_SKIN.equals(action)) {
+            } else if (ACTION_START.equals(action) || ACTION_SET_SKIN.equals(action)) {
                 String skinId = intent.getStringExtra(EXTRA_SKIN);
                 if (skinId != null) {
                     currentSkin = SkinData.get(skinId);
+                    getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE)
+                        .edit().putString(MainActivity.KEY_SKIN, skinId).apply();
+
                     if (!shimejiList.isEmpty()) {
                         ShimejiEntity primary = shimejiList.get(0);
-                        primary.skin = currentSkin;
-                        primary.updateSprite();
-                        primary.say("Skin: " + currentSkin.name, 2500);
+                        primary.setSkin(currentSkin);
+                    } else {
+                        float startX = screenWidth / 2f - (sizePx / 2f);
+                        float startY = screenHeight - sizePx - dpToPx(45);
+                        ShimejiEntity primary = new ShimejiEntity(this, nextEntityId++, currentSkin, startX, startY);
+                        shimejiList.add(primary);
                     }
                     updateNotification();
+                }
+                int dp = intent.getIntExtra(EXTRA_SIZE_DP, 0);
+                if (dp > 0) {
+                    sizePx = dpToPx(dp);
+                    for (ShimejiEntity entity : shimejiList) {
+                        entity.updateSize(sizePx);
+                    }
+                }
+                if (intent.hasExtra(EXTRA_ZERO_GRAVITY)) {
+                    zeroGravity = intent.getBooleanExtra(EXTRA_ZERO_GRAVITY, false);
+                    for (ShimejiEntity entity : shimejiList) {
+                        entity.zeroGravity = zeroGravity;
+                    }
                 }
             } else if (ACTION_SET_SIZE.equals(action)) {
                 int dp = intent.getIntExtra(EXTRA_SIZE_DP, 128);

@@ -162,6 +162,54 @@ public class ShimejiEntity {
             }
         });
 
+        // Jugar
+        View btnPlay = overlayView.findViewById(R.id.btn_menu_play);
+        if (btnPlay != null) {
+            btnPlay.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    service.triggerAction("play");
+                }
+            });
+        }
+
+        // Bailar
+        View btnDance = overlayView.findViewById(R.id.btn_menu_dance);
+        if (btnDance != null) {
+            btnDance.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    service.triggerAction("dance");
+                }
+            });
+        }
+
+        // Termux
+        View btnTermux = overlayView.findViewById(R.id.btn_menu_termux);
+        if (btnTermux != null) {
+            btnTermux.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    service.openTermux();
+                }
+            });
+        }
+
+        // Archivos
+        View btnFiles = overlayView.findViewById(R.id.btn_menu_files);
+        if (btnFiles != null) {
+            btnFiles.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    service.createFilesAndFolder();
+                }
+            });
+        }
+
         // Flotar / Caer
         overlayView.findViewById(R.id.btn_menu_gravity).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -193,12 +241,18 @@ public class ShimejiEntity {
         });
     }
 
+    public void setSkin(SkinData newSkin) {
+        if (newSkin == null) return;
+        this.skin = newSkin;
+        updateSprite();
+        say("Hola! Soy " + skin.name + "!", 2500);
+    }
+
     public void cycleSkin() {
         String nextId = SkinData.getNextSkin(skin.id);
-        skin = SkinData.get(nextId);
+        SkinData newSkin = SkinData.get(nextId);
         service.triggerHaptic(35);
-        updateSprite();
-        say("Personaje: " + skin.name, 2500);
+        setSkin(newSkin);
     }
 
     public void showMenu() {
@@ -266,8 +320,15 @@ public class ShimejiEntity {
                             }
                         }
 
-                        posX = initialPosX + (curX - touchStartX);
-                        posY = initialPosY + (curY - touchStartY);
+                        int szMove = service.getSizePx();
+                        int screenWMove = service.getScreenWidth();
+                        int screenHMove = service.getScreenHeight();
+                        int topMarginMove = service.dpToPx(24);
+                        int bottomMarginMove = screenHMove - szMove - service.dpToPx(35);
+
+                        // Clamp estrictamente a los bordes visibles de la pantalla
+                        posX = Math.max(0, Math.min(screenWMove - szMove, initialPosX + (curX - touchStartX)));
+                        posY = Math.max(topMarginMove, Math.min(bottomMarginMove, initialPosY + (curY - touchStartY)));
 
                         params.x = (int) posX;
                         params.y = (int) posY;
@@ -283,6 +344,15 @@ public class ShimejiEntity {
                         isDragging = false;
                         handler.removeCallbacks(longPressRunnable);
 
+                        int szUp = service.getSizePx();
+                        int screenWUp = service.getScreenWidth();
+                        int screenHUp = service.getScreenHeight();
+                        int topMarginUp = service.dpToPx(24);
+                        int bottomMarginUp = screenHUp - szUp - service.dpToPx(35);
+
+                        posX = Math.max(0, Math.min(screenWUp - szUp, posX));
+                        posY = Math.max(topMarginUp, Math.min(bottomMarginUp, posY));
+
                         if (isLongPressTriggered) return true;
 
                         float totalDist = (float) Math.hypot(event.getRawX() - touchStartX, event.getRawY() - touchStartY);
@@ -291,7 +361,7 @@ public class ShimejiEntity {
                         if (totalDist < service.dpToPx(12) && duration < 380) {
                             onPoke();
                         } else {
-                            currentFloorY = Math.min(service.getScreenHeight() - service.getSizePx() - service.dpToPx(20), Math.max(service.dpToPx(40), posY));
+                            currentFloorY = Math.min(bottomMarginUp, Math.max(topMarginUp, posY));
 
                             long dt = System.currentTimeMillis() - lastMoveTime;
                             if (dt > 0 && dt < 150) {
@@ -349,10 +419,10 @@ public class ShimejiEntity {
 
         boolean isZeroG = zeroGravity || globalZeroGravity;
         int sizePx = service.getSizePx();
-        int bottomEdge = screenHeight - sizePx - service.dpToPx(35);
-        int topEdge = service.dpToPx(30);
-        int leftEdge = -service.dpToPx(12);
-        int rightEdge = screenWidth - sizePx + service.dpToPx(12);
+        int leftEdge = 0;
+        int rightEdge = Math.max(0, screenWidth - sizePx);
+        int topEdge = service.dpToPx(24);
+        int bottomEdge = Math.max(topEdge, screenHeight - sizePx - service.dpToPx(35));
 
         tickCount++;
 
@@ -500,18 +570,61 @@ public class ShimejiEntity {
                 velY = service.dpToPx(1.5f);
             }
         }
-        // 7. Estados estaticos
+        // 7. Danza
+        else if ("DANCE".equals(state)) {
+            if (tickCount % 6 == 0) {
+                facing = -facing;
+            }
+            stateTimer--;
+            if (stateTimer <= 0) pickRandomState();
+        }
+        // 8. Rodar
+        else if ("ROLL".equals(state)) {
+            posX += velX;
+            if (posX <= leftEdge) {
+                posX = leftEdge;
+                velX = Math.abs(velX);
+                facing = 1;
+            } else if (posX >= rightEdge) {
+                posX = rightEdge;
+                velX = -Math.abs(velX);
+                facing = -1;
+            }
+            stateTimer--;
+            if (stateTimer <= 0) pickRandomState();
+        }
+        // 9. Salto acrobatico
+        else if ("JUMP".equals(state)) {
+            velY += 1.8f;
+            posY += velY;
+            posX += velX;
+
+            if (posX <= leftEdge) {
+                posX = leftEdge;
+                velX = -velX * 0.5f;
+            } else if (posX >= rightEdge) {
+                posX = rightEdge;
+                velX = -velX * 0.5f;
+            }
+
+            if (posY >= currentFloorY) {
+                posY = currentFloorY;
+                velY = 0;
+                velX = 0;
+                state = "STAND";
+                stateTimer = 40 + random.nextInt(50);
+                service.triggerHaptic(15);
+            }
+        }
+        // 10. Estados estaticos
         else {
             stateTimer--;
             if (stateTimer <= 0) pickRandomState();
         }
 
-        if (posY > bottomEdge) {
-            posY = bottomEdge;
-            currentFloorY = bottomEdge;
-        } else if (posY < topEdge && !"CEILING".equals(state)) {
-            posY = topEdge;
-        }
+        // Clamp absoluto e inquebrantable a los limites de la pantalla
+        posX = Math.max(leftEdge, Math.min(rightEdge, posX));
+        posY = Math.max(topEdge, Math.min(bottomEdge, posY));
 
         if (random.nextInt(900) == 77 && tvSpeechBubble.getVisibility() != View.VISIBLE && layoutLongPressMenu.getVisibility() != View.VISIBLE) {
             String[] dl = skin.dialogues;
@@ -540,17 +653,17 @@ public class ShimejiEntity {
             velX = facing * (service.dpToPx(1.2f) + random.nextFloat() * service.dpToPx(1.5f));
             velY = (random.nextBoolean() ? 1 : -1) * (service.dpToPx(1f) + random.nextFloat() * service.dpToPx(1.5f));
             stateTimer = 80 + random.nextInt(100);
-        } else if (r < 0.80f) {
+        } else if (r < 0.75f) {
             state = "STAND";
             velX = 0;
             velY = 0;
             stateTimer = 60 + random.nextInt(90);
-        } else if (r < 0.90f) {
+        } else if (r < 0.85f) {
             state = "SIT";
             velX = 0;
             velY = 0;
             stateTimer = 80 + random.nextInt(90);
-        } else if (r < 0.95f) {
+        } else if (r < 0.92f) {
             state = "GUITAR";
             velX = 0;
             velY = 0;
@@ -568,6 +681,16 @@ public class ShimejiEntity {
 
         if ("FALL".equals(state) || "ROAM".equals(state)) {
             frameName = (Math.abs(velY) > service.dpToPx(3)) ? "fall1" : "stand1";
+        } else if ("JUMP".equals(state)) {
+            frameName = (velY > 0) ? "fall1" : "stand3";
+        } else if ("DANCE".equals(state)) {
+            String[] danceFrames = {"walk2", "walk4", "stand2", "sit1"};
+            int idx = (tickCount / 4) % danceFrames.length;
+            frameName = danceFrames[idx];
+        } else if ("ROLL".equals(state)) {
+            String[] rollFrames = {"fall1", "sit1", "stand1"};
+            int idx = (tickCount / 3) % rollFrames.length;
+            frameName = rollFrames[idx];
         } else if ("WALK".equals(state) || "CEILING".equals(state)) {
             String[] walkFrames = {"walk1", "walk2", "walk3", "walk4", "walk5"};
             int idx = (tickCount / 5) % walkFrames.length;

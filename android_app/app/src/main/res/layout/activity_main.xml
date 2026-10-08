@@ -439,7 +439,7 @@
                         <ImageView
                             android:layout_width="72dp"
                             android:layout_height="72dp"
-                            android:src="@drawable/ic_launcher"
+                            android:src="@drawable/ic_monika"
                             android:layout_marginBottom="6dp"
                             android:contentDescription="Monika" />
 
@@ -485,7 +485,7 @@
                         <ImageView
                             android:layout_width="72dp"
                             android:layout_height="72dp"
-                            android:src="@drawable/ic_launcher"
+                            android:src="@drawable/ic_natsuki"
                             android:layout_marginBottom="6dp"
                             android:contentDescription="Natsuki" />
 
@@ -522,7 +522,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="12dp">
 
                     <!-- Card 5: Sayori -->
                     <LinearLayout
@@ -539,7 +539,7 @@
                         <ImageView
                             android:layout_width="72dp"
                             android:layout_height="72dp"
-                            android:src="@drawable/ic_launcher"
+                            android:src="@drawable/ic_sayori"
                             android:layout_marginBottom="6dp"
                             android:contentDescription="Sayori" />
 
@@ -585,7 +585,7 @@
                         <ImageView
                             android:layout_width="72dp"
                             android:layout_height="72dp"
-                            android:src="@drawable/ic_launcher"
+                            android:src="@drawable/ic_yuri"
                             android:layout_marginBottom="6dp"
                             android:contentDescription="Yuri" />
 
@@ -615,6 +615,167 @@
                             android:textSize="11sp"
                             android:textStyle="bold" />
                     </LinearLayout>
+                </LinearLayout>
+
+                <!-- Grid of Square Character Cards (Row 4: Hachiware & Usagi) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <!-- Card 7: Hachiware -->
+                    <LinearLayout
+                        android:id="@+id/card_char_hachi"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginRight="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_hachi"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Hachiware" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hachiware"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chiikawa Hero"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_hachi"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Card 8: Usagi -->
+                    <LinearLayout
+                        android:id="@+id/card_char_usagi"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginLeft="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_usagi"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Usagi" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Usagi"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chiikawa Energy"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_usagi"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Grid of Square Character Cards (Row 5: Pusheen) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Card 9: Pusheen -->
+                    <LinearLayout
+                        android:id="@+id/card_char_pusheen"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_character_grid"
+                        android:padding="12dp"
+                        android:gravity="center"
+                        android:layout_marginRight="6dp">
+
+                        <ImageView
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_pusheen"
+                            android:layout_marginBottom="6dp"
+                            android:contentDescription="Pusheen" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pusheen"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cozy Cat"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_spawn_pusheen"
+                            android:layout_width="match_parent"
+                            android:layout_height="34dp"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Spawn"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Spacer cell to balance the 2-column grid -->
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginLeft="6dp" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -823,7 +984,7 @@
                     <ImageView
                         android:layout_width="44dp"
                         android:layout_height="44dp"
-                        android:src="@drawable/ic_launcher"
+                        android:src="@drawable/ic_monika"
                         android:layout_marginRight="12dp"
                         android:contentDescription="Icon" />
 
@@ -859,6 +1020,354 @@
 
                     <Button
                         android:id="@+id/btn_list_spawn_monika"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 4: Natsuki -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_natsuki"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Manga Baker"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Natsuki • DDLC Club"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_natsuki"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 5: Sayori -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_sayori"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sunshine Friend"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sayori • DDLC Club"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_sayori"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 6: Yuri -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_yuri"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Passionate Reader"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Yuri • DDLC Club"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_yuri"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 7: Hachiware -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_hachi"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hachiware"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chiikawa Hero • Positivity"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_hachi"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 8: Usagi -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="10dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_usagi"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Usagi"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chiikawa • Pure Chaos &amp; Energy"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_usagi"
+                        android:layout_width="72dp"
+                        android:layout_height="34dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Spawn"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Mascot Item 9: Pusheen -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="14dp"
+                    android:layout_marginBottom="18dp">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_pusheen"
+                        android:layout_marginRight="12dp"
+                        android:contentDescription="Icon" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pusheen the Cat"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Snack Enthusiast • Soft Cat"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=":::"
+                        android:textColor="@color/text_muted"
+                        android:textSize="18sp"
+                        android:paddingRight="12dp" />
+
+                    <Button
+                        android:id="@+id/btn_list_spawn_pusheen"
                         android:layout_width="72dp"
                         android:layout_height="34dp"
                         android:background="@drawable/btn_pill_violet"
@@ -1000,11 +1509,12 @@
                         android:layout_marginBottom="8dp" />
                 </LinearLayout>
 
-                <!-- Live Quick Action Chips -->
+                <!-- Live Quick Action Chips (Row 1) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
 
                     <Button
                         android:id="@+id/btn_inspector_guitar"
@@ -1036,6 +1546,68 @@
                         android:layout_weight="1"
                         android:background="@drawable/chip_action_bg"
                         android:text="Centrar"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:layout_marginLeft="4dp" />
+                </LinearLayout>
+
+                <!-- Live Quick Action Chips (Row 2: Jugar & Bailar) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btn_inspector_play"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="Jugar Minijuego"
+                        android:textColor="@color/accent_warm"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginRight="4dp" />
+
+                    <Button
+                        android:id="@+id/btn_inspector_dance"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="Bailar Ritmo"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:layout_marginLeft="4dp" />
+                </LinearLayout>
+
+                <!-- Live Quick Action Chips (Row 3: Termux & Archivos) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btn_inspector_termux"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/btn_pill_outline"
+                        android:text="Lanzar Termux"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginRight="4dp" />
+
+                    <Button
+                        android:id="@+id/btn_inspector_files"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/btn_pill_outline"
+                        android:text="Crear Carpeta/Notas"
                         android:textColor="@color/text_primary"
                         android:textSize="11sp"
                         android:layout_marginLeft="4dp" />
@@ -1265,44 +1837,62 @@
                         android:layout_marginBottom="14dp">
 
                         <ImageView
+                            android:id="@+id/iv_color_1"
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@drawable/color_circle_1"
                             android:layout_marginRight="8dp"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:contentDescription="Color 1" />
 
                         <ImageView
+                            android:id="@+id/iv_color_2"
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@drawable/color_circle_2"
                             android:layout_marginRight="8dp"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:contentDescription="Color 2" />
 
                         <ImageView
+                            android:id="@+id/iv_color_3"
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@drawable/color_circle_3"
                             android:layout_marginRight="8dp"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:contentDescription="Color 3" />
 
                         <ImageView
+                            android:id="@+id/iv_color_4"
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@drawable/color_circle_4"
                             android:layout_marginRight="8dp"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:contentDescription="Color 4" />
 
                         <ImageView
+                            android:id="@+id/iv_color_5"
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@drawable/color_circle_5"
                             android:layout_marginRight="8dp"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:contentDescription="Color 5" />
 
                         <ImageView
+                            android:id="@+id/iv_color_6"
                             android:layout_width="32dp"
                             android:layout_height="32dp"
                             android:src="@drawable/color_circle_6"
+                            android:clickable="true"
+                            android:focusable="true"
                             android:contentDescription="Color 6" />
                     </LinearLayout>
 
