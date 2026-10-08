@@ -1,0 +1,14 @@
+<resources>
+    <color name="bg_dark">#181825</color>
+    <color name="surface_dark">#1e1e2e</color>
+    <color name="surface_variant">#313244</color>
+    <color name="accent_pink">#ff79c6</color>
+    <color name="accent_blue">#89b4fa</color>
+    <color name="text_light">#cdd6f4</color>
+    <color name="text_dim">#a6adc8</color>
+    <color name="success_green">#a6e3a1</color>
+    <color name="error_red">#f38ba8</color>
+    <color name="bubble_bg">#f01e1e2e</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+</resources>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PinkChan Shimeji</string>
+    <string name="service_name">PinkChan Shimeji Overlay Service</string>
+    <string name="notification_title">PinkChan Shimeji activo</string>
+    <string name="notification_desc">El personaje está sobrepuesto en tu pantalla</string>
+    <string name="btn_stop">Detener</string>
+</resources>

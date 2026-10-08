@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header con Título y Logo -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:src="@drawable/ic_launcher"
+                android:layout_marginRight="12dp"
+                android:contentDescription="Icono" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PinkChan Shimeji"
+                    android:textColor="@color/accent_pink"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mascota flotante sobre tus aplicaciones"
+                    android:textColor="@color/text_dim"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tarjeta 1: Permiso de Superposición -->
+        <LinearLayout
+            android:id="@+id/card_permission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Permiso de Superposición"
+                    android:textColor="@color/text_light"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tv_permission_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/badge_status_warn"
+                    android:text="PENDIENTE"
+                    android:textColor="@color/error_red"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingRight="10dp"
+                    android:paddingBottom="3dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Requerido para que el personaje pueda caminar encima de WhatsApp, YouTube, TikTok y tus juegos."
+                android:textColor="@color/text_dim"
+                android:textSize="12sp"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btn_grant_permission"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/btn_accent"
+                android:text="CONCEDER PERMISO DE SUPERPOSICIÓN"
+                android:textColor="@color/bg_dark"
+                android:textStyle="bold"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- Tarjeta 2: Control de Servicio -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estado del Shimeji"
+                android:textColor="@color/text_light"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_start_shimeji"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="6dp"
+                    android:background="@drawable/btn_accent"
+                    android:text="▶ INICIAR"
+                    android:textColor="@color/bg_dark"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btn_stop_shimeji"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="6dp"
+                    android:background="@drawable/btn_danger"
+                    android:text="⏹ DETENER"
+                    android:textColor="@color/error_red"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_center_shimeji"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/card_bg"
+                android:text="🎯 Reaparecer en el centro de la pantalla"
+                android:textColor="@color/accent_blue"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Tarjeta 3: Selección de Skin -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Selecciona tu Personaje (Skin)"
+                android:textColor="@color/text_light"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_skins"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/rb_konata"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="⭐ Konata Izumi (Lucky Star)"
+                    android:textColor="@color/text_light"
+                    android:checked="true"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+
+                <RadioButton
+                    android:id="@+id/rb_bocchi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🎸 Bocchi-chan (Bocchi the Rock!)"
+                    android:textColor="@color/text_light"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+
+                <RadioButton
+                    android:id="@+id/rb_monika"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="💚 Monika (DDLC)"
+                    android:textColor="@color/text_light"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+
+                <RadioButton
+                    android:id="@+id/rb_natsuki"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🧁 Natsuki (DDLC)"
+                    android:textColor="@color/text_light"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+
+                <RadioButton
+                    android:id="@+id/rb_sayori"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="💙 Sayori (DDLC)"
+                    android:textColor="@color/text_light"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+
+                <RadioButton
+                    android:id="@+id/rb_yuri"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="💜 Yuri (DDLC)"
+                    android:textColor="@color/text_light"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <!-- Tarjeta 4: Tamaño y Físicas -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ajustes de Tamaño y Físicas"
+                android:textColor="@color/text_light"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tamaño en pantalla:"
+                android:textColor="@color/text_dim"
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <RadioButton
+                    android:id="@+id/rb_size_small"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pequeño"
+                    android:textColor="@color/text_light" />
+
+                <RadioButton
+                    android:id="@+id/rb_size_normal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Normal"
+                    android:textColor="@color/text_light"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rb_size_large"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Grande"
+                    android:textColor="@color/text_light" />
+            </RadioGroup>
+
+            <CheckBox
+                android:id="@+id/cb_zero_gravity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🪂 Gravedad Cero (flotar sin caer)"
+                android:textColor="@color/text_light" />
+        </LinearLayout>
+
+        <!-- Tarjeta 5: Acciones Rápidas -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_bg"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Acciones Rápidas en Vivo"
+                android:textColor="@color/text_light"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_action_guitar"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="4dp"
+                    android:background="@drawable/card_bg"
+                    android:text="🎸 Guitarra"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btn_action_box"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp"
+                    android:background="@drawable/card_bg"
+                    android:text="📦 Caja"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/btn_action_talk"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="4dp"
+                    android:background="@drawable/card_bg"
+                    android:text="💬 Hablar"
+                    android:textColor="@color/text_light"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
