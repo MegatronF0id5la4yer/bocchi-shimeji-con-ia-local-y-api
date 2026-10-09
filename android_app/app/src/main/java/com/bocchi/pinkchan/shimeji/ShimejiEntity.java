@@ -210,6 +210,18 @@ public class ShimejiEntity {
             });
         }
 
+        // Soltar Item
+        View btnItem = overlayView.findViewById(R.id.btn_menu_item);
+        if (btnItem != null) {
+            btnItem.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    service.dropRandomItem();
+                }
+            });
+        }
+
         // Flotar / Caer
         overlayView.findViewById(R.id.btn_menu_gravity).setOnClickListener(new View.OnClickListener() {
             @Override

@@ -11,13 +11,17 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.PixelFormat;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -38,6 +42,7 @@ public class ShimejiService extends Service {
     public static final String ACTION_ADD_SHIMEJI = "com.bocchi.pinkchan.shimeji.ADD_SHIMEJI";
     public static final String ACTION_CLEAR_EXTRAS = "com.bocchi.pinkchan.shimeji.CLEAR_EXTRAS";
     public static final String ACTION_START_VOICE = "com.bocchi.pinkchan.shimeji.START_VOICE";
+    public static final String ACTION_DROP_ITEM = "com.bocchi.pinkchan.shimeji.DROP_ITEM";
 
     public static final String EXTRA_SKIN = "extra_skin";
     public static final String EXTRA_SIZE_DP = "extra_size_dp";
@@ -92,6 +97,7 @@ public class ShimejiService extends Service {
         float startY = screenHeight - sizePx - dpToPx(45);
         ShimejiEntity primary = new ShimejiEntity(this, nextEntityId++, currentSkin, startX, startY);
         shimejiList.add(primary);
+        playPopueSound();
 
         startPhysicsLoop();
     }
@@ -248,6 +254,7 @@ public class ShimejiService extends Service {
 
         ShimejiEntity entity = new ShimejiEntity(this, nextEntityId++, skin, startX, startY);
         shimejiList.add(entity);
+        playPopueSound();
         updateNotification();
         triggerHaptic(35);
         entity.say("Holi, aqui estoy. Somos " + shimejiList.size() + ".", 2600);
@@ -255,6 +262,7 @@ public class ShimejiService extends Service {
 
     public void removeShimeji(ShimejiEntity entity) {
         if (entity == null) return;
+        playPopueSound();
         entity.destroy();
         shimejiList.remove(entity);
         if (shimejiList.isEmpty()) {
@@ -266,6 +274,7 @@ public class ShimejiService extends Service {
 
     public void clearExtras() {
         if (shimejiList.size() <= 1) return;
+        playPopueSound();
         for (int i = shimejiList.size() - 1; i >= 1; i--) {
             ShimejiEntity entity = shimejiList.remove(i);
             entity.destroy();
@@ -282,6 +291,9 @@ public class ShimejiService extends Service {
             return;
         } else if ("create_file".equalsIgnoreCase(trig) || "files".equalsIgnoreCase(trig)) {
             createFilesAndFolder();
+            return;
+        } else if ("drop_item".equalsIgnoreCase(trig) || "item".equalsIgnoreCase(trig)) {
+            dropRandomItem();
             return;
         }
 
@@ -526,6 +538,8 @@ public class ShimejiService extends Service {
                 clearExtras();
             } else if (ACTION_START_VOICE.equals(action)) {
                 startVoiceAssistant();
+            } else if (ACTION_DROP_ITEM.equals(action)) {
+                dropRandomItem();
             }
         }
         return START_STICKY;
@@ -533,6 +547,7 @@ public class ShimejiService extends Service {
 
     @Override
     public void onDestroy() {
+        playPopueSound();
         isRunning = false;
         if (handler != null && loopRunnable != null) {
             handler.removeCallbacks(loopRunnable);
@@ -546,6 +561,137 @@ public class ShimejiService extends Service {
         shimejiList.clear();
         bitmapCache.clear();
         super.onDestroy();
+    }
+
+    public void playPopueSound() {
+        try {
+            MediaPlayer mp = MediaPlayer.create(this, R.raw.popue);
+            if (mp != null) {
+                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mediaPlayer) {
+                        try {
+                            mediaPlayer.release();
+                        } catch (Exception ignored) {}
+                    }
+                });
+                mp.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void dropRandomItem() {
+        try {
+            updateScreenDimensions();
+            String[] itemFiles = getAssets().list("items");
+            if (itemFiles == null || itemFiles.length == 0) return;
+
+            String chosen = itemFiles[random.nextInt(itemFiles.length)];
+            final boolean isBomb;
+            boolean tempBomb = false;
+            try {
+                String clean = chosen.replace(".png", "");
+                String[] parts = clean.split("_");
+                int row = Integer.parseInt(parts[1]);
+                tempBomb = (row >= 3);
+            } catch (Exception e) {
+                tempBomb = false;
+            }
+            isBomb = tempBomb;
+
+            InputStream is = getAssets().open("items/" + chosen);
+            Bitmap bmp = BitmapFactory.decodeStream(is);
+            is.close();
+            if (bmp == null) return;
+
+            final int itemSize = dpToPx(52);
+            final ImageView itemIv = new ImageView(this);
+            itemIv.setImageBitmap(bmp);
+            itemIv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+            final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                itemSize, itemSize,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                    ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                    : WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                PixelFormat.TRANSLUCENT
+            );
+            params.gravity = Gravity.TOP | Gravity.LEFT;
+            final int startX = dpToPx(20) + random.nextInt(Math.max(10, screenWidth - itemSize - dpToPx(40)));
+            params.x = startX;
+            params.y = dpToPx(30);
+
+            windowManager.addView(itemIv, params);
+            playPopueSound();
+
+            final float floorY = screenHeight - itemSize - dpToPx(50);
+            final float[] state = new float[]{params.y, 0f, 0f}; // [y, vy, bounces]
+
+            final Runnable itemPhysics = new Runnable() {
+                @Override
+                public void run() {
+                    if (!isRunning) {
+                        try { windowManager.removeView(itemIv); } catch (Exception ignored) {}
+                        return;
+                    }
+                    state[1] += dpToPx(1.8f);
+                    state[0] += state[1];
+
+                    if (state[0] >= floorY) {
+                        state[0] = floorY;
+                        if (state[2] < 2) {
+                            state[1] = -state[1] * 0.4f;
+                            state[2] += 1;
+                        } else {
+                            state[1] = 0;
+                        }
+                    }
+
+                    params.y = (int) state[0];
+                    try {
+                        windowManager.updateViewLayout(itemIv, params);
+                    } catch (Exception ignored) {
+                        return;
+                    }
+
+                    for (ShimejiEntity entity : shimejiList) {
+                        float dist = Math.abs((entity.posX + sizePx / 2f) - (startX + itemSize / 2f));
+                        float yDist = Math.abs((entity.posY + sizePx / 2f) - (state[0] + itemSize / 2f));
+
+                        if (dist < dpToPx(75) && yDist < dpToPx(85)) {
+                            playPopueSound();
+                            try { windowManager.removeView(itemIv); } catch (Exception ignored) {}
+
+                            if (isBomb) {
+                                entity.velY = -dpToPx(15);
+                                entity.say("AYYY UNA BOMBA! CUIDADO!", 3000);
+                            } else {
+                                entity.state = "SIT";
+                                entity.say("Nam nam! Que rico snack!", 3000);
+                            }
+                            return;
+                        }
+                    }
+
+                    if (state[1] != 0 || state[2] < 3) {
+                        handler.postDelayed(this, 25);
+                    } else {
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                try { windowManager.removeView(itemIv); } catch (Exception ignored) {}
+                            }
+                        }, 6000);
+                    }
+                }
+            };
+            handler.postDelayed(itemPhysics, 25);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

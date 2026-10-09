@@ -208,7 +208,16 @@ public class VoiceAssistantManager {
             return;
         }
 
-        // 6. Acciones fisicas
+        // 6. Soltar item / comida
+        if (cmd.contains("item") || cmd.contains("comida") || cmd.contains("snack") || cmd.contains("objeto") || cmd.contains("alimento")) {
+            if (callback != null) {
+                callback.onActionTriggered("drop_item");
+                callback.onAssistantResponse("Soltando item para el Shimeji.");
+            }
+            return;
+        }
+
+        // 7. Acciones fisicas
         if (cmd.contains("guitarra") || cmd.contains("toca")) {
             if (callback != null) {
                 callback.onActionTriggered("guitar");

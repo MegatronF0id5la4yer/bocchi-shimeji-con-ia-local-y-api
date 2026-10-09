@@ -419,7 +419,14 @@ public class MainActivity extends Activity {
         btnInteractionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                triggerAction("pet");
+                if (ShimejiService.isRunning) {
+                    Intent it = new Intent(MainActivity.this, ShimejiService.class);
+                    it.setAction(ShimejiService.ACTION_DROP_ITEM);
+                    startService(it);
+                    Toast.makeText(MainActivity.this, "Soltando item para el Shimeji!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Inicia el Shimeji para soltar items.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

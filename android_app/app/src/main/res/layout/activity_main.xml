@@ -1473,16 +1473,16 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="8dp">
 
-                        <Button
-                            android:id="@+id/btn_interaction_button"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/btn_pill_outline"
-                            android:text="Interaction button"
-                            android:textColor="@color/text_primary"
-                            android:textSize="12sp"
-                            android:layout_marginRight="4dp" />
+                            <Button
+                                android:id="@+id/btn_interaction_button"
+                                android:layout_width="0dp"
+                                android:layout_height="44dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/btn_pill_outline"
+                                android:text="Soltar Item"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:layout_marginRight="4dp" />
 
                         <Button
                             android:id="@+id/btn_customize_views"

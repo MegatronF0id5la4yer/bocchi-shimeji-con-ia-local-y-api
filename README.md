@@ -67,8 +67,10 @@ Descarga directamente los ejecutables listos para usar sin necesidad de configur
   - Reconocimiento de voz nativo en español (`SpeechRecognizer`).
   - **Abrir aplicaciones por voz:** Di *"abre whatsapp"*, *"abre youtube"*, *"abre camara"*, *"abre chrome"*, *"abre calculadora"* o cualquier app instalada y el Shimeji la abrirá de inmediato.
   - **Comandos de voz:** Consulta de hora (*"que hora es"*), saludos (*"hola"*, *"buenos dias"*), acciones físicas (*"guitarra"*, *"caja"*, *"salta"*, *"flotar"*, *"acariciar"*), clonación (*"invoca otro"*, *"limpiar extras"*) y cierre (*"detener"*).
+- 🎁 **Sistema de Items y Snacks (Sprite Sheet de 40 objetos):** Suelta comida o bombas desde el sprite sheet `items.png` en Windows (clic derecho o `/item`) y en Android (menú flotante o Inspector). Los personajes comen los snacks felices o reaccionan en pánico ante bombas.
+- 🔊 **Efectos de Sonido Popue (`popue.wav`):** Audio nativo al aparecer (spawn, invocar clon) y desaparecer (cerrar, retirar extras) los Shimejis en Windows y Android.
 - 🛠️ **Comandos Termux y Gestión de Archivos:** Integración para ejecutar comandos útiles de Termux y crear directorios o archivos en `Documents/Shijima`.
-- 👆 **Menú Contextual (Long-Press):** Mantén presionado al Shimeji en pantalla para desplegar su menú flotante con animaciones y mini-juegos (baile, rodar, saltar).
+- 👆 **Menú Contextual (Long-Press):** Mantén presionado al Shimeji en pantalla para desplegar su menú flotante con animaciones, items y mini-juegos (baile, rodar, saltar).
 - 🚫 **Cero Emojis:** Interfaz limpia con tipografía e iconografía nativa elegante.
 
 ---

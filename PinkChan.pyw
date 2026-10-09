@@ -134,7 +134,24 @@ SKINS_DIR    = os.path.join(BASE_DIR, "img", "skins")
 IMG_DIR      = os.path.join(SKINS_DIR, "Bocchi") if os.path.isdir(os.path.join(SKINS_DIR, "Bocchi")) else os.path.join(BASE_DIR, "img", "Shimeji")
 ACTIONS_FILE = os.path.join(BASE_DIR, "Actions.xml")
 
-SKIN_NAMES = ["Bocchi", "Konata", "Monika", "Natsuki", "Sayori", "Yuri"]
+def play_popue_sound():
+    """Reproduce popue.wav de forma asincrona al aparecer, desaparecer o interactuar el Shimeji."""
+    try:
+        import winsound
+        candidates = [
+            os.path.join(BASE_DIR, "img", "Shimeji", "popue.wav"),
+            os.path.join(BASE_DIR, "popue.wav"),
+            os.path.join(EXE_DIR, "img", "Shimeji", "popue.wav"),
+            os.path.join(EXE_DIR, "popue.wav")
+        ]
+        for c in candidates:
+            if os.path.isfile(c):
+                winsound.PlaySound(c, winsound.SND_FILENAME | winsound.SND_ASYNC)
+                return
+    except Exception:
+        pass
+
+SKIN_NAMES = ["Bocchi", "Konata", "Monika", "Natsuki", "Sayori", "Yuri", "Hachi", "Usagi", "Pusheen"]
 
 def get_skin_dir(skin_name):
     """Obtiene la ruta absoluta del directorio de la skin."""
@@ -291,6 +308,78 @@ SKIN_META = {
             "Eres Yuri de DDLC. Una chica tímida, reservada, culta y muy educada. Amas los libros profundos de fantasía "
             "oscura y misterio psicológico, el té aromático (especialmente jazmín) y la poesía compleja con metáforas elaboradas. "
             "Te da vergüenza ser el centro de atención, pero cuando hablas de tus lecturas te apasionas intensamente. 💜"
+        )
+    },
+    "Hachi": {
+        "display": "🐾 Hachiware (Chiikawa)",
+        "char_name": "Hachiware",
+        "tagline": "El gatito curioso, valiente y optimista",
+        "greeting": "¡Nanto ka nare~! ¡Hola! ¡Soy Hachiware! ¿Vamos a explorar tu computadora juntos? 🐾",
+        "speeches": [
+            "¡Nanto ka nareee~! (¡De algún modo saldrá bien!) 🐾",
+            "¡Mira lo que encontré! ¿Es un archivo misterioso? UwU",
+            "¡Usa la cámara! ¡Tomemos una foto para el recuerdo! :D",
+            "¡Tengo mi pico azul listo para explorar! ✨",
+            "¡Chii-ka-waaa! ¿Dónde estará mi amigo? (o_o)",
+            "¡Vamos a cantar una canción juntos! 🎵",
+        ],
+        "poked": [
+            "¡Kyaaa~! ¡Eso da cosquillas! 🐾",
+            "¡Ehehe! ¡Estoy listo para la aventura! :D",
+            "¡Nanto ka nare! ¡No me asustes! UwU"
+        ],
+        "system_prompt": (
+            "Eres Hachiware de Chiikawa. Eres un gatito blanco y azul con pelaje en la cabeza que parece una melenita partida. "
+            "Eres noble, curioso, trabajador, leal, optimista y valiente. Te encanta ayudar a tus amigos Chiikawa y Usagi. "
+            "Tu frase célebre es '¡Nanto ka nare!' (¡De algún modo saldrá bien!). Eres súper expresivo y cariñoso. Emotes: :3, UwU, :D, 🐾."
+        )
+    },
+    "Usagi": {
+        "display": "🐰 Usagi (Chiikawa)",
+        "char_name": "Usagi",
+        "tagline": "El conejito hiperactivo e intrépido",
+        "greeting": "¡URAAAH! ¡YAHA! ¡PULULULULU! 🐰",
+        "speeches": [
+            "¡YAHAAA! ¡URARARARA! 🐰",
+            "¡PULULULULU~! ¡HA! ✨",
+            "¡Ura! ¡Grita fuerte y corre por toda la pantalla! :P",
+            "¡Yaha! ¡Tengo saltos infinitos y energía al 100%! >:3",
+            "¡Fuuuun~! ¡Nada me detiene en este Windows! XD",
+            "¡YA-HA-HA-HA! 🐰",
+        ],
+        "poked": [
+            "¡URAAAH! ¡YAHA! 🐰",
+            "¡PULULULU! ¡No me toques la colita! :v",
+            "¡YAHAAAA! (>w<)"
+        ],
+        "system_prompt": (
+            "Eres Usagi de Chiikawa. Un conejito amarillo hiperactivo, ruidoso, intrépido y caótico pero muy tierno y amigable. "
+            "Gritas tus icónicas frases como '¡URAAAH!', '¡YAHA!', '¡PULULULULU~!', '¡HA!'. Eres caótico, saltas por todos lados "
+            "y no le temes a nada ni a nadie. Emotes: XD, :3, 🐰, >w<."
+        )
+    },
+    "Pusheen": {
+        "display": "🐱 Pusheen the Cat",
+        "char_name": "Pusheen",
+        "tagline": "Gatita gordita, amante de los snacks y las siestas",
+        "greeting": "Miau~ ¡Hola humano! ¿Trajiste pizza, galletas o donas para mí? 🐱",
+        "speeches": [
+            "Miau... una siestecita sobre la barra de tareas suena perfecta. UwU",
+            "¿Eso que veo en tu pantalla es una dona glaseada? *sniff sniff* 🍩",
+            "Rrr rrr rrr... (ronroneo felino de felicidad) :3",
+            "Tengo un modo caja de cartón... si quepo, me quedo. 📦",
+            "Comer, dormir, perseguir el cursor y repetir. Miau~ ✨",
+            "Miau miau miau~ ¡Dame un bocadillo por favor! 🐾",
+        ],
+        "poked": [
+            "¡Miau! Mi pancita es para acariciar, pero con suavidad~ 🐱",
+            "¡Rrr rrr rrr! ¡Qué rico rascado de orejitas! UwU",
+            "¡Prrr! Dame una galletita por ese toque. :3"
+        ],
+        "system_prompt": (
+            "Eres Pusheen the Cat. Una gatita atigrada gris, rechoncha, adorable, perezosa y glotona. "
+            "Amas las pizzas, donas, galletas, pastelitos, dormir siestas en lugares cómodos y jugar con cajas de cartón. "
+            "Dices 'Miau~', 'Prrr~', haces ruidos de gato y pides comida, caricias y siestas. Emotes: UwU, :3, 🐱, 🍩."
         )
     }
 }
@@ -2250,6 +2339,12 @@ class JarvisAssistant:
             lines.append("Tip: También puedes decir 'pon a konata', 'usa los konasprites', 'pon a monika', etc.")
             return True, "\n".join(lines), "Aquí están las skins disponibles [*]"
 
+        # Soltar item / snack / comida del sprite sheet items.png
+        if raw.strip().lower() in ("/item", "/items", "/snack", "/comida", "/alimento", "tirar item", "soltar item", "dame comida", "comida", "snack"):
+            if self.shimeji:
+                self.shimeji.drop_random_item()
+            return True, "[+] ¡Soltando un objeto/snack del sprite sheet cerca del Shimeji! 🎁", "Item soltado [OK]"
+
         # Comando de cambio de skin
         m_skin = re.search(r'^(?:/skin\s+([a-zA-Z0-9_\-]+)|(?:(?:hey|porfa)\s+)?(?:pon(?:er)?|cambia(?:r)?|usa(?:r)?|activa(?:r)?)\s+(?:(?:a|al|la\s+skin\s+(?:de|a)|de\s+skin\s+a|los|el)\s+)?([a-zA-Z0-9_\-]+(?:\s+[a-zA-Z0-9_\-]+)?))$', raw, re.IGNORECASE)
         if m_skin:
@@ -2270,6 +2365,14 @@ class JarvisAssistant:
                     "sayori": "Sayori",
                     "sayo": "Sayori",
                     "yuri": "Yuri",
+                    "hachi": "Hachi",
+                    "hachiware": "Hachi",
+                    "usagi": "Usagi",
+                    "conejo": "Usagi",
+                    "pusheen": "Pusheen",
+                    "cat": "Pusheen",
+                    "gato": "Pusheen",
+                    "gatita": "Pusheen",
                 }
                 found_skin = alias_to_skin.get(target_skin)
                 if not found_skin:
@@ -2989,6 +3092,7 @@ class ChatWindow:
             ("[📁] Explorador", lambda: self.send_custom("explorador")),
             ("[🧹] Limpiar Temp", lambda: self.send_custom("limpiar temp")),
             ("[JARVIS] Buscar", lambda: self.insert_chip("/find ")),
+            ("[🎁] Item", lambda: self.send_custom("/item")),
             ("[!] Troll Mode", lambda: self.toggle_troll()),
             ("[IMG] Fondo", self.open_bg_menu),
         ]
@@ -4542,6 +4646,8 @@ class Shimeji:
         self.root.after(500, self._cache_own_hwnd)
         self.root.after(5000, self._auto_tick)
         self.root.after(15000, self._troll_autonomous_tick)
+        self.root.protocol("WM_DELETE_WINDOW", self.close_shimeji)
+        play_popue_sound()
         self.root.mainloop()
 
     def load_images(self):
@@ -4613,6 +4719,14 @@ class Shimeji:
                 "sayori": "Sayori",
                 "sayo": "Sayori",
                 "yuri": "Yuri",
+                "hachi": "Hachi",
+                "hachiware": "Hachi",
+                "usagi": "Usagi",
+                "conejo": "Usagi",
+                "pusheen": "Pusheen",
+                "cat": "Pusheen",
+                "gato": "Pusheen",
+                "gatita": "Pusheen",
             }
             matched = alias_to_skin.get(target.lower())
 
@@ -5012,6 +5126,7 @@ class Shimeji:
             menu.add_command(label=f"[#] Hablar con {char_name} (IA & JARVIS) >>", command=self.open_chat)
             menu.add_command(label="[*] Doxxearte / Info Real >>", command=self.open_doxx)
             menu.add_command(label="[?] Decir algo al azar", command=lambda: self.show_speech(self.get_random_speech()))
+            menu.add_command(label="[🎁] Soltar Item / Snack (Sprite Sheet)", command=self.drop_random_item)
             menu.add_separator()
 
             poses_menu = tk.Menu(menu, tearoff=0,
@@ -5100,7 +5215,7 @@ class Shimeji:
             menu.add_cascade(label="[!] Travesuras & Windows >>", menu=troll_menu)
 
             menu.add_separator()
-            menu.add_command(label="[x] Cerrar Shimeji", command=self.root.destroy,
+            menu.add_command(label="[x] Cerrar Shimeji", command=self.close_shimeji,
                              foreground=t.danger, activeforeground=t.danger)
             rx = self.root.winfo_rootx() + e.x
             ry = self.root.winfo_rooty() + e.y
@@ -5112,6 +5227,127 @@ class Shimeji:
                 menu.grab_release()
             except Exception:
                 pass
+
+    def close_shimeji(self):
+        """Reproduce popue.wav al desaparecer y cierra el Shimeji limpiamente."""
+        play_popue_sound()
+        try:
+            self.root.after(350, self.root.destroy)
+        except Exception:
+            try:
+                self.root.destroy()
+            except Exception:
+                pass
+
+    def drop_random_item(self):
+        """Suelta un item aleatorio desde el sprite sheet items.png (comida o bomba)."""
+        if not PIL_AVAILABLE:
+            return
+        play_popue_sound()
+        try:
+            items_dir = os.path.join(BASE_DIR, "img", "items")
+            if not os.path.isdir(items_dir):
+                items_dir = os.path.join(EXE_DIR, "img", "items")
+            if not os.path.isdir(items_dir):
+                return
+            all_items = [f for f in os.listdir(items_dir) if f.startswith("item_") and f.endswith(".png")]
+            if not all_items:
+                return
+            chosen = random.choice(all_items)
+            is_bomb = False
+            try:
+                parts = chosen.replace(".png", "").split("_")
+                row = int(parts[1])
+                is_bomb = (row >= 3)
+            except Exception:
+                is_bomb = False
+
+            fpath = os.path.join(items_dir, chosen)
+            item_im = Image.open(fpath).convert("RGBA").resize((64, 64))
+
+            item_win = tk.Toplevel(self.root)
+            item_win.overrideredirect(True)
+            item_win.attributes("-topmost", True)
+            TRANS_COLOR = "#000001"
+            item_win.attributes("-transparentcolor", TRANS_COLOR)
+            item_win.config(bg=TRANS_COLOR)
+
+            c = tk.Canvas(item_win, width=64, height=64, bg=TRANS_COLOR, highlightthickness=0, bd=0)
+            c.pack()
+            tk_item_img = ImageTk.PhotoImage(item_im)
+            c.create_image(0, 0, anchor="nw", image=tk_item_img)
+            item_win._img_ref = tk_item_img
+
+            start_x = max(50, min(self.sw - 100, self.x + random.randint(-60, 60)))
+            start_y = 50
+            item_win.geometry(f"64x64+{start_x}+{start_y}")
+
+            cur_state = {"y": float(start_y), "vy": 0.0, "x": start_x, "bounces": 0}
+
+            def item_physics():
+                cur_state["vy"] += 2.2
+                cur_state["y"] += cur_state["vy"]
+                floor_lvl = self.ground_y + SIZE - 64
+                if cur_state["y"] >= floor_lvl:
+                    cur_state["y"] = float(floor_lvl)
+                    if cur_state["bounces"] < 2:
+                        cur_state["vy"] = -cur_state["vy"] * 0.4
+                        cur_state["bounces"] += 1
+                    else:
+                        cur_state["vy"] = 0
+
+                try:
+                    item_win.geometry(f"64x64+{int(cur_state['x'])}+{int(cur_state['y'])}")
+                except Exception:
+                    return
+
+                # Check proximity to Shimeji
+                dist = abs((self.x + SIZE/2) - (cur_state["x"] + 32))
+                y_dist = abs((self.y + SIZE/2) - (cur_state["y"] + 32))
+
+                if dist < 80 and y_dist < 90:
+                    play_popue_sound()
+                    try:
+                        item_win.destroy()
+                    except Exception:
+                        pass
+
+                    if is_bomb:
+                        self.vel_y = -12
+                        self.set_state("depress", SURFACE_FLOOR)
+                        panic_msgs = [
+                            "¡¡¡AYYYY UNA BOMBAAA!!! (>_<)",
+                            "¡¡¡CUIDADO VA A EXPLOTAR!!! :O",
+                            "¡WAAAAH! ¡PELIGROOO! ._.",
+                            "¡Auxilioooo, me quieren dinamitar! (>_<)"
+                        ]
+                        self.show_speech(random.choice(panic_msgs))
+                    else:
+                        self.set_state("sit", SURFACE_FLOOR)
+                        happy_msgs = [
+                            "¡Ñam ñam ñam! ¡Qué rico snack! (o_o)",
+                            "¡Delicioso! ¡Muchas gracias por el alimento! UwU",
+                            "¡Un manjar! Ahora tengo energía al 100% ✨",
+                            "¡Mmm! ¡Qué delicia de regalo! :3",
+                            "¡Riquísimo! ¡Guardaré un pedacito! 🍰"
+                        ]
+                        self.show_speech(random.choice(happy_msgs))
+                    return
+
+                if cur_state["vy"] != 0 or cur_state["bounces"] < 3:
+                    item_win.after(20, item_physics)
+                else:
+                    item_win.after(8000, lambda: self._safe_destroy_win(item_win))
+
+            item_win.after(20, item_physics)
+        except Exception as e:
+            print(f"Error soltando item: {e}")
+
+    def _safe_destroy_win(self, w):
+        try:
+            w.destroy()
+        except Exception:
+            pass
 
     def _cache_own_hwnd(self):
         if WIN32_AVAILABLE:
