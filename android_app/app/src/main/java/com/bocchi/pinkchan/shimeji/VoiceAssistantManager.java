@@ -149,6 +149,17 @@ public class VoiceAssistantManager {
             callback.onSpeechResult(rawCommand);
         }
 
+        // 0. Comprobacion de Ranuras de Comandos Prefabricados (ej: abrirapp-tiktok, ejecutarcomando-ls, etc.)
+        boolean isSlot = CommandSlotHelper.matchAndExecute(context, rawCommand, new CommandSlotHelper.ExecutionCallback() {
+            @Override
+            public void onExecuted(boolean success, String reply) {
+                if (callback != null) {
+                    callback.onAssistantResponse(reply);
+                }
+            }
+        });
+        if (isSlot) return;
+
         // 1. Saludos simples
         if (cmd.contains("hola") || cmd.contains("buenos dias") || cmd.contains("buenas tardes") || cmd.contains("buenas noches") || cmd.contains("que tal")) {
             if (callback != null) {
@@ -308,10 +319,25 @@ public class VoiceAssistantManager {
             return;
         }
 
-        // Respuesta general si no hubo coincidencia directa
-        if (callback != null) {
-            callback.onAssistantResponse("Entendi: '" + rawCommand + "'. Prueba decir: 'abre whatsapp', 'guitarra', 'salta' o 'invoca otro'.");
-        }
+        // Consulta al motor de Inteligencia Artificial (Local, Gemini o Cloud)
+        android.content.SharedPreferences sp = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        String savedSkin = sp.getString(MainActivity.KEY_SKIN, "Konata");
+        final String fallbackRaw = rawCommand;
+        AiEngineHelper.askAi(context, savedSkin, rawCommand, new AiEngineHelper.AiCallback() {
+            @Override
+            public void onSuccess(String reply) {
+                if (callback != null) {
+                    callback.onAssistantResponse(reply);
+                }
+            }
+
+            @Override
+            public void onError(String errorMsg) {
+                if (callback != null) {
+                    callback.onAssistantResponse("Entendi: '" + fallbackRaw + "'. (" + errorMsg + ")");
+                }
+            }
+        });
     }
 
     private String launchAppByQuery(String query) {

@@ -67,6 +67,25 @@ Descarga directamente los ejecutables listos para usar sin necesidad de configur
   - Reconocimiento de voz nativo en español (`SpeechRecognizer`).
   - **Abrir aplicaciones por voz:** Di *"abre whatsapp"*, *"abre youtube"*, *"abre camara"*, *"abre chrome"*, *"abre calculadora"* o cualquier app instalada y el Shimeji la abrirá de inmediato.
   - **Comandos de voz:** Consulta de hora (*"que hora es"*), saludos (*"hola"*, *"buenos dias"*), acciones físicas (*"guitarra"*, *"caja"*, *"salta"*, *"flotar"*, *"acariciar"*), clonación (*"invoca otro"*, *"limpiar extras"*) y cierre (*"detener"*).
+- 🤖 **Motor de Inteligencia Artificial (IA Local / Cloud / API):**
+  - Configuración centralizada directamente en la app (pantalla Settings), sin estorbar en el Shimeji flotante.
+  - **Local Offline:** Diálogos enriquecidos con personalidad fiel para cada personaje, sin consumo de datos y respuesta instantánea.
+  - **Google Gemini API:** Conexión nativa con Google AI Studio (modelo `gemini-1.5-flash` o configurable).
+  - **Custom Cloud / Ollama / OpenAI REST:** Soporte para servidores locales o remotos vía endpoint HTTP (`http://ip:puerto/v1`).
+  - Botón de prueba de conexión y guardado persistente en `SharedPreferences`.
+- ⚡ **Ranuras de Comandos Prefabricados (Comandos con [X]):**
+  - Atajos rápidos donde solo completas la variable `[X]`:
+    - `abrirapp-[X]` (abre apps como tiktok, spotify, youtube, etc.).
+    - `ejecutarcomando-[X]` (ejecuta comandos en Termux o shell del sistema).
+    - `decir-[X]` (hace que el Shimeji hable en su burbuja de texto flotante).
+    - `buscar-[X]` (búsqueda inmediata en YouTube o la Web).
+    - `accion-[X]` (guitarra, caja, bailar, saltar, jugar, item).
+    - `crearcarpeta-[X]` (crea carpetas personalizadas en `Documents/Shijima`).
+  - Administrador de ranuras integrado en la app: visualización de ranuras activas, botón de eliminación rápida y modal *"Agregar Ranura con [X]"*.
+- 💬 **Expansión Masiva de Diálogos (>40 líneas por personaje):**
+  - Más de 400 líneas totales de pensamientos aleatorios, bromas, lore y reacciones a toques (*poked*) para los 9 personajes tanto en Android como en Windows.
+- 🔄 **Comprobación Automática de Actualizaciones:**
+  - Verifica cada 2-3 días si hay internet y descarga automáticamente nuevas versiones directamente desde GitHub.
 - 🎁 **Sistema de Items y Snacks (Sprite Sheet de 40 objetos):** Suelta comida o bombas desde el sprite sheet `items.png` en Windows (clic derecho o `/item`) y en Android (menú flotante o Inspector). Los personajes comen los snacks felices o reaccionan en pánico ante bombas.
 - 🔊 **Efectos de Sonido Popue (`popue.wav`):** Audio nativo al aparecer (spawn, invocar clon) y desaparecer (cerrar, retirar extras) los Shimejis en Windows y Android.
 - 🛠️ **Comandos Termux y Gestión de Archivos:** Integración para ejecutar comandos útiles de Termux y crear directorios o archivos en `Documents/Shijima`.
@@ -87,9 +106,9 @@ Elige entre 9 personajes con físicas completas, personalidad y sprites de alta 
 | **Natsuki** | <img src="img/gifs/natsuki.gif" width="96" height="96" alt="Natsuki" /> | *Doki Doki Literature Club!* - Fan del manga y la repostería | `/skin natsuki` |
 | **Sayori** | <img src="img/gifs/sayori.gif" width="96" height="96" alt="Sayori" /> | *Doki Doki Literature Club!* - Dulce y siempre alegre | `/skin sayori` |
 | **Yuri** | <img src="img/gifs/yuri.gif" width="96" height="96" alt="Yuri" /> | *Doki Doki Literature Club!* - Lectora apasionada y tímida | `/skin yuri` |
-| **Hachi** *(Hachiware)* | 🐾 | *Chiikawa* - El gatito optimista y valiente | `/skin hachi` |
-| **Usagi** | 🐰 | *Chiikawa* - El conejito hiperactivo e intrépido | `/skin usagi` |
-| **Pusheen** | 🐱 | *Pusheen the Cat* - La gatita rechoncha y adorable | `/skin pusheen` |
+| **Hachi** *(Hachiware)* | <img src="img/gifs/hachi.gif" width="96" height="96" alt="Hachi" /> | *Chiikawa* - El gatito optimista y valiente | `/skin hachi` |
+| **Usagi** | <img src="img/gifs/usagi.gif" width="96" height="96" alt="Usagi" /> | *Chiikawa* - El conejito hiperactivo e intrépido | `/skin usagi` |
+| **Pusheen** | <img src="img/gifs/pusheen.gif" width="96" height="96" alt="Pusheen" /> | *Pusheen the Cat* - La gatita rechoncha y adorable | `/skin pusheen` |
 
 ---
 

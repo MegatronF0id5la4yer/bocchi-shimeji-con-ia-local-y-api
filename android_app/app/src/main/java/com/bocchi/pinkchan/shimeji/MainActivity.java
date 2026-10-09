@@ -68,6 +68,14 @@ public class MainActivity extends Activity {
     public static final String KEY_LAST_UPDATE_CHECK = "last_update_check_time";
     private static final long UPDATE_CHECK_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000L;
 
+    public static final String KEY_AI_MODE = "ai_mode";
+    public static final String KEY_GEMINI_KEY = "gemini_api_key";
+    public static final String KEY_GEMINI_MODEL = "gemini_model";
+    public static final String KEY_CLOUD_ENDPOINT = "cloud_endpoint";
+    public static final String KEY_CLOUD_MODEL = "cloud_model";
+    public static final String KEY_CLOUD_KEY = "cloud_api_key";
+    public static final String KEY_CUSTOM_SLOTS = "custom_command_slots";
+
 
     // Header & Badges
     private TextView tvAppTitle;
@@ -114,6 +122,20 @@ public class MainActivity extends Activity {
     private Button btnSettingsStop;
     private Button btnSettingsCheckUpdate;
     private TextView tvUpdateInfo;
+
+    // AI Engine Views
+    private RadioGroup rgAiMode;
+    private RadioButton rbAiLocal, rbAiGemini, rbAiCloud;
+    private View layoutGeminiConfig, layoutCloudConfig;
+    private EditText etGeminiKey, etGeminiModel;
+    private EditText etCloudEndpoint, etCloudModel, etCloudKey;
+    private Button btnTestAi, btnSaveAi;
+    private TextView tvAiStatus;
+
+    // Prefabricated Command Slots Views
+    private TextView badgeSlotsCount, tvEmptySlots;
+    private LinearLayout layoutSlotsContainer;
+    private Button btnAddCommandSlot;
 
     private SharedPreferences prefs;
 
@@ -233,6 +255,28 @@ public class MainActivity extends Activity {
         btnSettingsStop = findViewById(R.id.btn_settings_stop);
         btnSettingsCheckUpdate = findViewById(R.id.btn_settings_check_update);
         tvUpdateInfo = findViewById(R.id.tv_update_info);
+
+        // AI Engine Views
+        rgAiMode = findViewById(R.id.rg_ai_mode);
+        rbAiLocal = findViewById(R.id.rb_ai_local);
+        rbAiGemini = findViewById(R.id.rb_ai_gemini);
+        rbAiCloud = findViewById(R.id.rb_ai_cloud);
+        layoutGeminiConfig = findViewById(R.id.layout_gemini_config);
+        layoutCloudConfig = findViewById(R.id.layout_cloud_config);
+        etGeminiKey = findViewById(R.id.et_gemini_key);
+        etGeminiModel = findViewById(R.id.et_gemini_model);
+        etCloudEndpoint = findViewById(R.id.et_cloud_endpoint);
+        etCloudModel = findViewById(R.id.et_cloud_model);
+        etCloudKey = findViewById(R.id.et_cloud_key);
+        btnTestAi = findViewById(R.id.btn_test_ai);
+        btnSaveAi = findViewById(R.id.btn_save_ai);
+        tvAiStatus = findViewById(R.id.tv_ai_status);
+
+        // Prefabricated Command Slots Views
+        badgeSlotsCount = findViewById(R.id.badge_slots_count);
+        tvEmptySlots = findViewById(R.id.tv_empty_slots);
+        layoutSlotsContainer = findViewById(R.id.layout_slots_container);
+        btnAddCommandSlot = findViewById(R.id.btn_add_command_slot);
     }
 
     private void setupTabs() {
@@ -701,6 +745,347 @@ public class MainActivity extends Activity {
         });
 
         setupColorPaletteListeners();
+        setupAiEngineListeners();
+        setupCommandSlotsListeners();
+    }
+
+    private void setupAiEngineListeners() {
+        if (rgAiMode != null) {
+            rgAiMode.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(RadioGroup group, int checkedId) {
+                    if (checkedId == R.id.rb_ai_gemini) {
+                        if (layoutGeminiConfig != null) layoutGeminiConfig.setVisibility(View.VISIBLE);
+                        if (layoutCloudConfig != null) layoutCloudConfig.setVisibility(View.GONE);
+                        if (tvAiStatus != null) tvAiStatus.setText("Modo: Google Gemini API (Cloud).");
+                    } else if (checkedId == R.id.rb_ai_cloud) {
+                        if (layoutGeminiConfig != null) layoutGeminiConfig.setVisibility(View.GONE);
+                        if (layoutCloudConfig != null) layoutCloudConfig.setVisibility(View.VISIBLE);
+                        if (tvAiStatus != null) tvAiStatus.setText("Modo: Custom Cloud / Ollama / OpenAI REST API.");
+                    } else {
+                        if (layoutGeminiConfig != null) layoutGeminiConfig.setVisibility(View.GONE);
+                        if (layoutCloudConfig != null) layoutCloudConfig.setVisibility(View.GONE);
+                        if (tvAiStatus != null) tvAiStatus.setText("Modo: Local Offline activo (respuestas instantaneas).");
+                    }
+                }
+            });
+        }
+
+        if (btnSaveAi != null) {
+            btnSaveAi.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String mode = "local";
+                    if (rbAiGemini != null && rbAiGemini.isChecked()) mode = "gemini";
+                    else if (rbAiCloud != null && rbAiCloud.isChecked()) mode = "cloud";
+
+                    String gemKey = etGeminiKey != null ? etGeminiKey.getText().toString().trim() : "";
+                    String gemModel = etGeminiModel != null ? etGeminiModel.getText().toString().trim() : "gemini-1.5-flash";
+                    String clEndpoint = etCloudEndpoint != null ? etCloudEndpoint.getText().toString().trim() : "";
+                    String clModel = etCloudModel != null ? etCloudModel.getText().toString().trim() : "llama3";
+                    String clKey = etCloudKey != null ? etCloudKey.getText().toString().trim() : "";
+
+                    prefs.edit()
+                        .putString(KEY_AI_MODE, mode)
+                        .putString(KEY_GEMINI_KEY, gemKey)
+                        .putString(KEY_GEMINI_MODEL, gemModel)
+                        .putString(KEY_CLOUD_ENDPOINT, clEndpoint)
+                        .putString(KEY_CLOUD_MODEL, clModel)
+                        .putString(KEY_CLOUD_KEY, clKey)
+                        .apply();
+
+                    Toast.makeText(MainActivity.this, "Configuracion de IA guardada en la app", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (btnTestAi != null) {
+            btnTestAi.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String mode = "local";
+                    if (rbAiGemini != null && rbAiGemini.isChecked()) mode = "gemini";
+                    else if (rbAiCloud != null && rbAiCloud.isChecked()) mode = "cloud";
+
+                    String gemKey = etGeminiKey != null ? etGeminiKey.getText().toString().trim() : "";
+                    String gemModel = etGeminiModel != null ? etGeminiModel.getText().toString().trim() : "gemini-1.5-flash";
+                    String clEndpoint = etCloudEndpoint != null ? etCloudEndpoint.getText().toString().trim() : "";
+                    String clKey = etCloudKey != null ? etCloudKey.getText().toString().trim() : "";
+
+                    Toast.makeText(MainActivity.this, "Probando conexion con IA...", Toast.LENGTH_SHORT).show();
+                    AiEngineHelper.testConnection(MainActivity.this, mode, mode.equals("gemini") ? gemKey : clKey, gemModel, clEndpoint, new AiEngineHelper.AiCallback() {
+                        @Override
+                        public void onSuccess(final String reply) {
+                            Toast.makeText(MainActivity.this, "[IA Exito]: " + reply, Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        public void onError(final String errorMsg) {
+                            Toast.makeText(MainActivity.this, "[IA Error]: " + errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private void setupCommandSlotsListeners() {
+        if (btnAddCommandSlot != null) {
+            btnAddCommandSlot.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showAddSlotDialog();
+                }
+            });
+        }
+    }
+
+    public void refreshCommandSlotsUI() {
+        if (layoutSlotsContainer == null) return;
+        layoutSlotsContainer.removeAllViews();
+
+        List<String> slots = CommandSlotHelper.getSlots(this);
+        if (badgeSlotsCount != null) {
+            badgeSlotsCount.setText(slots.size() + " ranuras");
+        }
+
+        if (slots.isEmpty()) {
+            if (tvEmptySlots != null) {
+                tvEmptySlots.setVisibility(View.VISIBLE);
+                layoutSlotsContainer.addView(tvEmptySlots);
+            }
+            return;
+        }
+
+        if (tvEmptySlots != null) {
+            tvEmptySlots.setVisibility(View.GONE);
+        }
+
+        for (int i = 0; i < slots.size(); i++) {
+            final String slot = slots.get(i);
+            final int slotIndex = i;
+
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setBackgroundResource(R.drawable.chip_action_bg);
+            row.setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(8));
+            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            rowParams.bottomMargin = dpToPx(6);
+            row.setLayoutParams(rowParams);
+
+            // Badge tipo
+            TextView badge = new TextView(this);
+            badge.setBackgroundResource(R.drawable.chip_tag_bg);
+            badge.setTextColor(Color.parseColor("#B89FFF"));
+            badge.setTextSize(10);
+            badge.setTypeface(null, android.graphics.Typeface.BOLD);
+            badge.setPadding(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2));
+
+            String badgeText = "X";
+            if (slot.startsWith("abrirapp-")) badgeText = "APP";
+            else if (slot.startsWith("ejecutarcomando-")) badgeText = "CMD";
+            else if (slot.startsWith("decir-")) badgeText = "VOZ";
+            else if (slot.startsWith("buscar-")) badgeText = "WEB";
+            else if (slot.startsWith("accion-")) badgeText = "ACT";
+            else if (slot.startsWith("crearcarpeta-")) badgeText = "DIR";
+            badge.setText(badgeText);
+            row.addView(badge);
+
+            // Slot name
+            TextView tvName = new TextView(this);
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            nameParams.leftMargin = dpToPx(8);
+            tvName.setLayoutParams(nameParams);
+            tvName.setText(slot);
+            tvName.setTextColor(Color.parseColor("#F3F0FA"));
+            tvName.setTextSize(12);
+            row.addView(tvName);
+
+            // Boton Probar
+            TextView btnRun = new TextView(this);
+            btnRun.setText("Ejecutar");
+            btnRun.setTextColor(Color.parseColor("#86EFAC"));
+            btnRun.setTextSize(11);
+            btnRun.setPadding(dpToPx(6), dpToPx(4), dpToPx(6), dpToPx(4));
+            btnRun.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CommandSlotHelper.matchAndExecute(MainActivity.this, slot, new CommandSlotHelper.ExecutionCallback() {
+                        @Override
+                        public void onExecuted(boolean success, String reply) {
+                            Toast.makeText(MainActivity.this, reply, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            });
+            row.addView(btnRun);
+
+            // Boton Eliminar
+            TextView btnDelete = new TextView(this);
+            btnDelete.setText("✕");
+            btnDelete.setTextColor(Color.parseColor("#FCA5A5"));
+            btnDelete.setTextSize(14);
+            btnDelete.setPadding(dpToPx(8), dpToPx(4), dpToPx(4), dpToPx(4));
+            btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CommandSlotHelper.removeSlot(MainActivity.this, slotIndex);
+                    refreshCommandSlotsUI();
+                    Toast.makeText(MainActivity.this, "Ranura eliminada", Toast.LENGTH_SHORT).show();
+                }
+            });
+            row.addView(btnDelete);
+
+            layoutSlotsContainer.addView(row);
+        }
+    }
+
+    private void showAddSlotDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#181428"));
+        root.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("Agregar Ranura Prefabicada");
+        tvTitle.setTextColor(Color.parseColor("#F3F0FA"));
+        tvTitle.setTextSize(16);
+        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitle.setPadding(0, 0, 0, dpToPx(6));
+        root.addView(tvTitle);
+
+        TextView tvSubtitle = new TextView(this);
+        tvSubtitle.setText("Elige una plantilla y completa unicamente el valor de [X]:");
+        tvSubtitle.setTextColor(Color.parseColor("#A69DB8"));
+        tvSubtitle.setTextSize(11);
+        tvSubtitle.setPadding(0, 0, 0, dpToPx(12));
+        root.addView(tvSubtitle);
+
+        final String[] templates = {
+            "abrirapp",
+            "ejecutarcomando",
+            "decir",
+            "buscar",
+            "accion",
+            "crearcarpeta"
+        };
+        final String[] templateLabels = {
+            "abrirapp-[X]  (Abrir aplicacion)",
+            "ejecutarcomando-[X]  (Termux / Shell)",
+            "decir-[X]  (Hacer hablar al Shimeji)",
+            "buscar-[X]  (YouTube / Web)",
+            "accion-[X]  (guitarra, caja, bailar)",
+            "crearcarpeta-[X]  (Crear en Documents)"
+        };
+
+        final android.widget.Spinner spTemplate = new android.widget.Spinner(this);
+        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, templateLabels) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                if (v instanceof TextView) {
+                    ((TextView) v).setTextColor(Color.parseColor("#E8DEFF"));
+                    ((TextView) v).setTextSize(12);
+                }
+                return v;
+            }
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View v = super.getDropDownView(position, convertView, parent);
+                v.setBackgroundColor(Color.parseColor("#221C34"));
+                if (v instanceof TextView) {
+                    ((TextView) v).setTextColor(Color.parseColor("#F3F0FA"));
+                    ((TextView) v).setTextSize(12);
+                }
+                return v;
+            }
+        };
+        spTemplate.setAdapter(adapter);
+        spTemplate.setBackgroundResource(R.drawable.edittext_bg);
+        spTemplate.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        LinearLayout.LayoutParams spParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(42));
+        spParams.bottomMargin = dpToPx(12);
+        spTemplate.setLayoutParams(spParams);
+        root.addView(spTemplate);
+
+        TextView tvLabelX = new TextView(this);
+        tvLabelX.setText("Valor de [X]:");
+        tvLabelX.setTextColor(Color.parseColor("#F3F0FA"));
+        tvLabelX.setTextSize(12);
+        tvLabelX.setPadding(0, 0, 0, dpToPx(4));
+        root.addView(tvLabelX);
+
+        final EditText etParamX = new EditText(this);
+        etParamX.setHint("ej: tiktok, spotify, ls, hola...");
+        etParamX.setHintTextColor(Color.parseColor("#5E5470"));
+        etParamX.setTextColor(Color.parseColor("#F3F0FA"));
+        etParamX.setTextSize(12);
+        etParamX.setBackgroundResource(R.drawable.edittext_bg);
+        etParamX.setPadding(dpToPx(12), dpToPx(8), dpToPx(12), dpToPx(8));
+        LinearLayout.LayoutParams etParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(42));
+        etParams.bottomMargin = dpToPx(10);
+        etParamX.setLayoutParams(etParams);
+        root.addView(etParamX);
+
+        final TextView tvPreview = new TextView(this);
+        tvPreview.setText("Comando: abrirapp-tiktok");
+        tvPreview.setTextColor(Color.parseColor("#B89FFF"));
+        tvPreview.setTextSize(12);
+        tvPreview.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvPreview.setPadding(0, 0, 0, dpToPx(16));
+        root.addView(tvPreview);
+
+        android.text.TextWatcher watcher = new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                int pos = spTemplate.getSelectedItemPosition();
+                String tName = (pos >= 0 && pos < templates.length) ? templates[pos] : "abrirapp";
+                String val = s.toString().trim();
+                tvPreview.setText("Comando: " + tName + "-" + (val.isEmpty() ? "[X]" : val));
+            }
+        };
+        etParamX.addTextChangedListener(watcher);
+        spTemplate.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                String tName = (position >= 0 && position < templates.length) ? templates[position] : "abrirapp";
+                String val = etParamX.getText().toString().trim();
+                tvPreview.setText("Comando: " + tName + "-" + (val.isEmpty() ? "[X]" : val));
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+
+        builder.setView(root);
+        builder.setPositiveButton("Guardar Ranura", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                int pos = spTemplate.getSelectedItemPosition();
+                String tName = (pos >= 0 && pos < templates.length) ? templates[pos] : "abrirapp";
+                String val = etParamX.getText().toString().trim();
+                if (val.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Debes ingresar el valor de X", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                String slot = tName + "-" + val;
+                boolean added = CommandSlotHelper.addSlot(MainActivity.this, slot);
+                refreshCommandSlotsUI();
+                if (added) {
+                    Toast.makeText(MainActivity.this, "Ranura '" + slot + "' guardada", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "La ranura ya existe", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("Cancelar", null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void updateInspectorMascot(String skinId) {
@@ -900,6 +1285,34 @@ public class MainActivity extends Activity {
         if (savedAccent >= 0 && savedAccent < colorResIds.length) {
             applyAccentColor(colorResIds[savedAccent], colorNames[savedAccent], savedAccent);
         }
+
+        // Restaurar Motor de IA
+        String savedAiMode = prefs.getString(KEY_AI_MODE, "local");
+        if ("gemini".equalsIgnoreCase(savedAiMode)) {
+            if (rbAiGemini != null) rbAiGemini.setChecked(true);
+            if (layoutGeminiConfig != null) layoutGeminiConfig.setVisibility(View.VISIBLE);
+            if (layoutCloudConfig != null) layoutCloudConfig.setVisibility(View.GONE);
+            if (tvAiStatus != null) tvAiStatus.setText("Modo: Google Gemini API (Cloud).");
+        } else if ("cloud".equalsIgnoreCase(savedAiMode)) {
+            if (rbAiCloud != null) rbAiCloud.setChecked(true);
+            if (layoutGeminiConfig != null) layoutGeminiConfig.setVisibility(View.GONE);
+            if (layoutCloudConfig != null) layoutCloudConfig.setVisibility(View.VISIBLE);
+            if (tvAiStatus != null) tvAiStatus.setText("Modo: Custom Cloud / Ollama / OpenAI REST API.");
+        } else {
+            if (rbAiLocal != null) rbAiLocal.setChecked(true);
+            if (layoutGeminiConfig != null) layoutGeminiConfig.setVisibility(View.GONE);
+            if (layoutCloudConfig != null) layoutCloudConfig.setVisibility(View.GONE);
+            if (tvAiStatus != null) tvAiStatus.setText("Modo: Local Offline activo (respuestas instantaneas).");
+        }
+
+        if (etGeminiKey != null) etGeminiKey.setText(prefs.getString(KEY_GEMINI_KEY, ""));
+        if (etGeminiModel != null) etGeminiModel.setText(prefs.getString(KEY_GEMINI_MODEL, "gemini-1.5-flash"));
+        if (etCloudEndpoint != null) etCloudEndpoint.setText(prefs.getString(KEY_CLOUD_ENDPOINT, ""));
+        if (etCloudModel != null) etCloudModel.setText(prefs.getString(KEY_CLOUD_MODEL, "llama3"));
+        if (etCloudKey != null) etCloudKey.setText(prefs.getString(KEY_CLOUD_KEY, ""));
+
+        // Restaurar Ranuras Prefabicadas
+        refreshCommandSlotsUI();
     }
 
     private void setupColorPaletteListeners() {
@@ -1135,36 +1548,62 @@ public class MainActivity extends Activity {
         if (onAdded != null) onAdded.run();
 
         final String cmd = message.toLowerCase().trim();
-        String reply;
 
-        if (cmd.contains("hola") || cmd.contains("buenos dias") || cmd.contains("que tal")) {
-            String savedSkin = prefs.getString(KEY_SKIN, "Konata");
-            SkinData sd = SkinData.get(savedSkin);
-            reply = (sd != null) ? sd.greeting : "¡Hola! Estoy aqui contigo.";
-        } else if (cmd.contains("guitarra") || cmd.contains("toca")) {
+        // 1. Ranuras de Comandos Prefabricados (ej: abrirapp-tiktok, ejecutarcomando-ls, decir-hola, etc. o agregar-...)
+        boolean handledSlot = CommandSlotHelper.matchAndExecute(MainActivity.this, message, new CommandSlotHelper.ExecutionCallback() {
+            @Override
+            public void onExecuted(boolean success, final String reply) {
+                container.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        addChatBubble(container, reply, false);
+                        if (onAdded != null) onAdded.run();
+                        if (ShimejiService.isRunning) {
+                            Intent it = new Intent(MainActivity.this, ShimejiService.class);
+                            it.setAction(ShimejiService.ACTION_TRIGGER);
+                            it.putExtra(ShimejiService.EXTRA_TRIGGER_ACTION, "speech:" + reply);
+                            startService(it);
+                        }
+                        refreshCommandSlotsUI();
+                    }
+                });
+            }
+        });
+        if (handledSlot) {
+            return;
+        }
+
+        // 2. Acciones fisicas y atajos del sistema
+        if (cmd.contains("guitarra") || cmd.contains("toca")) {
             triggerAction("guitar");
-            reply = "¡Solo de guitarra en vivo!";
+            replyAndSpeak(container, "¡Solo de guitarra en vivo!", onAdded);
+            return;
         } else if (cmd.contains("caja") || cmd.contains("escondete")) {
             triggerAction("box");
-            reply = "¡Modo caja seguro activado!";
+            replyAndSpeak(container, "¡Modo caja seguro activado!", onAdded);
+            return;
         } else if (cmd.contains("baila") || cmd.contains("bailar")) {
             triggerAction("dance");
-            reply = "¡Bailando! Siguiendo el ritmo.";
+            replyAndSpeak(container, "¡Bailando! Siguiendo el ritmo.", onAdded);
+            return;
         } else if (cmd.contains("item") || cmd.contains("comida") || cmd.contains("snack")) {
             if (ShimejiService.isRunning) {
                 Intent it = new Intent(MainActivity.this, ShimejiService.class);
                 it.setAction(ShimejiService.ACTION_DROP_ITEM);
                 startService(it);
-                reply = "¡Soltando snack para el Shimeji!";
+                replyAndSpeak(container, "¡Soltando snack para el Shimeji!", onAdded);
             } else {
-                reply = "Inicia el Shimeji primero para soltar items.";
+                replyAndSpeak(container, "Inicia el Shimeji primero para soltar items.", onAdded);
             }
+            return;
         } else if (cmd.contains("termux") || cmd.contains("consola") || cmd.contains("terminal")) {
             launchTermux();
-            reply = "Lanzando Termux.";
+            replyAndSpeak(container, "Lanzando Termux.", onAdded);
+            return;
         } else if (cmd.contains("archivo") || cmd.contains("notas") || cmd.contains("carpeta")) {
             createDemoFilesAndFolders();
-            reply = "Notas y carpeta creadas en Documents/Shijima.";
+            replyAndSpeak(container, "Notas y carpeta creadas en Documents/Shijima.", onAdded);
+            return;
         } else if (cmd.startsWith("abre ") || cmd.startsWith("abrir ") || cmd.startsWith("inicia ") || cmd.startsWith("iniciar ")) {
             String appQuery = cmd
                 .replaceFirst("^(abre|abrir|inicia|iniciar)\\s+", "")
@@ -1173,34 +1612,44 @@ public class MainActivity extends Activity {
                 .replace("el ", "")
                 .replace("la ", "")
                 .trim();
-            reply = launchAppByFilter(appQuery);
+            String reply = launchAppByFilter(appQuery);
+            replyAndSpeak(container, reply, onAdded);
+            return;
         } else if (cmd.contains("hora") || cmd.contains("que hora es")) {
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault());
-            reply = "Son las " + sdf.format(new java.util.Date()) + ".";
-        } else {
-            String savedSkin = prefs.getString(KEY_SKIN, "Konata");
-            SkinData sd = SkinData.get(savedSkin);
-            if (sd != null && sd.speeches.length > 0) {
-                reply = sd.speeches[new java.util.Random().nextInt(sd.speeches.length)];
-            } else {
-                reply = "Entendido: '" + message + "'.";
-            }
+            replyAndSpeak(container, "Son las " + sdf.format(new java.util.Date()) + ".", onAdded);
+            return;
         }
 
-        final String finalReply = reply;
+        // 3. Consulta al motor de Inteligencia Artificial (Local Offline, Google Gemini o Cloud/Ollama)
+        String savedSkin = prefs.getString(KEY_SKIN, "Konata");
+        AiEngineHelper.askAi(MainActivity.this, savedSkin, message, new AiEngineHelper.AiCallback() {
+            @Override
+            public void onSuccess(final String reply) {
+                replyAndSpeak(container, reply, onAdded);
+            }
+
+            @Override
+            public void onError(final String errorMsg) {
+                replyAndSpeak(container, errorMsg, onAdded);
+            }
+        });
+    }
+
+    private void replyAndSpeak(final LinearLayout container, final String reply, final Runnable onAdded) {
         container.postDelayed(new Runnable() {
             @Override
             public void run() {
-                addChatBubble(container, finalReply, false);
+                addChatBubble(container, reply, false);
                 if (onAdded != null) onAdded.run();
                 if (ShimejiService.isRunning) {
                     Intent it = new Intent(MainActivity.this, ShimejiService.class);
                     it.setAction(ShimejiService.ACTION_TRIGGER);
-                    it.putExtra(ShimejiService.EXTRA_TRIGGER_ACTION, "speech:" + finalReply);
+                    it.putExtra(ShimejiService.EXTRA_TRIGGER_ACTION, "speech:" + reply);
                     startService(it);
                 }
             }
-        }, 280);
+        }, 260);
     }
 
     private String launchAppByFilter(String query) {

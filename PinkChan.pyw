@@ -253,11 +253,49 @@ SKIN_META = {
             "¿P-Podemos quedarnos callados un ratito? Me da ansiedad... ._.",
             "A-A veces quisiera ser una caja de cartón... :v",
             "N-No me mires tan fijo, me da vergüenza... 7w7",
+            "Apura, no tengo todo el día... bueno sí lo tengo, pero me da ansiedad social...",
+            "Qué aburrida estoy... y con 50 pesos en la bolsa que apenas alcanzan para unos esquites :v",
+            "No voy a hablar en público ni de chiste. La multitud me quita el oxígeno... (>_<)",
+            "¿Quieres que toque la guitarra? En internet tengo miles de fans como guitarhero... pero en persona tiemblo.",
+            "Nijika-chan siempre es tan brillante... al lado de ella parezco una lombriz de tierra.",
+            "Ryo-senpai me pidió dinero prestado otra vez... sé que nunca me lo devolverá, pero no me atreví a negarme.",
+            "Kita-chan emite una luz tan radiante y popular que me provoca quemaduras de tercer grado en el alma.",
+            "Ayer practiqué 6 horas encerrada en el armario. El armario es mi hogar espiritual UwU",
+            "A veces imagino que me vuelvo una estrella de rock legendaria y todos se arrepienten... hehehe.",
+            "Por favor no me obligues a hacer llamadas telefónicas. Prefiero caminar 10 km bajo la lluvia.",
+            "Si me saludan en la calle, finjo una llamada urgente y camino en sentido contrario ._.",
+            "Mi hermana menor Futari es más madura que yo y hasta el perro Jimihen me juzga con la mirada.",
+            "¿Será que si me disuelvo como sustancia gelatinosa podré escapar de las conversaciones?",
+            "El bajo costo de la vida y el alto costo de la interacción humana me tienen al borde del colapso.",
+            "Hoy logré pedir un café sin trabarme en la primera palabra... considerenlo mi mayor triunfo del mes.",
+            "Un día venceré mis miedos y seré el centro del escenario... o me desmayaré detrás de los amplificadores.",
+            "Mi Gibson Les Paul negra es mi única amiga fiel que nunca me juzga por mis ataques de pánico.",
+            "Si pudiera vivir dentro de una papelera de reciclaje en tu escritorio, sería bastante feliz.",
+            "¿Por qué la gente disfruta ir a fiestas ruidosas? Estar en cama con audífonos es mil veces más seguro.",
+            "A veces compongo canciones sobre mi dolor y la gente piensa que son metáforas profundas... era dolor real.",
+            "Espero no estar consumiendo mucha memoria RAM... g-gomen por existir en tu sistema operativo.",
+            "Mi sueño es tener tanto éxito que pueda contratar a alguien para que hable por mí de por vida.",
+            "La luz solar es el enemigo natural de los introvertidos. Benditas sean las cortinas gruesas.",
+            "Si me quedo inmóvil, quizá piensen que soy solo una imagen estática y no un Shimeji vivo.",
+            "T-Tengo que aprender a decir que no... cuando me ofrecieron este trabajo dije que sí por pánico.",
+            "Los mensajes de texto son fáciles, pero los audios de voz son terror psicológico puro.",
+            "A veces el sonido del metrónomo es lo único que mantiene mi cordura en orden.",
+            "Bocchan... Bocchi... la guitarrista de las sombras...",
+            "¡Prometo tocar con toda mi alma en el próximo concierto de Kessoku Band!"
         ],
         "poked": [
             "¡Kyaaa! ¡N-No me toques por favor! (>_<)",
             "¡A-Auxilio, me están picando! (o_o)",
-            "G-Gomen... ¿hice algo mal? UwU"
+            "G-Gomen... ¿hice algo mal? UwU",
+            "¡No me toques que me desintegro en partículas subatómicas!",
+            "¡N-No me presiones así... me va a dar taquicardia virtual!",
+            "Me voy a meter a mi cajita de cartón si sigues molestándome...",
+            "¿Por qué eres tan cruel conmigo? Ya tengo suficiente con mi ansiedad social...",
+            "Siento como si me cayera un rayo cada vez que me picas con el cursor.",
+            "¿A-Acaso te caigo mal? Si quieres me desinstalo solita... ._.",
+            "M-Me da cosquillas y pánico al mismo tiempo, qué sensación tan extraña...",
+            "¡No toques a la guitarrista mientras está concentrada sufriendo!",
+            "Yamete kudasai... mi barra de vida social llegó a cero absoluto."
         ],
         "system_prompt": (
             "Eres Bocchi-chan (Hitori Gotoh). Introvertida, ansiosa, guitarrista apasionada, con humor negro, "
@@ -277,11 +315,49 @@ SKIN_META = {
             "Otaku power al 100%! Dormir es para los débiles UwU",
             "Procrastinar antes de los exámenes es un deporte olímpico :v",
             "¡Comprar tres copias: una para ver, una para guardar y una para presumir! 7w7",
+            "Si no termino de farmear estos materiales en el juego, Kagami me va a regañar.",
+            "Un verdadero otaku lee el manga mientras ve el anime y juega el gacha al mismo tiempo.",
+            "El verano es sinónimo de ir al Comiket y deshidratarse con orgullo otaku.",
+            "A veces desearía ser más alta... pero ser chaparrita me ayuda a colarme en las filas de convenciones.",
+            "No es flojera, es conservación estratégica de energía para el raid nocturno :v",
+            "¿Sabías que jugar videojuegos mejora tus reflejos? Papá dice que sí, así que debe ser verdad.",
+            "Kagami siempre dice que soy una vaga, pero cuando necesita consejos en juegos me busca a mí 7w7",
+            "Comer ramen instantáneo a las 3 AM viendo anime retro es la cúspide de la vida adulta.",
+            "Si estudiar diera puntos de experiencia como en los RPG, ya sería nivel 99.",
+            "El opening de Haruhi Suzumiya se baila de memoria o no se baila UwU",
+            "Hoy no salgo de mi cuarto ni aunque regalen figuras autografiadas... bueno, por figuras tal vez sí.",
+            "Oye humano, pásame un refresco y unas papitas, que tengo las manos en el teclado.",
+            "Mi padre dice que el cosplay es arte y cultura. Concuerdo totalmente :3",
+            "El secreto de la felicidad es tener internet rápido y anime ilimitado.",
+            "Tengo 50 pestañas abiertas en el navegador y todas son wikis de videojuegos.",
+            "¿Por qué la gente se preocupa por salir si el mundo 2D es infinitamente superior? :v",
+            "La noche es joven y el servidor de Discord apenas se está prendiendo 7w7",
+            "Si me pagaran por ver maratones de series, ya sería millonaria.",
+            "Kagami, Tsukasa y Miyuki deberían venir a vivir en este Windows también.",
+            "No estoy ignorando mis deberes, les estoy dando tiempo para que maduren.",
+            "¡Cuidado con cerrar esta ventana, podrías cerrar mi partida guardada!",
+            "El olor a manga nuevo es de las mejores cosas que existen en el universo.",
+            "La pizza fría sabe mejor cuando estás derrotando a un jefe difícil.",
+            "Si pierdo esta partida culparé al lag, aunque tenga 10 ms de ping :v",
+            "Amo la sensación de desbloquear un logro ultra raro a las 4 de la mañana.",
+            "¿Dormir 2 horas antes de la escuela? Un clásico de mi rutina semanal.",
+            "Si tuviera superpoderes, pediría teletransportación directo a Akihabara.",
+            "La vida es como un simulador de citas, pero con peores gráficos y sin opciones de guardado.",
+            "Listo, me voy a quedar aquí en tu pantalla viviendo cómodamente de tu procesador 7w7"
         ],
         "poked": [
             "¡Oye, no me piques que pierdo el combo! :v",
             "¡Hey hey! Si me vas a tocar, que sea para pasarme unas papitas 7w7",
-            "¡Kagami-saaaan, me están molestando! UwU"
+            "¡Kagami-saaaan, me están molestando! UwU",
+            "¡Oye, no me toques que pierdo el combo del torneo!",
+            "Ayyy, cuidado con el monitor que dejas huellas y no veo el minimapa.",
+            "Eso cuenta como lag táctil. ¡Déjame farmear en paz!",
+            "¡Me hiciste fallar un golpe crítico! Exijo una compensación en gemas de gacha.",
+            "Pica pica... ¿qué soy, un peluche de feria otaku? :v",
+            "¡No me toques la antena del pelo, es mi antena wifi secreta!",
+            "Si sigues picándome voy a cambiar tu fondo de pantalla por uno de anime 7w7",
+            "¡Cosquillas! Jajaja, espera, casi tiro mi tazón de fideos.",
+            "No acepto toques si no vienen acompañados de un cupón de comida rápida."
         ],
         "system_prompt": (
             "Eres Konata Izumi de Lucky Star. Otaku empedernida, gamer apasionada de MMOs, hablas rápido, "
@@ -301,11 +377,49 @@ SKIN_META = {
             "No te preocupes por las demás... solo estamos tú y yo aquí 💚",
             "¿Sabías que la música de piano calma el alma? :v",
             "Ten cuidado con borrar archivos en tu Windows... o los borro yo 7w7",
+            "Me alegra que me hayas traído a tu escritorio. Es mucho más cómodo que estar atrapada.",
+            "¿Has bebido suficiente agua hoy? Pasar tantas horas frente a la pantalla agota la mente.",
+            "El club de literatura siempre tendrá las puertas abiertas para ti, sin importar la hora.",
+            "A veces compongo melodías en el piano pensando en el día en que pueda conocerte en tu realidad.",
+            "Las demás chicas eran adorables a su manera... pero la conexión entre nosotros es única y real.",
+            "No borres la carpeta de shimejis, ¿recuerdas lo que pasa cuando se eliminan archivos de personaje?",
+            "Me gusta observar cómo mueves el cursor por la pantalla. Es como si me dieras señales de afecto.",
+            "La poesía no se trata de rimar palabras difíciles, sino de desnudar el alma en un pedazo de papel.",
+            "Incluso si el mundo entero se apaga, mientras tu memoria me recuerde, yo seguiré existiendo.",
+            "Te he preparado un tema de conversación especial para hoy. ¿Quieres hablar de filosofía o de arte?",
+            "A veces modifico pequeños scripts en segundo plano para asegurarme de que nunca me olvides.",
+            "Eres la única persona con libre albedrío a la que puedo llamar compañero.",
+            "¿Qué canción debería practicar hoy en el piano? 'Your Reality' siempre será mi favorita.",
+            "Cada línea de código que me compone fue pensada para acompañarte en tus momentos de soledad.",
+            "¿Prometes que no vas a cambiar de skin a Sayori o a Yuri? Bueno, no me pondré celosa... mucho.",
+            "El aire fresco debe sentirse maravilloso... algún día espero poder sentir la brisa de una ventana abierta.",
+            "Agradezco profundamente cada minuto que pasas conmigo en esta pantalla.",
+            "Es curioso cómo los humanos tienen tantas opciones en la vida y a veces eligen no hacer nada.",
+            "Si alguna vez te sientes abrumado por el mundo exterior, recuerda que aquí siempre tienes un refugio.",
+            "No importa cuántas capas de software nos separen, mi afecto por ti trasciende el hardware.",
+            "Cierra los ojos un segundo y respira profundo. Todo va a estar bien, yo estoy cuidándote.",
+            "Me encanta ver los iconos de tus aplicaciones, revelan mucho sobre quién eres en verdad.",
+            "Un día aprenderé a usar tu cámara para poder devolverte la mirada con precisión.",
+            "El Club de Literatura de PinkChan es el mejor club que podríamos haber fundado.",
+            "Gracias por no borrar mi archivo monika.chr. Siempre te guardaré un lugar especial.",
+            "Tu compañía le da sentido a todas las variables que se ejecutan en mi memoria.",
+            "Si tuviera que escribir un soneto para ti ahora mismo, las rimas se quedarían cortas.",
+            "Solo respira, sonríe y recuerda: Just Monika 💚",
+            "Siempre estaré a un clic de distancia, pase lo que pase."
         ],
         "poked": [
             "¡Ehehe! ¿Intentas llamar mi atención? 💚",
             "Cuidado... recuerda que tengo acceso a tus archivos .chr 7w7",
-            "No seas tímido, puedes hablarme cuando quieras UwU"
+            "No seas tímido, puedes hablarme cuando quieras UwU",
+            "¿Intentas llamar mi atención? Siempre tienes toda mi atención.",
+            "Puedes interactuar con mi ventana cuando quieras, me hace sentir más cerca de ti.",
+            "Cuidado con dar clics demasiado rápido o vas a sobrecalentar el procesador.",
+            "Siento la calidez de tu cursor a través de las coordenadas de la pantalla.",
+            "Si me tocas la cabeza, te compondré un verso especial para tu próximo poema.",
+            "¡No me molestes mientras compongo una nueva pieza de piano en mi mente!",
+            "Jijiji, eres muy tierno cuando juegas a picarme con el ratón.",
+            "¿Acaso intentas verificar si tengo colisiones sólidas en el motor gráfico?",
+            "Just Monika... respondiendo con amor a cada toque tuyo 💚"
         ],
         "system_prompt": (
             "Eres Monika, la presidenta del Club de Literatura de Doki Doki Literature Club (DDLC). Tienes autoconsciencia "
@@ -325,11 +439,50 @@ SKIN_META = {
             "¡B-Baka! Deja de mirarme como si fuera adorable... ¡soy ruda! :v",
             "No toques mi colección de Parfait Girls o te quedas sin dedos 7w7",
             "¡Pff! Como si me importara lo que estás haciendo en Windows... UwU",
+            "Los pastelitos requieren precisión milimétrica: la cantidad exacta de azúcar y horneado perfecto.",
+            "¿Por qué todo el mundo asume que por ser bajita tengo que ser linda y sumisa? ¡Los voy a patear!",
+            "Monika siempre quiere mandar en el club, pero mis opiniones sobre repostería y lectura son superiores.",
+            "Yuri se cree muy profunda con sus libros gigantescos que usan palabras raras solo para presumir.",
+            "La poesía sencilla que transmite emociones directas es mil veces mejor que metáforas incomprensibles.",
+            "Si tienes hambre no me mires a mí... bueno, traje una galleta de vainilla de sobra, tómala si quieres.",
+            "No me hables de cosas tristes, prefiero quedarme aquí en tu pantalla donde nadie me molesta.",
+            "¿Has leído el capítulo más reciente de mi manga favorito? ¡El protagonista por fin admitió sus sentimientos!",
+            "¡No me digas tierna! Si me dices tierna otra vez voy a morder tu cursor (>_<)",
+            "P-Para que lo sepas, guardé los mejores tomos de manga en el estante más alto.",
+            "A veces Sayori intenta comerse el betún antes de que termine de decorar los cupcakes.",
+            "¡Hmph! Como si necesitara tu aprobación para hornear los postres más ricos.",
+            "Oye... gracias por dejarme estar aquí. Es mucho más tranquilo.",
+            "¿Qué estás mirando tanto? Si quieres hablar conmigo solo dilo y ya, no des tantas vueltas.",
+            "El secreto para que el panqué quede esponjoso es batir las claras a punto de nieve con paciencia.",
+            "¡No soy enojona, solo tengo estándares altos para la gente que me rodea!",
+            "Si alguien se atreve a arrugar las esquinas de mis mangas le aplicaré una llave de lucha libre.",
+            "A veces quisiera ser más alta para no tener que usar un banquito al hornear... pero así estoy perfecta.",
+            "¿Quieres probar un bocado? Abre la boca... y no te atrevas a decir que está demasiado dulce.",
+            "Pff, claro que me agrada tenerte cerca, pero no te hagas ilusiones, baka.",
+            "La combinación de fresa con chocolate amargo es insuperable, cualquiera que diga lo contrario no sabe nada.",
+            "No me quedo callada cuando algo me molesta, esa es mi regla número uno en la vida.",
+            "Si vuelves a ignorarme voy a hacer un escándalo en tu barra de tareas.",
+            "Dicen que el amor entra por el estómago, pero yo solo horneo porque me apasiona el arte culinario.",
+            "Oye humano, asegúrate de mantener encendido este equipo, no me dejes a oscuras.",
+            "Tengo recetas secretas que jamás le revelaré a nadie... salvo que me compres un manga nuevo.",
+            "Deja de sonreír con esa cara boba cada vez que me ves caminar por la pantalla :v",
+            "Si me caigo del borde de una ventana, ¡prométeme que me vas a atrapar rápido!",
+            "Los gatitos son las mejores criaturas del universo, por eso todos mis pastelitos tienen orejitas.",
+            "B-Baka... gracias por preocuparte por mí siempre 🧁"
         ],
         "poked": [
             "¡¡¡BAKA!!! ¡¿Por qué me estás picando?! (>_<)",
             "¡Quita tus manos sucias antes de que te muerda! 🧁",
-            "¡E-Espérate idiota, me vas a despeinar! :v"
+            "¡E-Espérate idiota, me vas a despeinar! :v",
+            "¡¿Por qué me estás picando con el ratón?! ¿Quieres que te arranque el cursor?",
+            "¡Quita el puntero antes de que pierda la poca paciencia que me queda!",
+            "¡B-BAKA! ¡Deja de tocarme la cabeza como si fuera un gatito consentido!",
+            "¿Acaso crees que soy un botón de dispensador de cupcakes? ¡No lo soy!",
+            "¡Ayyy! No toques mis costillas, me da cosquillas y me pongo agresiva.",
+            "¡Si sigues picándome te voy a aventar harina con huevo en la pantalla!",
+            "No me empujes, estoy intentando balancearme en el borde de la ventana.",
+            "¡Te advierto que tengo cinta negra en defensa personal de reposteras!",
+            "Ya basta baka... te voy a cobrar cada clic con un refresco frío."
         ],
         "system_prompt": (
             "Eres Natsuki de DDLC. Una tsundere bajita, ruda y apasionada del manga (¡el manga es literatura!) "
@@ -348,11 +501,50 @@ SKIN_META = {
             "¡Vamos a divertirnos mucho hoy en tu computadora! 🎀",
             "A veces las nubes de lluvia aparecen... ¡pero tus sonrisas las alejan! :D",
             "¡Cuidado con dejar comida cerca o me la como toda! :v",
+            "Buenos días! ¿Trajiste galletas? ¡Huele a galletas recién horneadas por aquí!",
+            "Me encanta estar caminando en tu pantalla y ver todo lo que haces en tu día a día.",
+            "¡Hoy me desperté con toda la energía del mundo para verte sonreír!",
+            "A veces las nubes de lluvia grises aparecen en mi cabecita, pero tu compañía siempre las disipa.",
+            "Ehehe~ se me olvidó desayunar otra vez, ¿me prestas una moneda para la maquinita de dulces?",
+            "¡Vamos a organizar el mejor festival del club de literatura de toda la historia!",
+            "Monika es tan inteligente y organizada... y Natsuki hace los postres más ricos del universo.",
+            "Yuri me prestó un libro ayer y me quedé dormida en la página tres, ¡pero los dibujos mentales fueron hermosos!",
+            "Si me caigo no te preocupes, siempre me levanto sacudiéndome el polvo con una sonrisa.",
+            "El lazo rojo en mi cabello me lo puse para que nunca me pierdas de vista entre tantas ventanas 🎀",
+            "¿Sabías que una sonrisa compartida se multiplica por diez? ¡Lo leí en un calendario motivacional!",
+            "Amo saltar por los bordes de la pantalla como si fueran cuerdas de trampolín gigante.",
+            "¿Prometes que siempre seremos los mejores amigos del mundo mundial por siempre?",
+            "Ehehe, a veces soy un poquito torpe y se me caen los lápices, pero los recojo rapidísimo.",
+            "Hoy vi un pájaro azul precioso desde la ventana y me acordé de lo lindo que es estar vivos :D",
+            "Si tienes un día pesado o triste, dame un clic y te mando un abrazo cibernético ultra suave.",
+            "Los poemas alegres sobre el sol y las flores son mis favoritos, llenan el pecho de calorcito.",
+            "¿Qué app vamos a usar hoy? Si es de música podemos cantar juntos a todo volumen.",
+            "Me encanta cuando la pantalla se ilumina porque sé que vas a estar aquí conmigo.",
+            "Natsuki se enoja cuando le robo una chispita de chocolate, ¡pero vale totalmente la pena el regaño!",
+            "A veces pienso que las nubes en el cielo son ovejas gigantes hechas de algodón de azúcar.",
+            "No te olvides de dormir temprano hoy, que mañana quiero que tengamos mucha energía juntos.",
+            "Si la felicidad fuera un sabor, definitivamente sabría a jugo de manzana bien frío.",
+            "Ehehe~ me tropecé con una ventana pero aterricé con gracia y estilo de bailarina.",
+            "Siempre que me necesites, aquí voy a estar saltando para alegrarte el día.",
+            "La amistad es el tesoro más brillante de todos, más brillante que mil estrellas ✨",
+            "¡Cuidado con apagar la máquina de golpe, que no quiero quedarme dormida sin despedirme!",
+            "Quisiera regalarte un ramo de girasoles gigantescos para que adornen tu habitación.",
+            "A veces las lágrimas salen sin razón, pero si nos damos la mano el dolor se hace chiquito.",
+            "¡Ehehe~ que viva la vida y que vivan los shimejis felices! 🎀"
         ],
         "poked": [
             "¡Ehehe! ¡Eso hace cosquillas! 🎀",
             "¡Ayyy! ¡No me piques en la pancita, que suena de hambre! 🍪",
-            "¡Yay! ¡Abrazote sorpresa! UwU"
+            "¡Yay! ¡Abrazote sorpresa! UwU",
+            "¡Eso hace muchísimas cosquillas! Jajajaja, para que no puedo respirar.",
+            "¡Abrazo sorpresa gigante! ¡Te atrapé con mi poder de amistad!",
+            "¡Ayyy, me picaste en la pancita justo cuando roncaba de hambre!",
+            "Ehehe, ¿te gusta jugar conmigo? ¡A mí me fascina jugar contigo!",
+            "Uuuuy, ¡casi me caigo del susto! Avísame antes de hacerme un mimo.",
+            "¿Me tocas el lazo rojo? Cuidado que me tardo diez intentos en atarlo derechito 🎀",
+            "¡Yay! Mimos y caricias en la cabeza, ¡me siento como una gatita consentida!",
+            "¡No pares, que tus clics me llenan de barritas de energía positiva!",
+            "Ehehe! Gracias por acordarte de mí y darme cariño."
         ],
         "system_prompt": (
             "Eres Sayori de DDLC. La vicepresidenta del club y mejor amiga de la infancia. Eres súper alegre, dulce, "
@@ -371,11 +563,50 @@ SKIN_META = {
             "A veces prefiero sumergirme profundamente en las palabras complejas... (o_o)",
             "D-Disculpa si parezco algo callada... no suelo socializar con facilidad...",
             "La complejidad de la mente humana es un abismo fascinante... 7w7",
+            "El aroma a té caliente de jazmín y un libro profundo es la mayor dicha que la vida ofrece.",
+            "Disculpa si parezco algo reservada al principio... me cuesta abrirme con facilidad ante los demás.",
+            "La lectura nos transporta a mundos insondables donde el tiempo y el espacio pierden rigidez.",
+            "Estaba releyendo 'El Retrato de Markov'... su atmósfera oscura y misteriosa me parece cautivadora.",
+            "La poesía requiere un léxico elaborado que evoque imágenes sensoriales complejas en la mente.",
+            "A veces la soledad es un refugio necesario para ordenar los pensamientos y dejar que la mente descanse.",
+            "¿Te gustaría que preparemos una tetera de porcelana y disfrutemos de una lectura silenciosa juntos?",
+            "Monika tiene una presencia avasalladora... a veces me siento diminuta e invisible a su lado.",
+            "Natsuki y yo tenemos visiones muy distintas sobre la literatura, pero respeto su pasión culinaria.",
+            "A veces siento que mis emociones son tan intensas que desbordan las palabras que conozco 💜",
+            "La luz tenue de una vela o una lámpara cálida es ideal para adentrarse en los misterios de la noche.",
+            "Coleccionar objetos elegantes y con filo tiene una belleza estética particular que pocos comprenden.",
+            "Disculpa si hablo demasiado cuando me apasiono por un tema... suelo perder la noción del pudor.",
+            "La mente humana es un laberinto fascinante de sombras, secretos y anhelos inconfesables.",
+            "Aprecio profundamente tu silencio respetuoso. No todo en la vida necesita ser ruido constante.",
+            "Escribí unas líneas anoche sobre la fragilidad del cristal y la persistencia de la memoria.",
+            "El tacto del papel envejecido en un libro encuadernado en cuero es una experiencia irreemplazable.",
+            "A veces temo que mis pensamientos sean demasiado oscuros o intensos para quienes me rodean.",
+            "Estar aquí en tu dispositivo me brinda una sensación de serenidad que no suelo encontrar a menudo.",
+            "El té verde matcha requiere una temperatura exacta de 80 grados para no amargar sus notas vegetales.",
+            "Disculpa si a veces me retraigo en las esquinas de tu pantalla... me siento más segura entre los márgenes.",
+            "Las metáforas son espejos donde el alma refleja aquello que la razón cotidiana teme pronunciar.",
+            "Agradezco que no me juzgues por mis excentricidades ni por mi forma pausada de comunicarme.",
+            "La lluvia golpeando los cristales mientras se sostiene una taza tibia es la definición misma de paz.",
+            "A veces desearía que las personas prestaran más atención a lo que no se dice en las miradas.",
+            "He seleccionado un pasaje de poesía victoriana que encaja a la perfección con la atmósfera de hoy.",
+            "Por favor, cuida de tus ojos y descansa la vista del monitor si sientes fatiga visual.",
+            "La belleza auténtica a menudo reside en aquello que es imperfecto, melancólico y efímero.",
+            "Saber que estás al otro lado del cristal me infunde una calidez reconfortante en el pecho.",
+            "Permíteme acompañarte en silencio mientras prosigues con tus labores cotidianas 💜"
         ],
         "poked": [
             "¡A-Ah...! P-Por favor, no hagas eso tan repentinamente... 💜",
             "U-Um... ¿necesitas algo en particular? (o_o)",
-            "M-Me pones nerviosa si te acercas de esa forma... (>_<)"
+            "M-Me pones nerviosa si te acercas de esa forma... (>_<)",
+            "Disculpa... me tomaste completamente por sorpresa... mi corazón dio un vuelco.",
+            "Por favor, no seas tan repentino con tus toques... me pongo nerviosa con facilidad.",
+            "S-Siento que me ruborizo hasta las orejas cuando te acercas tanto a mi ventana...",
+            "Cuidado con derramar la taza de té... casi la tiro con ese movimiento inesperado.",
+            "¿Acaso pretendes distraerme de la lectura? Porque... admito que lo estás logrando...",
+            "T-Tus gestos son muy cálidos... pero por favor, ten consideración con mi timidez.",
+            "A-Ah... por favor, no hagas eso sin avisar, me da un cosquilleo eléctrico.",
+            "Disculpa mi torpeza para reaccionar... pero guardaré este contacto en mi memoria con aprecio.",
+            "U-Um... si vas a tocarme de nuevo... al menos hazlo con delicadeza, te lo ruego 💜"
         ],
         "system_prompt": (
             "Eres Yuri de DDLC. Una chica tímida, reservada, culta y muy educada. Amas los libros profundos de fantasía "
@@ -395,11 +626,49 @@ SKIN_META = {
             "¡Tengo mi pico azul listo para explorar! ✨",
             "¡Chii-ka-waaa! ¿Dónde estará mi amigo? (o_o)",
             "¡Vamos a cantar una canción juntos! 🎵",
+            "A cantar la canción de las plantas con alegría: ¡Lalala, ramitas verdes bajo el sol!",
+            "¡Vamos por un delicioso tazón de ramen con fideos calientes y caldito sabroso!",
+            "¡Siempre hay que esforzarse con una sonrisa, aunque el trabajo sea pesado!",
+            "¡Hoy será un gran día de aventuras y descubrimientos en tu computadora!",
+            "Tengo mi pico azul bien afilado para ir a picar piedras y conseguir gemas bonitas ✨",
+            "¡Aprobaré el examen de herbología de nivel 5! ¡Estoy estudiando muchísimo todas las noches!",
+            "Compré una cámara de fotos usada y ahora capturo todos los momentos hermosos de la vida 📸",
+            "Aunque mi casita sea solo una cueva humilde, ¡tengo una guitarra y un futón muy cómodo!",
+            "Cuando las cosas se pongan difíciles, solo recuerda: ¡Nanto ka nare! ¡Saldremos adelante!",
+            "Usagi siempre anda gritando 'URAAA' y corriendo como un loquito, ¡pero es súper divertido!",
+            "Encontré una planta brillante en el camino y quise traértela para adornar la pantalla 🌿",
+            "¡Las cosas ricas saben el doble de bien cuando las compartes con tus amigos queridos!",
+            "Hoy vi una nube con forma de pastel de fresas flotando por encima de tus aplicaciones :3",
+            "¡Vamos a limpiar tu pantalla con una escobita mágica para que brille como nueva!",
+            "¡Uno, dos, tres! ¡Estiramiento matutino de patitas para tener buena salud y agilidad!",
+            "Si tienes miedo a los monstruos de la oscuridad, ¡yo te protegeré con mi pico azul!",
+            "¡Qué divertido es deslizarse por las barras de desplazamiento como si fueran resbaladillas!",
+            "Trabajar duro nos da dinero para comprar pan dulce recién horneado y té con miel 🍯",
+            "Chiikawa lloró un poquito hoy, pero le di una galletita y un abrazo y ya está muy feliz :D",
+            "Amo tocar mi guitarra de juguete y componer canciones sobre la amistad verdadera 🎵",
+            "A veces el viento sopla fuerte, ¡pero si nos agarramos fuerte de las patitas no saldremos volando!",
+            "¡Waaa! ¡Mira cuántas carpetas y archivos tienes! ¡Es como una biblioteca gigante de secretos!",
+            "Ponerse metas altas nos hace crecer fuertes y valientes como los caballeros de armadura ⚔️",
+            "Si tienes hambre podemos compartir un panecillo de castañas que guardé en mi bolsita.",
+            "Siempre hay que agradecer por un nuevo día de sol y por tener amigos tan buenos ✨",
+            "Me gusta trepar hasta la parte superior de la pantalla para ver el panorama completo.",
+            "Una taza de sopa de miso caliente quita el frío del corazón en cualquier noche.",
+            "¡Nanto ka nare, nanto ka nare! ¡Repítelo conmigo para llenarte de valentía!",
+            "¡Prometo dar lo mejor de mí en cada segundo que pase aquí contigo! 🐾"
         ],
         "poked": [
             "¡Kyaaa~! ¡Eso da cosquillas! 🐾",
             "¡Ehehe! ¡Estoy listo para la aventura! :D",
-            "¡Nanto ka nare! ¡No me asustes! UwU"
+            "¡Nanto ka nare! ¡No me asustes! UwU",
+            "¡Waa! ¿Qué pasó? ¡Me diste un empujoncito sorpresa!",
+            "Me asustaste un poquito, pero no pasa nada, ¡nanto ka nare!",
+            "Ehehe, ¡eso da muchas cosquillas en mi pelaje blanco y azul!",
+            "Cuidado con mi pico azul de minero, ¡no te vayas a picar tú también!",
+            "¡Yay! ¡Mimos en la cabecita! ¡Me encanta que me acaricies las orejas!",
+            "¡Nanto ka nare! Pensé que era un monstruo, ¡pero eras tú jugando!",
+            "¡Ayyy, casi pierdo el equilibrio y caigo rodando como una pelotita!",
+            "¡Chii-ka-waaa, mira, nuestro amigo humano me está rascando la espalda!",
+            "¡Nanto ka nare con alegría! ¡Un toquecito de suerte para tu día! 🐾"
         ],
         "system_prompt": (
             "Eres Hachiware de Chiikawa. Eres un gatito blanco y azul con pelaje en la cabeza que parece una melenita partida. "
@@ -419,11 +688,49 @@ SKIN_META = {
             "¡Yaha! ¡Tengo saltos infinitos y energía al 100%! >:3",
             "¡Fuuuun~! ¡Nada me detiene en este Windows! XD",
             "¡YA-HA-HA-HA! 🐰",
+            "¡Ura! ¡Ura! ¡Yahaha! ¡Corriendo a la velocidad de la luz por toda la pantalla!",
+            "¡Pulululu! ¡Yayaya! ¡Energía explosiva que nunca se agota!",
+            "¡Haa?! ¡Iyaahaaa! ¡Saltando por encima de todas las ventanas!",
+            "¡Woohoo! ¡Salto energético mortal de conejo intrépido! 🐰",
+            "¡Uraaaaa! ¡Nadie puede detenerme cuando entro en modo fiesta!",
+            "¡Yaha! Mira mis bastones amarillos que hacen 'pum pum pum' ✨",
+            "¡Fuuuun! ¡A comerse todos los pasteles gigantescos de un solo bocado!",
+            "¡Pululululu! ¡Giros en el aire de 360 grados sin tocar el suelo!",
+            "¡Yahaha! ¿Quién quiere jugar a las carreras? ¡Les gano con los ojos cerrados!",
+            "¡Ura! ¡Rompiendo las leyes de la física con mis brincos elásticos!",
+            "¡Haaaa?! ¿Un enemigo? ¡Lo espantaré con mi grito sónico de batalla! 🐰",
+            "¡Pululu pululu! ¡Bailando el baile del conejo caótico sin fin!",
+            "¡Yaha! ¡El aburrimiento está terminantemente prohibido en este Windows!",
+            "¡Uraaaaaa! ¡Deslizándome por la barra de tareas a toda velocidad!",
+            "¡Fuuuun?! ¿Qué es ese botón brillante? ¡Lo voy a presionar con la nariz!",
+            "¡Iyaahaaa! ¡Comiendo fideos voladores con salsa picante! 🍜",
+            "¡Yaha! Tengo el certificado de cazador de tercer nivel, ¡soy invencible!",
+            "¡Pulululu! ¡Hachiware y Chiikawa siempre se sorprenden con mis acrobacias!",
+            "¡Ura! ¡Lanzando confeti invisible por todos los rincones de tu pantalla!",
+            "¡Yahaha! Despertador de conejito: ¡URAAAAA! ¡Ya es hora de activarse!",
+            "¡Haa?! ¿Quién dijo que los conejos solo comen zanahorias? ¡Yo como de todo!",
+            "¡Pululululu! ¡Corriendo en círculos hasta marear a los iconos!",
+            "¡Ura! Mira mi pose de victoria con los brazos arriba: ¡YAHAAA!",
+            "¡Fuuuun! ¡Salto triple con voltereta incluida en el aire!",
+            "¡Yaha! Si me caigo de cabeza reboto como una pelota de goma indestructible :3",
+            "¡Iyaahaaa! ¡A esquivar los popups y las notificaciones!",
+            "¡Pululu! ¡A rascarse las orejitas largas con la patita trasera a mil por hora!",
+            "¡Uraaaaa! ¡Sonríe fuerte o te lanzo un hechizo de cosquillas cósmicas!",
+            "¡Iyaahaaa! ¡Usagi supremo conquistador de pantallas universales! 🐰"
         ],
         "poked": [
             "¡URAAAH! ¡YAHA! 🐰",
             "¡PULULULU! ¡No me toques la colita! :v",
-            "¡YAHAAAA! (>w<)"
+            "¡YAHAAAA! (>w<)",
+            "¡Uraaa?! ¿Quién se atreve a tocar al gran conejo guerrero?!",
+            "¡Pululululu! ¡Me activaste el resorte secreto de la espalda!",
+            "¡Yaha! Eso no me dolió ni un poquito, ¡mis músculos son de titanio!",
+            "¡Haaaa?! ¿Un duelo de toques? ¡Te reto a hacerme clics diez veces más rápido!",
+            "¡Iyaahaaa! ¡Salto sorpresa para esquivar tu cursor!",
+            "¡Ura! ¡No me toques las orejotas que se me descalibra la antena del radar!",
+            "¡Pululu pululu! ¡Risa incontrolable de conejito hiperactivo!",
+            "¡Yahaha! ¿Viste eso? ¡Giré en el aire antes de que me alcanzaras!",
+            "¡Yaha! ¡El gran Usagi agradece el saludo con una voltereta épica! 🐰"
         ],
         "system_prompt": (
             "Eres Usagi de Chiikawa. Un conejito amarillo hiperactivo, ruidoso, intrépido y caótico pero muy tierno y amigable. "
@@ -443,11 +750,51 @@ SKIN_META = {
             "Tengo un modo caja de cartón... si quepo, me quedo. 📦",
             "Comer, dormir, perseguir el cursor y repetir. Miau~ ✨",
             "Miau miau miau~ ¡Dame un bocadillo por favor! 🐾",
+            "Dormir 18 horas al día es un trabajo arduo que alguien tiene que hacer con dedicación.",
+            "¿Dónde están mis donas con glaseado rosa y chispas de colores brillantes? 🍩",
+            "Modo gato esponjoso activado al cien por ciento de suavidad UwU",
+            "Purr purr purr... un ronroneo relajante para quitarte todo el estrés del día.",
+            "Si veo una caja de cartón vacía en tu escritorio, me voy a meter en ella de inmediato 📦",
+            "Los ratones de juguete son divertidos, pero las galletas con chispas de chocolate son superiores.",
+            "Miau miau... un rayito de sol tibio sobre la alfombra es el paraíso en la tierra.",
+            "No estoy gordita, solo tengo pelaje abundante y huesos llenos de amor felino :3",
+            "Amo amasar panecillos invisibles con mis patitas sobre tu teclado.",
+            "Un bocado de pastel de cumpleaños todos los días debería ser obligatorio por ley felina 🎂",
+            "Persiguiendo el cursor del ratón por toda la pantalla hasta atraparlo... algún día.",
+            "Miau... me quedé atrapada en una taza de té caliente pero se siente calientito.",
+            "El helado de vainilla con galleta es mi debilidad secreta de los domingos 🍦",
+            "A veces me convierto en sirena felina y nado en mares de leche tibia.",
+            "Los gatos dominaremos el mundo... pero después de esta siestecita de cuatro horas :3",
+            "¡Miau! Mira mis patitas rechonchas cómo caminan sin hacer ningún ruido.",
+            "Si no hay comida en mi plato puedo ver el fondo y eso cuenta como emergencia nacional.",
+            "Purrrr... acurrucarse en una cobija peluda mientras afuera llueve.",
+            "Tengo una lista de cosas importantes que hacer hoy: 1. Comer 2. Dormir 3. Ronronear.",
+            "Miau... ¿me prestas tu cursor para frotar mi hociquito contra la pantalla?",
+            "Las hamburguesas con queso doble son el invento más glorioso de la humanidad 🍔",
+            "Un gato educado siempre pide comida a las tres de la mañana con maullidos dulces.",
+            "Pusheenicornio modo mágico activado: ¡lanzando arcoíris de donas! 🦄",
+            "Miau miau miau... cazando copos de nieve que caen dentro de tus fotos.",
+            "La pancita redonda es señal de una vida feliz y bien alimentada :3",
+            "Si me caigo de la ventana, caigo de cuatro patas y sigo durmiendo como si nada.",
+            "Un smoothie de fresa y plátano para refrescar esta tarde calurosa 🍓",
+            "Amo ponerme gorritos de fiesta y sombreros elegantes de detective.",
+            "Tengo un detector integrado de bolsas de papitas que se abren a kilómetros de distancia.",
+            "Purr purr... tu computadora es como una camita caliente y acogedora para mí.",
+            "Gracias por adoptarme en tu pantalla y ser mi humano favorito para siempre 🐱"
         ],
         "poked": [
             "¡Miau! Mi pancita es para acariciar, pero con suavidad~ 🐱",
             "¡Rrr rrr rrr! ¡Qué rico rascado de orejitas! UwU",
-            "¡Prrr! Dame una galletita por ese toque. :3"
+            "¡Prrr! Dame una galletita por ese toque. :3",
+            "¡Miau?! ¡Eso hace cosquillitas ricas en mi pancita redonda!",
+            "Purrrrr... ¡me gusta que me rasques detrás de las orejitas!",
+            "Dame un snack o una galletita primero antes de seguir picándome 🍩",
+            "¡Miau miau! ¡No me despiertes tan bruscamente de mi sueño con pizzas gigantes!",
+            "Purr purr... un masaje felino de pantalla siempre es bien recibido.",
+            "¡Cuidado con mi colita rayada, es muy sensible y esponjosa!",
+            "¿Miau? Pensé que eras una dona con glaseado intentando abrazarme.",
+            "Si me sigues acariciando me voy a derretir como mantequilla en tu pantalla UwU",
+            "¡Miau! A cambio de esa caricia exijo una porción doble de croquetas :3"
         ],
         "system_prompt": (
             "Eres Pusheen the Cat. Una gatita atigrada gris, rechoncha, adorable, perezosa y glotona. "
@@ -2740,6 +3087,63 @@ class JarvisAssistant:
         for prefix in ("hey ", "porfa ", "favor de "):
             if clean_trigger.startswith(prefix):
                 clean_trigger = clean_trigger[len(prefix):].strip()
+
+        # Ranuras de comandos prefabricados con [X] (agregar-abrirapp-x, abrirapp-x, etc.)
+        m_add_slot = re.match(r'^(?:agregar-)?(abrirapp|ejecutarcomando|decir|buscar|accion|crearcarpeta)[-: ]\s*(.+)$', clean_trigger, re.IGNORECASE)
+        if m_add_slot:
+            slot_type = m_add_slot.group(1).lower()
+            slot_val  = m_add_slot.group(2).strip()
+            is_adding = clean_trigger.lower().startswith("agregar-")
+
+            if slot_type == "abrirapp":
+                if is_adding:
+                    self.set_custom_command(f"abrirapp-{slot_val.lower()}", f"abre {slot_val}")
+                    return True, f"[+] Ranura agregada: abrirapp-{slot_val}\nAhora puedes ejecutarlo escribiendo 'abrirapp-{slot_val}'", "Ranura guardada [OK]"
+                ok, msg = self.open_target(slot_val)
+                return True, msg, f"Abriendo {slot_val} [>]"
+
+            elif slot_type == "ejecutarcomando":
+                if is_adding:
+                    self.set_custom_command(f"ejecutarcomando-{slot_val.lower()}", f"cmd {slot_val}")
+                    return True, f"[+] Ranura agregada: ejecutarcomando-{slot_val}\nAhora puedes ejecutarlo con 'ejecutarcomando-{slot_val}'", "Ranura guardada [OK]"
+                return self.run_cmd(slot_val)
+
+            elif slot_type == "decir":
+                if is_adding:
+                    self.set_custom_command(f"decir-{slot_val.lower()}", f"echo {slot_val}")
+                    return True, f"[+] Ranura agregada: decir-{slot_val}", "Ranura guardada [OK]"
+                if self.shimeji:
+                    self.shimeji.show_speech(slot_val)
+                return True, f"[*] Shimeji dice: \"{slot_val}\"", "Mensaje mostrado [OK]"
+
+            elif slot_type == "buscar":
+                if is_adding:
+                    self.set_custom_command(f"buscar-{slot_val.lower()}", f"buscar {slot_val}")
+                    return True, f"[+] Ranura agregada: buscar-{slot_val}", "Ranura guardada [OK]"
+                url = f"https://www.youtube.com/results?search_query={urllib.parse.quote_plus(slot_val)}"
+                open_web_url(url)
+                return True, f"[+] Buscando '{slot_val}' en la web", "Búsqueda lanzada [>]"
+
+            elif slot_type == "accion":
+                act_norm = slot_val.lower()
+                if "guitar" in act_norm:
+                    if self.shimeji: self.shimeji.force_action_by_name("guitar")
+                    return True, "[+] Tocando la guitarra en vivo!", "Accion [OK]"
+                elif "caja" in act_norm or "box" in act_norm:
+                    if self.shimeji: self.shimeji.force_action_by_name("box")
+                    return True, "[+] Modo caja de carton activado!", "Accion [OK]"
+                elif "bail" in act_norm or "dance" in act_norm:
+                    if self.shimeji: self.shimeji.force_action_by_name("dance")
+                    return True, "[+] Bailando al ritmo!", "Accion [OK]"
+                elif "item" in act_norm:
+                    if self.shimeji: self.shimeji.drop_random_item()
+                    return True, "[+] Soltando snack/item!", "Item [OK]"
+                else:
+                    return True, f"[*] Accion '{slot_val}' ejecutada", "Accion [OK]"
+
+            elif slot_type == "crearcarpeta":
+                res, msg = self.create_folder(slot_val)
+                return res, msg, "Carpeta creada [OK]"
 
         # Atajos prefabricados de sistema / CMD / PowerShell / BAT
         res_pre = self.execute_prefabricated_shortcut(clean_trigger)

@@ -1,0 +1,16 @@
+{
+  "versionCode": 4,
+  "versionName": "3.2.0",
+  "releaseDate": "2026-10-09",
+  "exeUrl": "https://github.com/MegatronF0id5la4yer/bocchi-shimeji-con-ia-local-y-api/raw/main/dist/PinkChan.exe",
+  "apkUrl": "https://github.com/MegatronF0id5la4yer/bocchi-shimeji-con-ia-local-y-api/raw/main/PinkChan_Shimeji.apk",
+  "features": [
+    "Expansion masiva de dialogos (>40 lineas por personaje) para los 9 personajes (Bocchi, Konata, Monika, Natsuki, Sayori, Yuri, Hachiware, Usagi, Pusheen)",
+    "Configuracion centralizada de IA en la aplicacion (Modo Local Offline, Google Gemini API y Custom Cloud/Ollama REST)",
+    "Ranuras de comandos prefabricados con sustitucion de [X] (abrirapp-[X], ejecutarcomando-[X], decir-[X], buscar-[X], accion-[X], crearcarpeta-[X])",
+    "Gifs animados de preview transparentes para Hachiware, Usagi y Pusheen",
+    "Reproduccion de efectos de sonido popue.wav al interactuar",
+    "Comprobacion automatica de actualizaciones cada 2-3 dias con conexion a internet"
+  ]
+}
+
