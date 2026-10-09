@@ -7,8 +7,10 @@ __pycache__/
 build/
 dist/
 *.exe
+!PinkChan.exe
 *.msix
 *.zip
+*.idsig
 
 # Local configuration and credentials
 config.json

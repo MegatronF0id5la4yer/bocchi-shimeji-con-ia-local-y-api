@@ -141,7 +141,7 @@ public class VoiceAssistantManager {
         }
     }
 
-    private void processCommand(String rawCommand) {
+    public void processCommand(String rawCommand) {
         if (rawCommand == null) return;
         String cmd = rawCommand.toLowerCase().trim();
 
@@ -177,15 +177,9 @@ public class VoiceAssistantManager {
                 .replace("la ", "")
                 .trim();
 
-            boolean launched = launchAppByQuery(appQuery);
-            if (launched) {
-                if (callback != null) {
-                    callback.onAssistantResponse("Abriendo " + appQuery + ".");
-                }
-            } else {
-                if (callback != null) {
-                    callback.onAssistantResponse("No encontre la aplicacion " + appQuery + ".");
-                }
+            String responseMsg = launchAppByQuery(appQuery);
+            if (callback != null) {
+                callback.onAssistantResponse(responseMsg);
             }
             return;
         }
@@ -320,8 +314,10 @@ public class VoiceAssistantManager {
         }
     }
 
-    private boolean launchAppByQuery(String query) {
+    private String launchAppByQuery(String query) {
         PackageManager pm = context.getPackageManager();
+        android.content.SharedPreferences sp = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        java.util.Set<String> allowedSet = sp.getStringSet(MainActivity.KEY_ALLOWED_APPS, null);
 
         // 1. Accesos rapidos a apps del sistema conocidas
         if (query.equals("camara") || query.equals("fotos")) {
@@ -329,7 +325,7 @@ public class VoiceAssistantManager {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             if (intent.resolveActivity(pm) != null) {
                 context.startActivity(intent);
-                return true;
+                return "Abriendo la camara.";
             }
         }
 
@@ -337,7 +333,7 @@ public class VoiceAssistantManager {
             Intent intent = new Intent(Settings.ACTION_SETTINGS);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
-            return true;
+            return "Abriendo ajustes del sistema.";
         }
 
         if (query.equals("calculadora")) {
@@ -348,11 +344,12 @@ public class VoiceAssistantManager {
                 "com.android.calculator2"
             };
             for (String pkg : calcPackages) {
+                if (allowedSet != null && !allowedSet.contains(pkg)) continue;
                 Intent launch = pm.getLaunchIntentForPackage(pkg);
                 if (launch != null) {
                     launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(launch);
-                    return true;
+                    return "Abriendo la calculadora.";
                 }
             }
         }
@@ -377,14 +374,19 @@ public class VoiceAssistantManager {
         }
 
         if (bestMatch != null) {
+            String appLabel = pm.getApplicationLabel(bestMatch).toString();
+            if (allowedSet != null && !allowedSet.contains(bestMatch.packageName)) {
+                return "La app '" + appLabel + "' esta bloqueada en el filtro de aplicaciones permitidas.";
+            }
+
             Intent launch = pm.getLaunchIntentForPackage(bestMatch.packageName);
             if (launch != null) {
                 launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(launch);
-                return true;
+                return "Abriendo " + appLabel + ".";
             }
         }
 
-        return false;
+        return "No encontre ninguna aplicacion llamada '" + query + "'.";
     }
 }

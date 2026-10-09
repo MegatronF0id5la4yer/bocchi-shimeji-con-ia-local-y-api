@@ -8,14 +8,24 @@ public class SkinData {
     public final String name;
     public final String folder;
     public final String[] dialogues;
+    public final String[] speeches;
     public final String[] poked;
+    public final String tagline;
+    public final String greeting;
 
     public SkinData(String id, String name, String folder, String[] dialogues, String[] poked) {
+        this(id, name, folder, dialogues, poked, "Companero interactivo");
+    }
+
+    public SkinData(String id, String name, String folder, String[] dialogues, String[] poked, String tagline) {
         this.id = id;
         this.name = name;
         this.folder = folder;
         this.dialogues = dialogues;
+        this.speeches = dialogues;
         this.poked = poked;
+        this.tagline = tagline != null ? tagline : "Companero interactivo";
+        this.greeting = (dialogues != null && dialogues.length > 0) ? dialogues[0] : "Hola!";
     }
 
     private static Map<String, SkinData> registry = null;

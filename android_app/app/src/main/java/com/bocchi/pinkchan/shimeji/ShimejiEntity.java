@@ -110,6 +110,18 @@ public class ShimejiEntity {
             }
         });
 
+        // Chat Interactivo
+        View btnChat = overlayView.findViewById(R.id.btn_menu_chat);
+        if (btnChat != null) {
+            btnChat.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    service.openChat();
+                }
+            });
+        }
+
         // Cambiar Skin
         overlayView.findViewById(R.id.btn_menu_skin).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -407,8 +419,29 @@ public class ShimejiEntity {
         }
     }
 
+    public void applyBubbleStyle() {
+        if (tvSpeechBubble == null) return;
+        android.content.SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, android.content.Context.MODE_PRIVATE);
+        int alphaPercent = sp.getInt(MainActivity.KEY_BUBBLE_ALPHA, 90);
+        boolean showBorder = sp.getBoolean(MainActivity.KEY_BUBBLE_BORDER, true);
+
+        int alpha = (int) (Math.max(10, Math.min(100, alphaPercent)) * 2.55f);
+        android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+        gd.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        gd.setCornerRadius(service.dpToPx(14));
+        gd.setColor(android.graphics.Color.argb(alpha, 0x1A, 0x14, 0x2A));
+        if (showBorder) {
+            int strokeColor = android.graphics.Color.argb(Math.min(255, alpha + 50), 0x8A, 0x56, 0xE2);
+            gd.setStroke(service.dpToPx(1.5f), strokeColor);
+        } else {
+            gd.setStroke(0, 0);
+        }
+        tvSpeechBubble.setBackground(gd);
+    }
+
     public void say(String text, int durationMs) {
         if (tvSpeechBubble == null) return;
+        applyBubbleStyle();
         tvSpeechBubble.setText(text);
         tvSpeechBubble.setVisibility(View.VISIBLE);
 

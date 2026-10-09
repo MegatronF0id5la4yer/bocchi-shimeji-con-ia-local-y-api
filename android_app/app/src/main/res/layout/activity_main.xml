@@ -1496,17 +1496,37 @@
                             android:layout_marginLeft="4dp" />
                     </LinearLayout>
 
-                    <!-- Voice Assistant Button -->
-                    <Button
-                        android:id="@+id/btn_inspector_voice"
+                    <!-- Interactive Chat & Voice Assistant Buttons -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="46dp"
-                        android:background="@drawable/btn_pill_violet"
-                        android:text="Asistente de Voz (Comandos)"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <Button
+                            android:id="@+id/btn_inspector_chat"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/btn_pill_violet"
+                            android:text="Chat Interactivo"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginRight="4dp" />
+
+                        <Button
+                            android:id="@+id/btn_inspector_voice"
+                            android:layout_width="0dp"
+                            android:layout_height="46dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/btn_pill_outline"
+                            android:text="Asistente de Voz"
+                            android:textColor="@color/accent_lavender_light"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginLeft="4dp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Live Quick Action Chips (Row 1) -->
@@ -1710,6 +1730,17 @@
                             android:textSize="12sp" />
                     </RadioGroup>
 
+                    <Button
+                        android:id="@+id/btn_custom_size"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:background="@drawable/btn_pill_outline"
+                        android:text="Tamano Personalizado (Cualquier escala / 100x)"
+                        android:textColor="@color/accent_lavender_light"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="14dp" />
+
                     <!-- Animation Framerate -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -1808,6 +1839,71 @@
                         android:textColor="@color/accent_lavender"
                         android:textSize="12sp"
                         android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <!-- Card: Speech Bubble Styling -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="10dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Burbuja de Texto"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/badge_bubble_alpha"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="90% Opacidad"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Transparencia de la burbuja:"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="4dp" />
+
+                    <SeekBar
+                        android:id="@+id/sb_bubble_alpha"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="90"
+                        android:layout_marginBottom="12dp" />
+
+                    <CheckBox
+                        android:id="@+id/cb_bubble_border"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Bordes suaves de burbuja (Contorno violeta)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:checked="true" />
                 </LinearLayout>
 
                 <!-- Card: Customization & Color Palette -->
@@ -1920,7 +2016,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="42dp"
                         android:background="@drawable/btn_pill_outline"
-                        android:text="EDIT APP FILTER"
+                        android:text="EDIT APP FILTER (Apps de Voz / Chat)"
                         android:textColor="@color/text_primary"
                         android:textSize="12sp"
                         android:textStyle="bold"
@@ -1954,6 +2050,44 @@
                             android:textSize="11sp"
                             android:layout_marginLeft="4dp" />
                     </LinearLayout>
+                </LinearLayout>
+
+                <!-- Card: Actualizaciones & Red -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Actualizaciones Automaticas"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:id="@+id/tv_update_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Verificacion automatica cada 2-3 dias con conexion a internet. Descarga directa desde GitHub."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="10dp" />
+
+                    <Button
+                        android:id="@+id/btn_settings_check_update"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Buscar Actualizaciones Ahora"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
             </LinearLayout>

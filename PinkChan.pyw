@@ -22,6 +22,8 @@ import re
 import shutil
 import fnmatch
 import urllib.parse
+import urllib.request
+import time
 import importlib
 
 try:
@@ -150,6 +152,77 @@ def play_popue_sound():
                 return
     except Exception:
         pass
+
+APP_VERSION = "3.1.0"
+VERSION_CODE = 3
+VERSION_CHECK_URL = "https://raw.githubusercontent.com/MegatronF0id5la4yer/bocchi-shimeji-con-ia-local-y-api/main/version.json"
+UPDATE_CHECK_INTERVAL_SEC = 48 * 3600  # Comprobacion cada 48 horas (2-3 dias)
+
+def check_for_updates(shimeji_ref=None, is_manual=False):
+    """Comprueba cada 2-3 dias si hay una nueva actualizacion y permite descargarla."""
+    def _worker():
+        try:
+            cfg = load_config()
+            last_check = cfg.get("last_update_check", 0)
+            now = time.time()
+            if not is_manual and (now - last_check < UPDATE_CHECK_INTERVAL_SEC):
+                return
+
+            req = urllib.request.Request(
+                VERSION_CHECK_URL,
+                headers={"User-Agent": "PinkChan-Desktop/3.1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+
+            cfg["last_update_check"] = int(now)
+            save_config(cfg)
+
+            remote_code = data.get("versionCode", 0)
+            remote_name = data.get("versionName", "3.1.0")
+            exe_url = data.get("exeUrl", "https://github.com/MegatronF0id5la4yer/bocchi-shimeji-con-ia-local-y-api/raw/main/PinkChan.exe")
+            features = data.get("features", [])
+
+            if remote_code > VERSION_CODE:
+                feats_str = "\n".join([f"• {f}" for f in features])
+                prompt_msg = (
+                    f"¡Nueva versión disponible: v{remote_name}!\n\n"
+                    f"Novedades:\n{feats_str}\n\n"
+                    f"¿Deseas descargar la actualización ahora?"
+                )
+                if is_manual:
+                    ans = messagebox.askyesno("Actualización Disponible", prompt_msg)
+                    if ans:
+                        _download_update(exe_url, remote_name, shimeji_ref)
+                else:
+                    if shimeji_ref:
+                        shimeji_ref.show_speech(f"¡Nueva versión v{remote_name} disponible!\nEscribe /update para descargar [*]")
+            else:
+                if is_manual:
+                    messagebox.showinfo("Actualizaciones", f"Tienes instalada la versión más reciente (v{APP_VERSION}). [OK]")
+        except Exception as exc:
+            if is_manual:
+                messagebox.showwarning("Actualizaciones", f"No se pudo comprobar la actualización (sin internet):\n{exc}")
+
+    threading.Thread(target=_worker, daemon=True).start()
+
+def _download_update(exe_url, version_name, shimeji_ref=None):
+    """Descarga el nuevo PinkChan.exe en la carpeta Descargas o abre el enlace en navegador."""
+    def _dl_worker():
+        try:
+            if shimeji_ref:
+                shimeji_ref.show_speech(f"Descargando v{version_name}...\nEspera un momento...")
+            dest_dir = os.path.join(os.environ.get("USERPROFILE", "."), "Downloads")
+            os.makedirs(dest_dir, exist_ok=True)
+            dest_file = os.path.join(dest_dir, f"PinkChan_v{version_name}.exe")
+            urllib.request.urlretrieve(exe_url, dest_file)
+            if shimeji_ref:
+                shimeji_ref.show_speech(f"¡Descarga completa v{version_name}!\nRevisa tu carpeta Descargas [*]")
+            messagebox.showinfo("Actualización Descargada", f"Archivo descargado exitosamente en:\n{dest_file}\n\nPuedes ejecutarlo para disfrutar de la nueva versión.")
+        except Exception:
+            webbrowser.open(exe_url)
+
+    threading.Thread(target=_dl_worker, daemon=True).start()
 
 SKIN_NAMES = ["Bocchi", "Konata", "Monika", "Natsuki", "Sayori", "Yuri", "Hachi", "Usagi", "Pusheen"]
 
@@ -760,6 +833,8 @@ class ThemeManager:
     def reload(self):
         self.theme_mode = self.config.get("theme_mode", "system")
         self.opacity = float(self.config.get("ui_opacity", 0.95))
+        self.bubble_opacity = float(self.config.get("bubble_opacity", 0.95))
+        self.bubble_border = bool(self.config.get("bubble_border", True))
         self.font_family = self.config.get("font_family", "Segoe UI")
         self.font_size = int(self.config.get("font_size", 9))
 
@@ -857,6 +932,20 @@ class ThemeManager:
     def set_opacity(self, opac, notify=True):
         self.opacity = max(0.40, min(1.0, float(opac)))
         self.config["ui_opacity"] = round(self.opacity, 2)
+        save_config(self.config)
+        if notify:
+            self.notify_listeners()
+
+    def set_bubble_opacity(self, opac, notify=True):
+        self.bubble_opacity = max(0.10, min(1.0, float(opac)))
+        self.config["bubble_opacity"] = round(self.bubble_opacity, 2)
+        save_config(self.config)
+        if notify:
+            self.notify_listeners()
+
+    def set_bubble_border(self, enabled, notify=True):
+        self.bubble_border = bool(enabled)
+        self.config["bubble_border"] = self.bubble_border
         save_config(self.config)
         if notify:
             self.notify_listeners()
@@ -1051,6 +1140,98 @@ class AppearanceWindow:
         self.opac_scale.set(int(self.theme.opacity * 100))
         self.opac_scale.pack(fill=tk.X, pady=(6, 0))
 
+        # Section 3b: Estilo de Burbuja de Dialogo
+        self.sec_bubble = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
+                                   highlightbackground=self.theme.border, highlightthickness=1)
+        self.sec_bubble.pack(fill=tk.X, pady=(0, 10))
+
+        bub_header = tk.Frame(self.sec_bubble, bg=self.theme.surface)
+        bub_header.pack(fill=tk.X)
+
+        tk.Label(bub_header, text="BURBUJA DE TEXTO (OPACIDAD Y BORDE):",
+                 font=(self.theme.font_family, self.theme.font_size, "bold"),
+                 fg=self.theme.text, bg=self.theme.surface).pack(side=tk.LEFT)
+
+        self.bub_pct_lbl = tk.Label(bub_header, text=f"{int(getattr(self.theme, 'bubble_opacity', 0.95) * 100)}%",
+                                    font=(self.theme.font_family, self.theme.font_size, "bold"),
+                                    fg=self.theme.accent, bg=self.theme.surface)
+        self.bub_pct_lbl.pack(side=tk.RIGHT)
+
+        self.bub_opac_scale = tk.Scale(self.sec_bubble, from_=10, to=100, orient=tk.HORIZONTAL,
+                                       showvalue=False, command=self._on_bubble_opacity_change,
+                                       bg=self.theme.surface, fg=self.theme.text,
+                                       troughcolor=self.theme.surface_variant,
+                                       activebackground=self.theme.accent,
+                                       highlightthickness=0, bd=0)
+        self.bub_opac_scale.set(int(getattr(self.theme, "bubble_opacity", 0.95) * 100))
+        self.bub_opac_scale.pack(fill=tk.X, pady=(6, 4))
+
+        self.bub_border_var = tk.BooleanVar(value=getattr(self.theme, "bubble_border", True))
+        self.cb_bub_border = tk.Checkbutton(self.sec_bubble, text="Mostrar borde de acento en la burbuja",
+                                            variable=self.bub_border_var, command=self._on_bubble_border_toggle,
+                                            bg=self.theme.surface, fg=self.theme.text,
+                                            selectcolor=self.theme.surface_variant,
+                                            activebackground=self.theme.surface,
+                                            font=(self.theme.font_family, self.theme.font_size - 1))
+        self.cb_bub_border.pack(anchor="w", pady=(2, 0))
+
+        # Section 3c: Tamaño y Escala del Shimeji (Hasta 100x)
+        self.sec_size = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
+                                 highlightbackground=self.theme.border, highlightthickness=1)
+        self.sec_size.pack(fill=tk.X, pady=(0, 10))
+
+        cur_shimeji_sz = getattr(self.shimeji, "size", 128) if self.shimeji else 128
+        size_header = tk.Frame(self.sec_size, bg=self.theme.surface)
+        size_header.pack(fill=tk.X)
+
+        tk.Label(size_header, text="TAMAÑO DEL SHIMEJI (HASTA 100X):",
+                 font=(self.theme.font_family, self.theme.font_size, "bold"),
+                 fg=self.theme.text, bg=self.theme.surface).pack(side=tk.LEFT)
+
+        self.size_val_lbl = tk.Label(size_header, text=f"{cur_shimeji_sz}px",
+                                     font=(self.theme.font_family, self.theme.font_size, "bold"),
+                                     fg=self.theme.accent, bg=self.theme.surface)
+        self.size_val_lbl.pack(side=tk.RIGHT)
+
+        self.size_slider = tk.Scale(self.sec_size, from_=48, to=1024, orient=tk.HORIZONTAL,
+                                    showvalue=False, command=self._on_shimeji_size_scale,
+                                    bg=self.theme.surface, fg=self.theme.text,
+                                    troughcolor=self.theme.surface_variant,
+                                    activebackground=self.theme.accent,
+                                    highlightthickness=0, bd=0)
+        self.size_slider.set(min(1024, max(48, cur_shimeji_sz)))
+        self.size_slider.pack(fill=tk.X, pady=(6, 4))
+
+        # Presets de escala
+        preset_row = tk.Frame(self.sec_size, bg=self.theme.surface)
+        preset_row.pack(fill=tk.X, pady=(2, 6))
+
+        for lbl, mult in [("1x", 1.0), ("1.5x", 1.5), ("2x", 2.0), ("4x", 4.0), ("10x", 10.0), ("100x", 100.0)]:
+            btn = tk.Button(preset_row, text=lbl, command=lambda m=mult: self._set_preset_scale(m),
+                            bg=self.theme.surface_variant, fg=self.theme.text,
+                            font=(self.theme.font_family, 8, "bold"),
+                            bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+            btn.pack(side=tk.LEFT, padx=2)
+
+        # Entrada personalizada directa
+        custom_row = tk.Frame(self.sec_size, bg=self.theme.surface)
+        custom_row.pack(fill=tk.X, pady=(2, 0))
+
+        tk.Label(custom_row, text="Valor exacto o mult:", font=(self.theme.font_family, self.theme.font_size - 1),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(side=tk.LEFT)
+
+        self.custom_size_entry = tk.Entry(custom_row, bg=self.theme.entry_bg, fg=self.theme.entry_fg,
+                                          font=(self.theme.font_family, self.theme.font_size),
+                                          width=8, bd=1, relief=tk.SOLID)
+        self.custom_size_entry.insert(0, str(cur_shimeji_sz))
+        self.custom_size_entry.pack(side=tk.LEFT, padx=6)
+
+        btn_apply_size = tk.Button(custom_row, text="Aplicar Tamaño", command=self._apply_custom_size,
+                                   bg=self.theme.accent, fg=self.theme.accent_text,
+                                   font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                   bd=0, relief=tk.FLAT, padx=8, pady=2, cursor="hand2")
+        btn_apply_size.pack(side=tk.LEFT)
+
         # Section 4: Typography
         sec4 = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
                         highlightbackground=self.theme.border, highlightthickness=1)
@@ -1143,6 +1324,29 @@ class AppearanceWindow:
                                  bd=0, relief=tk.FLAT, padx=6, pady=3, cursor="hand2")
         btn_clear_bg.pack(side=tk.RIGHT)
 
+        # Section 7: Actualizaciones Automaticas
+        self.sec_update = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
+                                   highlightbackground=self.theme.border, highlightthickness=1)
+        self.sec_update.pack(fill=tk.X, pady=(0, 10))
+
+        tk.Label(self.sec_update, text="ACTUALIZACIONES (GITHUB v3.1.0):",
+                 font=(self.theme.font_family, self.theme.font_size, "bold"),
+                 fg=self.theme.text, bg=self.theme.surface).pack(anchor="w", pady=(0, 4))
+
+        upd_row = tk.Frame(self.sec_update, bg=self.theme.surface)
+        upd_row.pack(fill=tk.X, pady=2)
+
+        tk.Label(upd_row, text="Verificación periódica cada 2-3 días.",
+                 font=(self.theme.font_family, self.theme.font_size - 1),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(side=tk.LEFT)
+
+        btn_check_upd = tk.Button(upd_row, text="Buscar Actualizaciones >>",
+                                  command=self._check_updates_now,
+                                  bg=self.theme.accent, fg=self.theme.accent_text,
+                                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                  bd=0, relief=tk.FLAT, padx=8, pady=3, cursor="hand2")
+        btn_check_upd.pack(side=tk.RIGHT)
+
         # Bottom Actions Bar
         bottom_bar = tk.Frame(self.win, bg=self.theme.surface, pady=10, padx=16)
         bottom_bar.pack(fill=tk.X, side=tk.BOTTOM)
@@ -1226,6 +1430,52 @@ class AppearanceWindow:
         if self.shimeji and getattr(self.shimeji, "chat_win", None):
             self.shimeji.chat_win.load_bg_asset("")
 
+    def _on_bubble_opacity_change(self, val):
+        opac = int(val) / 100.0
+        self.bub_pct_lbl.configure(text=f"{int(val)}%")
+        self.theme.set_bubble_opacity(opac)
+
+    def _on_bubble_border_toggle(self):
+        self.theme.set_bubble_border(self.bub_border_var.get())
+
+    def _on_shimeji_size_scale(self, val):
+        sz = int(val)
+        self.size_val_lbl.configure(text=f"{sz}px")
+        if self.shimeji:
+            self.shimeji.set_size(sz)
+
+    def _set_preset_scale(self, mult):
+        if self.shimeji:
+            self.shimeji.set_scale(mult)
+            cur = self.shimeji.size
+            self.size_val_lbl.configure(text=f"{cur}px")
+            self.size_slider.set(min(1024, max(48, cur)))
+            self.custom_size_entry.delete(0, tk.END)
+            self.custom_size_entry.insert(0, str(cur))
+
+    def _apply_custom_size(self):
+        txt = self.custom_size_entry.get().strip().lower()
+        if not txt or not self.shimeji:
+            return
+        if txt.endswith('x'):
+            try:
+                m = float(txt[:-1])
+                self._set_preset_scale(m)
+            except Exception:
+                pass
+        else:
+            try:
+                sz = int(float(txt))
+                self.shimeji.set_size(sz)
+                cur = self.shimeji.size
+                self.size_val_lbl.configure(text=f"{cur}px")
+                self.size_slider.set(min(1024, max(48, cur)))
+            except Exception:
+                pass
+
+    def _check_updates_now(self):
+        check_for_updates(self.shimeji, is_manual=True)
+
     def _on_theme_update(self):
         if not self.win or not tk.Toplevel.winfo_exists(self.win):
             return
@@ -1236,6 +1486,14 @@ class AppearanceWindow:
         self.opac_scale.configure(bg=self.theme.surface, fg=self.theme.text,
                                   troughcolor=self.theme.surface_variant,
                                   activebackground=self.theme.accent)
+        if hasattr(self, "bub_opac_scale") and self.bub_opac_scale:
+            self.bub_opac_scale.configure(bg=self.theme.surface, fg=self.theme.text,
+                                          troughcolor=self.theme.surface_variant,
+                                          activebackground=self.theme.accent)
+        if hasattr(self, "size_slider") and self.size_slider:
+            self.size_slider.configure(bg=self.theme.surface, fg=self.theme.text,
+                                       troughcolor=self.theme.surface_variant,
+                                       activebackground=self.theme.accent)
         self.preview_card.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
         self.prev_title.configure(fg=self.theme.accent, bg=self.theme.surface,
                                   font=(self.theme.font_family, self.theme.font_size, "bold"))
@@ -1246,6 +1504,12 @@ class AppearanceWindow:
                                 font=(self.theme.font_family, self.theme.font_size - 1, "bold"))
         if hasattr(self, "sec_bg") and self.sec_bg:
             self.sec_bg.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
+        if hasattr(self, "sec_bubble") and self.sec_bubble:
+            self.sec_bubble.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
+        if hasattr(self, "sec_size") and self.sec_size:
+            self.sec_size.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
+        if hasattr(self, "sec_update") and self.sec_update:
+            self.sec_update.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
         if hasattr(self, "lbl_bg_status") and self.lbl_bg_status:
             self.lbl_bg_status.configure(fg=self.theme.text_dim, bg=self.theme.surface)
 
@@ -2313,6 +2577,53 @@ class JarvisAssistant:
             code = raw[5:].strip()
             ok, msg = self.run_bat(code)
             return True, msg, "Script BAT ejecutado [OK]"
+
+        # Comprobar actualizaciones manuales
+        if raw in ("/update", "/actualizar", "/updates", "/version") or lower in ("actualizar shimeji", "buscar actualizacion", "buscar actualizaciones", "hay actualizacion"):
+            check_for_updates(self.shimeji, is_manual=True)
+            return True, f"[*] Comprobando actualizaciones en GitHub para PinkChan v{APP_VERSION}...", "Buscando actualizaciones [OK]"
+
+        # Ajuste de tamaño personalizado o escala (100x, 2x, 256, etc.)
+        m_size = re.search(r'^(?:/(?:size|tamano|tamaño|scale|escala)\s+([0-9\.]+(?:x|X)?)|(?:(?:hey\s+)?(?:cambia(?:r)?|pon(?:er)?|ajusta(?:r)?)\s+(?:el\s+)?(?:tamaño|tamano|escala)\s+(?:a\s+)?([0-9\.]+(?:x|X)?)))$', raw, re.IGNORECASE)
+        if m_size:
+            val_str = (m_size.group(1) or m_size.group(2)).strip().lower()
+            if self.shimeji:
+                if val_str.endswith('x'):
+                    try:
+                        mult = float(val_str[:-1])
+                        ok, msg = self.shimeji.set_scale(mult)
+                    except Exception as e:
+                        ok, msg = False, str(e)
+                else:
+                    try:
+                        sz = int(float(val_str))
+                        ok, msg = self.shimeji.set_size(sz)
+                    except Exception as e:
+                        ok, msg = False, str(e)
+                return True, f"[+] {msg}", "Tamaño actualizado [OK]"
+            return False, "Shimeji no disponible", "Error"
+
+        # Configuración de burbuja (opacidad y bordes)
+        m_bubble = re.search(r'^/bubble\s+(alpha|opacidad|border|borde)\s+(.+)$', raw, re.IGNORECASE)
+        if m_bubble:
+            b_prop = m_bubble.group(1).lower()
+            b_val = m_bubble.group(2).strip().lower()
+            tm = self.shimeji.theme_manager if self.shimeji else None
+            if tm:
+                if b_prop in ("alpha", "opacidad"):
+                    try:
+                        num = float(b_val.replace("%", ""))
+                        if num > 1.0:
+                            num = num / 100.0
+                        tm.set_bubble_opacity(num)
+                        return True, f"[+] Opacidad de burbuja establecida en {int(num*100)}%", "Burbuja actualizada [OK]"
+                    except Exception:
+                        return False, "Valor numérico inválido (ej: 80 o 0.8)", "Error"
+                elif b_prop in ("border", "borde"):
+                    enable = b_val in ("on", "si", "sí", "true", "1", "activar")
+                    tm.set_bubble_border(enable)
+                    state_str = "activados" if enable else "desactivados"
+                    return True, f"[+] Bordes de burbuja {state_str}", "Burbuja actualizada [OK]"
 
         # Forzar cierre de procesos (/kill <proceso> o matar <proceso>)
         m_kill = re.search(r'^(?:/kill\s+([a-zA-Z0-9_\-\.]+)|(?:hey\s+)?(?:mata(?:r)?|cierra|cerrar|termina(?:r)?)\s+(?:el\s+)?(?:proceso\s+)?([a-zA-Z0-9_\-\.]+))$', raw, re.IGNORECASE)
@@ -4556,16 +4867,22 @@ class Shimeji:
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         
+        self.config       = load_config()
+        self.size         = int(self.config.get("size", SIZE))
+        self.current_skin = self.config.get("current_skin", "Bocchi")
+        if self.current_skin not in SKIN_NAMES:
+            self.current_skin = "Bocchi"
+
         TRANS_COLOR = "#000001"
         self.root.attributes("-transparentcolor", TRANS_COLOR)
         self.root.config(bg=TRANS_COLOR)
-        self.root.geometry(f"{SIZE}x{SIZE}+100+100")
+        self.root.geometry(f"{self.size}x{self.size}+100+100")
         try:
             self.root.wm_attributes("-alpha", 1.0)
         except Exception:
             pass
 
-        self.canvas = tk.Canvas(self.root, width=SIZE, height=SIZE,
+        self.canvas = tk.Canvas(self.root, width=self.size, height=self.size,
                                 bg=TRANS_COLOR, highlightthickness=0, bd=0)
         self.canvas.pack()
         self.sprite_item = self.canvas.create_image(0, 0, anchor="nw")
@@ -4575,9 +4892,9 @@ class Shimeji:
         self.ground_y  = self.sh - 140
         self.ceiling_y = -40
         self.wall_lx   = 0
-        self.wall_rx   = self.sw - SIZE
+        self.wall_rx   = self.sw - self.size
 
-        self.x = random.randint(100, self.sw - 200)
+        self.x = random.randint(100, max(120, self.sw - 200))
         self.y = self.ground_y
         self.vel_x  = 0
         self.vel_y  = 0
@@ -4592,11 +4909,6 @@ class Shimeji:
         self.frame_delay   = 15
         self.state_ticks   = 0
         self.state_duration = 60
-
-        self.config      = load_config()
-        self.current_skin = self.config.get("current_skin", "Bocchi")
-        if self.current_skin not in SKIN_NAMES:
-            self.current_skin = "Bocchi"
 
         self.images    = {}
         self.tk_images = {}
@@ -4646,9 +4958,41 @@ class Shimeji:
         self.root.after(500, self._cache_own_hwnd)
         self.root.after(5000, self._auto_tick)
         self.root.after(15000, self._troll_autonomous_tick)
+        self.root.after(3000, lambda: check_for_updates(shimeji_ref=self, is_manual=False))
         self.root.protocol("WM_DELETE_WINDOW", self.close_shimeji)
         play_popue_sound()
         self.root.mainloop()
+
+    def set_size(self, new_size):
+        """Ajusta arbitrariamente el tamaño del Shimeji (hasta 100x / 4000px)."""
+        try:
+            val = int(new_size)
+            if val < 32:
+                val = 32
+            if val > 4000:
+                val = 4000
+            self.size = val
+            self.config["size"] = val
+            save_config(self.config)
+            self.wall_rx = self.sw - self.size
+            self.canvas.config(width=self.size, height=self.size)
+            self.root.geometry(f"{self.size}x{self.size}+{int(self.x)}+{int(self.y)}")
+            self.load_images()
+            self.update_sprite()
+            return True, f"Tamaño del Shimeji establecido en {val}px"
+        except Exception as e:
+            return False, f"Error al cambiar tamaño: {e}"
+
+    def set_scale(self, multiplier):
+        """Ajusta el tamaño mediante multiplicador (ej. 2x, 100x)."""
+        try:
+            mult = float(multiplier)
+            if mult <= 0:
+                return False, "La escala debe ser positiva"
+            target = int(128 * mult)
+            return self.set_size(target)
+        except Exception as e:
+            return False, f"Error al calcular escala: {e}"
 
     def load_images(self):
         skin = getattr(self, "current_skin", "Bocchi")
@@ -4678,6 +5022,8 @@ class Shimeji:
             for base in disk_files:
                 all_names.add(base)
 
+            resample_filter = getattr(getattr(Image, 'Resampling', Image), 'LANCZOS', getattr(Image, 'LANCZOS', 1))
+            cur_sz = getattr(self, "size", SIZE)
             for name in all_names:
                 name_key = name.lower()
                 fpath = disk_files.get(name_key)
@@ -4687,7 +5033,7 @@ class Shimeji:
                         fpath = cand
                 if fpath and os.path.exists(fpath):
                     try:
-                        im = Image.open(fpath).convert("RGBA").resize((SIZE, SIZE))
+                        im = Image.open(fpath).convert("RGBA").resize((cur_sz, cur_sz), resample_filter)
                         self.images[name] = im
                         self.images[name_key] = im
                     except Exception:
@@ -4892,8 +5238,8 @@ class Shimeji:
     def _move_towards_cursor(self):
         try:
             cursor_x, cursor_y = win32api.GetCursorPos()
-            center_x = self.x + SIZE // 2
-            center_y = self.y + SIZE // 2
+            center_x = self.x + self.size // 2
+            center_y = self.y + self.size // 2
             
             dx = cursor_x - center_x
             dy = cursor_y - center_y
@@ -4982,7 +5328,7 @@ class Shimeji:
     def _apply_pos(self):
         self.x = max(self.wall_lx, min(self.x, self.wall_rx))
         self.y = max(self.ceiling_y, min(self.y, self.ground_y))
-        self.root.geometry(f"{SIZE}x{SIZE}+{int(self.x)}+{int(self.y)}")
+        self.root.geometry(f"{self.size}x{self.size}+{int(self.x)}+{int(self.y)}")
 
     def animate(self):
         self.frame_timer += 1
@@ -5073,9 +5419,9 @@ class Shimeji:
             return
         nx = self.root.winfo_x() + e.x - self.drag_off_x
         ny = self.root.winfo_y() + e.y - self.drag_off_y
-        self.x = max(0, min(nx, self.sw - SIZE))
+        self.x = max(0, min(nx, self.sw - self.size))
         self.y = max(0, min(ny, self.sh - 50))
-        self.root.geometry(f"{SIZE}x{SIZE}+{int(self.x)}+{int(self.y)}")
+        self.root.geometry(f"{self.size}x{self.size}+{int(self.x)}+{int(self.y)}")
         if self.dragging_window:
             sx = self.root.winfo_rootx() + e.x
             sy = self.root.winfo_rooty() + e.y
@@ -5107,6 +5453,20 @@ class Shimeji:
                            font=(t.font_family, t.font_size))
 
             menu.add_command(label="[*] Personalizar Apariencia >>", command=self.open_appearance)
+
+            size_menu = tk.Menu(menu, tearoff=0,
+                                bg=t.surface, fg=t.text,
+                                activebackground=t.accent,
+                                activeforeground=acc_fg,
+                                font=(t.font_family, t.font_size))
+            for lbl, mult in [("1x (128px)", 1.0), ("1.5x (192px)", 1.5), ("2x (256px)", 2.0),
+                              ("4x (512px)", 4.0), ("10x (1280px)", 10.0), ("100x (4000px)", 100.0)]:
+                size_menu.add_command(label=lbl, command=lambda m=mult: self.set_scale(m))
+            size_menu.add_separator()
+            size_menu.add_command(label="[+] Personalizar en Apariencia...", command=self.open_appearance)
+            menu.add_cascade(label=f"[#] Cambiar Tamaño ({getattr(self, 'size', 128)}px) >>", menu=size_menu)
+
+            menu.add_command(label=f"[★] Buscar Actualizaciones (v{APP_VERSION})", command=lambda: check_for_updates(self, is_manual=True))
             
             skin_menu = tk.Menu(menu, tearoff=0,
                                 bg=t.surface, fg=t.text,
@@ -5287,7 +5647,7 @@ class Shimeji:
             def item_physics():
                 cur_state["vy"] += 2.2
                 cur_state["y"] += cur_state["vy"]
-                floor_lvl = self.ground_y + SIZE - 64
+                floor_lvl = self.ground_y + self.size - 64
                 if cur_state["y"] >= floor_lvl:
                     cur_state["y"] = float(floor_lvl)
                     if cur_state["bounces"] < 2:
@@ -5302,8 +5662,8 @@ class Shimeji:
                     return
 
                 # Check proximity to Shimeji
-                dist = abs((self.x + SIZE/2) - (cur_state["x"] + 32))
-                y_dist = abs((self.y + SIZE/2) - (cur_state["y"] + 32))
+                dist = abs((self.x + self.size/2) - (cur_state["x"] + 32))
+                y_dist = abs((self.y + self.size/2) - (cur_state["y"] + 32))
 
                 if dist < 80 and y_dist < 90:
                     play_popue_sound()
@@ -5816,7 +6176,7 @@ class Shimeji:
                 return cmd
             label = name[:30] + ("..." if len(name) > 30 else "")
             menu.add_command(label=f"[-] {label}", command=make_cmd())
-        cx = int(self.x) + SIZE // 2
+        cx = int(self.x) + self.size // 2
         cy = int(self.y)
         try:
             menu.tk_popup(cx, cy)
@@ -5975,11 +6335,12 @@ class Shimeji:
             bw.attributes("-topmost", True)
             bw.config(bg=t.bg)
             try:
-                bw.attributes("-alpha", t.opacity)
+                bw.attributes("-alpha", getattr(t, "bubble_opacity", t.opacity))
             except Exception:
                 pass
 
-            card = tk.Frame(bw, bg=t.surface, highlightbackground=t.accent, highlightthickness=1, padx=10, pady=6)
+            border_w = 1 if getattr(t, "bubble_border", True) else 0
+            card = tk.Frame(bw, bg=t.surface, highlightbackground=t.accent, highlightthickness=border_w, padx=10, pady=6)
             card.pack(fill=tk.BOTH, expand=True)
 
             header_frame = tk.Frame(card, bg=t.surface)
@@ -6008,11 +6369,12 @@ class Shimeji:
             bw_w = max(bw.winfo_reqwidth(), 160)
             bw_h = max(bw.winfo_reqheight(), 40)
 
-            bx = int(self.x) + SIZE // 2 - bw_w // 2
+            cur_sz = getattr(self, "size", SIZE)
+            bx = int(self.x) + cur_sz // 2 - bw_w // 2
             bx = max(10, min(bx, self.sw - bw_w - 10))
 
             if self.y < 120:
-                by = int(self.y) + SIZE + 10
+                by = int(self.y) + cur_sz + 10
             else:
                 by = int(self.y) - bw_h - 12
             by = max(10, min(by, self.sh - bw_h - 10))

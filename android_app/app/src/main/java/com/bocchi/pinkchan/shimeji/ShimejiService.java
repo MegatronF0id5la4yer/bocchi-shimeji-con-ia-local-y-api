@@ -43,6 +43,7 @@ public class ShimejiService extends Service {
     public static final String ACTION_CLEAR_EXTRAS = "com.bocchi.pinkchan.shimeji.CLEAR_EXTRAS";
     public static final String ACTION_START_VOICE = "com.bocchi.pinkchan.shimeji.START_VOICE";
     public static final String ACTION_DROP_ITEM = "com.bocchi.pinkchan.shimeji.DROP_ITEM";
+    public static final String ACTION_SET_BUBBLE = "com.bocchi.pinkchan.shimeji.SET_BUBBLE";
 
     public static final String EXTRA_SKIN = "extra_skin";
     public static final String EXTRA_SIZE_DP = "extra_size_dp";
@@ -295,6 +296,12 @@ public class ShimejiService extends Service {
         } else if ("drop_item".equalsIgnoreCase(trig) || "item".equalsIgnoreCase(trig)) {
             dropRandomItem();
             return;
+        } else if (trig != null && trig.startsWith("speech:")) {
+            String text = trig.substring(7);
+            if (!shimejiList.isEmpty()) {
+                shimejiList.get(0).say(text, 3500);
+            }
+            return;
         }
 
         for (ShimejiEntity entity : shimejiList) {
@@ -433,7 +440,10 @@ public class ShimejiService extends Service {
         try {
             String assetPath = "skins/" + skinFolder + "/" + frameName + ".png";
             InputStream is = getAssets().open(assetPath);
-            Bitmap raw = BitmapFactory.decodeStream(is);
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            opts.inDither = true;
+            Bitmap raw = BitmapFactory.decodeStream(is, null, opts);
             is.close();
 
             if (raw == null) return null;
@@ -442,7 +452,7 @@ public class ShimejiService extends Service {
             if (dir == -1) {
                 Matrix matrix = new Matrix();
                 matrix.preScale(-1, 1);
-                finalBmp = Bitmap.createBitmap(raw, 0, 0, raw.getWidth(), raw.getHeight(), matrix, false);
+                finalBmp = Bitmap.createBitmap(raw, 0, 0, raw.getWidth(), raw.getHeight(), matrix, true);
             } else {
                 finalBmp = raw;
             }
@@ -540,9 +550,20 @@ public class ShimejiService extends Service {
                 startVoiceAssistant();
             } else if (ACTION_DROP_ITEM.equals(action)) {
                 dropRandomItem();
+            } else if (ACTION_SET_BUBBLE.equals(action)) {
+                for (ShimejiEntity entity : shimejiList) {
+                    entity.applyBubbleStyle();
+                }
             }
         }
         return START_STICKY;
+    }
+
+    public void openChat() {
+        Intent chatIntent = new Intent(this, MainActivity.class);
+        chatIntent.setAction(MainActivity.ACTION_OPEN_CHAT);
+        chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(chatIntent);
     }
 
     @Override
