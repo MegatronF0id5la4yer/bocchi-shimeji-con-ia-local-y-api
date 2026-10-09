@@ -1716,10 +1716,10 @@ public class MainActivity extends Activity {
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(0, 0, 0, dpToPx(12));
+        header.setPadding(0, 0, 0, dpToPx(10));
 
-        String savedSkin = prefs.getString(KEY_SKIN, "Konata");
-        SkinData skinData = SkinData.get(savedSkin);
+        final String savedSkin = prefs.getString(KEY_SKIN, "Konata");
+        final SkinData skinData = SkinData.get(savedSkin);
 
         ImageView ivAvatar = new ImageView(this);
         int avatarRes = R.drawable.ic_konata;
@@ -1732,7 +1732,7 @@ public class MainActivity extends Activity {
         else if ("Usagi".equalsIgnoreCase(savedSkin)) avatarRes = R.drawable.ic_usagi;
         else if ("Pusheen".equalsIgnoreCase(savedSkin)) avatarRes = R.drawable.ic_pusheen;
         ivAvatar.setImageResource(avatarRes);
-        LinearLayout.LayoutParams ivParams = new LinearLayout.LayoutParams(dpToPx(40), dpToPx(40));
+        LinearLayout.LayoutParams ivParams = new LinearLayout.LayoutParams(dpToPx(38), dpToPx(38));
         ivParams.rightMargin = dpToPx(10);
         header.addView(ivAvatar, ivParams);
 
@@ -1744,7 +1744,7 @@ public class MainActivity extends Activity {
         TextView tvName = new TextView(this);
         tvName.setText(skinData != null ? skinData.name : "Shimeji");
         tvName.setTextColor(Color.WHITE);
-        tvName.setTextSize(16);
+        tvName.setTextSize(15);
         tvName.setTypeface(null, android.graphics.Typeface.BOLD);
         titleCol.addView(tvName);
 
@@ -1757,10 +1757,73 @@ public class MainActivity extends Activity {
         header.addView(titleCol);
         root.addView(header);
 
-        // Chat Message Log
+        // Barra de pestañas para SEPARAR la Inteligencia Artificial de los Diálogos Prefabricados
+        LinearLayout tabsRow = new LinearLayout(this);
+        tabsRow.setOrientation(LinearLayout.HORIZONTAL);
+        tabsRow.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams tabsParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(36));
+        tabsParams.bottomMargin = dpToPx(10);
+        tabsRow.setLayoutParams(tabsParams);
+
+        final Button btnTabAi = new Button(this);
+        btnTabAi.setText("Chat con IA");
+        btnTabAi.setTextSize(11);
+        btnTabAi.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnTabAi.setTextColor(Color.WHITE);
+        final GradientDrawable gdTabActive = new GradientDrawable();
+        gdTabActive.setShape(GradientDrawable.RECTANGLE);
+        gdTabActive.setCornerRadius(dpToPx(18));
+        gdTabActive.setColor(Color.parseColor("#8A56E2"));
+        btnTabAi.setBackground(gdTabActive);
+        LinearLayout.LayoutParams tabLp1 = new LinearLayout.LayoutParams(0, dpToPx(36), 1f);
+        tabLp1.rightMargin = dpToPx(4);
+        btnTabAi.setLayoutParams(tabLp1);
+        tabsRow.addView(btnTabAi);
+
+        final Button btnTabPrefab = new Button(this);
+        btnTabPrefab.setText("Diálogos del Personaje");
+        btnTabPrefab.setTextSize(11);
+        btnTabPrefab.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnTabPrefab.setTextColor(Color.parseColor("#B89FFF"));
+        final GradientDrawable gdTabInactive = new GradientDrawable();
+        gdTabInactive.setShape(GradientDrawable.RECTANGLE);
+        gdTabInactive.setCornerRadius(dpToPx(18));
+        gdTabInactive.setColor(Color.parseColor("#261F38"));
+        gdTabInactive.setStroke(dpToPx(1), Color.parseColor("#3D3352"));
+        btnTabPrefab.setBackground(gdTabInactive);
+        LinearLayout.LayoutParams tabLp2 = new LinearLayout.LayoutParams(0, dpToPx(36), 1f);
+        tabLp2.leftMargin = dpToPx(4);
+        btnTabPrefab.setLayoutParams(tabLp2);
+        tabsRow.addView(btnTabPrefab);
+
+        root.addView(tabsRow);
+
+        // SECCION 1: CHAT CON IA (Generativa: Gemini, Cloud u Offline)
+        final LinearLayout layoutAiSection = new LinearLayout(this);
+        layoutAiSection.setOrientation(LinearLayout.VERTICAL);
+
+        // Indicador del motor IA activo
+        String activeAiMode = prefs.getString(KEY_AI_MODE, "local");
+        String aiEngineBadge = "Motor activo: Local Offline (Sin internet)";
+        if ("gemini".equalsIgnoreCase(activeAiMode)) {
+            String mName = prefs.getString(KEY_GEMINI_MODEL, "gemini-1.5-flash");
+            aiEngineBadge = "Motor: Google Gemini API (" + mName + ")";
+        } else if ("cloud".equalsIgnoreCase(activeAiMode)) {
+            String cModel = prefs.getString(KEY_CLOUD_MODEL, "llama3");
+            aiEngineBadge = "Motor: Cloud / Ollama (" + cModel + ")";
+        }
+
+        TextView tvAiEngineBadge = new TextView(this);
+        tvAiEngineBadge.setText(aiEngineBadge);
+        tvAiEngineBadge.setTextColor(Color.parseColor("#A382FF"));
+        tvAiEngineBadge.setTextSize(10);
+        tvAiEngineBadge.setPadding(dpToPx(6), 0, 0, dpToPx(6));
+        layoutAiSection.addView(tvAiEngineBadge);
+
         final ScrollView svChat = new ScrollView(this);
         LinearLayout.LayoutParams svParams = new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(240));
+            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(210));
         svParams.bottomMargin = dpToPx(8);
         svChat.setLayoutParams(svParams);
         svChat.setBackgroundColor(Color.parseColor("#181428"));
@@ -1769,7 +1832,7 @@ public class MainActivity extends Activity {
         final LinearLayout msgContainer = new LinearLayout(this);
         msgContainer.setOrientation(LinearLayout.VERTICAL);
         svChat.addView(msgContainer);
-        root.addView(svChat);
+        layoutAiSection.addView(svChat);
 
         final Runnable scrollToBottom = new Runnable() {
             @Override
@@ -1783,22 +1846,22 @@ public class MainActivity extends Activity {
             }
         };
 
-        // Welcome message
-        addChatBubble(msgContainer, skinData != null ? skinData.greeting : "¡Hola! ¿En que puedo ayudarte hoy?", false);
+        // Mensaje de bienvenida IA
+        addChatBubble(msgContainer, "Hola, estoy lista para conversar contigo. Pregúntame lo que quieras.", false);
 
-        // Quick suggestion chips
+        // Chips de sugerencia para la IA
         HorizontalScrollView hsvChips = new HorizontalScrollView(this);
         hsvChips.setHorizontalScrollBarEnabled(false);
         LinearLayout.LayoutParams chipScrollParams = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        chipScrollParams.bottomMargin = dpToPx(10);
+        chipScrollParams.bottomMargin = dpToPx(8);
         hsvChips.setLayoutParams(chipScrollParams);
 
         LinearLayout chipsRow = new LinearLayout(this);
         chipsRow.setOrientation(LinearLayout.HORIZONTAL);
         hsvChips.addView(chipsRow);
 
-        String[] quickChips = {"Hola", "Bailar", "Guitarra", "Caja", "Soltar item", "Termux", "Crear notas", "Abre camara"};
+        String[] quickChips = {"¿Quién eres?", "¿Cuál es tu historia?", "Cuéntame un secreto", "Bailar", "Guitarra", "Soltar item", "Termux", "Abre camara"};
         for (final String chipText : quickChips) {
             TextView chip = new TextView(this);
             chip.setText(chipText);
@@ -1818,15 +1881,15 @@ public class MainActivity extends Activity {
             });
             chipsRow.addView(chip);
         }
-        root.addView(hsvChips);
+        layoutAiSection.addView(hsvChips);
 
-        // Input row
+        // Fila de entrada de texto
         LinearLayout inputRow = new LinearLayout(this);
         inputRow.setOrientation(LinearLayout.HORIZONTAL);
         inputRow.setGravity(Gravity.CENTER_VERTICAL);
 
         final EditText etMessage = new EditText(this);
-        etMessage.setHint("Escribe un mensaje o comando...");
+        etMessage.setHint("Escribe para la IA o un comando...");
         etMessage.setHintTextColor(Color.parseColor("#665D7E"));
         etMessage.setTextColor(Color.WHITE);
         etMessage.setTextSize(13);
@@ -1843,9 +1906,239 @@ public class MainActivity extends Activity {
         btnSend.setTypeface(null, android.graphics.Typeface.BOLD);
         btnSend.setBackground(createButtonPillDrawable());
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT, dpToPx(40));
+            ViewGroup.LayoutParams.WRAP_CONTENT, dpToPx(38));
         inputRow.addView(btnSend, btnParams);
-        root.addView(inputRow);
+        layoutAiSection.addView(inputRow);
+
+        root.addView(layoutAiSection);
+
+        // SECCION 2: DIALOGOS PREFABRICADOS Y CITAS DEL PERSONAJE
+        final LinearLayout layoutPrefabSection = new LinearLayout(this);
+        layoutPrefabSection.setOrientation(LinearLayout.VERTICAL);
+        layoutPrefabSection.setVisibility(View.GONE);
+
+        TextView tvPrefabDesc = new TextView(this);
+        tvPrefabDesc.setText("Repertorio de más de 40 frases y citas del personaje activo. Toca cualquiera para que el Shimeji la diga en pantalla:");
+        tvPrefabDesc.setTextColor(Color.parseColor("#B89FFF"));
+        tvPrefabDesc.setTextSize(11);
+        tvPrefabDesc.setPadding(dpToPx(4), 0, 0, dpToPx(8));
+        layoutPrefabSection.addView(tvPrefabDesc);
+
+        // Botones de accion rápida para diálogos prefabricados
+        LinearLayout prefabQuickRow = new LinearLayout(this);
+        prefabQuickRow.setOrientation(LinearLayout.HORIZONTAL);
+        prefabQuickRow.setPadding(0, 0, 0, dpToPx(8));
+
+        Button btnRandomSpeech = new Button(this);
+        btnRandomSpeech.setText("🎲 Frase Aleatoria");
+        btnRandomSpeech.setTextColor(Color.WHITE);
+        btnRandomSpeech.setTextSize(11);
+        btnRandomSpeech.setTypeface(null, android.graphics.Typeface.BOLD);
+        GradientDrawable gdRandom = new GradientDrawable();
+        gdRandom.setShape(GradientDrawable.RECTANGLE);
+        gdRandom.setCornerRadius(dpToPx(16));
+        gdRandom.setColor(Color.parseColor("#8A56E2"));
+        btnRandomSpeech.setBackground(gdRandom);
+        LinearLayout.LayoutParams randLp = new LinearLayout.LayoutParams(0, dpToPx(34), 1f);
+        randLp.rightMargin = dpToPx(4);
+        btnRandomSpeech.setLayoutParams(randLp);
+        prefabQuickRow.addView(btnRandomSpeech);
+
+        Button btnRandomPoke = new Button(this);
+        btnRandomPoke.setText("⚡ Frase al Tocar");
+        btnRandomPoke.setTextColor(Color.WHITE);
+        btnRandomPoke.setTextSize(11);
+        btnRandomPoke.setTypeface(null, android.graphics.Typeface.BOLD);
+        GradientDrawable gdPoke = new GradientDrawable();
+        gdPoke.setShape(GradientDrawable.RECTANGLE);
+        gdPoke.setCornerRadius(dpToPx(16));
+        gdPoke.setColor(Color.parseColor("#372B52"));
+        gdPoke.setStroke(dpToPx(1), Color.parseColor("#5A4580"));
+        btnRandomPoke.setBackground(gdPoke);
+        LinearLayout.LayoutParams pokeLp = new LinearLayout.LayoutParams(0, dpToPx(34), 1f);
+        pokeLp.leftMargin = dpToPx(4);
+        btnRandomPoke.setLayoutParams(pokeLp);
+        prefabQuickRow.addView(btnRandomPoke);
+
+        layoutPrefabSection.addView(prefabQuickRow);
+
+        // Buscador de frases prefabricadas
+        final EditText etFilterPrefab = new EditText(this);
+        etFilterPrefab.setHint("Buscar en las frases prefabricadas...");
+        etFilterPrefab.setHintTextColor(Color.parseColor("#665D7E"));
+        etFilterPrefab.setTextColor(Color.WHITE);
+        etFilterPrefab.setTextSize(12);
+        etFilterPrefab.setBackground(createEditTextDrawable());
+        etFilterPrefab.setPadding(dpToPx(12), dpToPx(6), dpToPx(12), dpToPx(6));
+        LinearLayout.LayoutParams filterParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        filterParams.bottomMargin = dpToPx(8);
+        etFilterPrefab.setLayoutParams(filterParams);
+        layoutPrefabSection.addView(etFilterPrefab);
+
+        // Contenedor scrollable de la lista de frases
+        final ScrollView svPrefab = new ScrollView(this);
+        LinearLayout.LayoutParams svPrefabParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(220));
+        svPrefab.setLayoutParams(svPrefabParams);
+        svPrefab.setBackgroundColor(Color.parseColor("#181428"));
+        svPrefab.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
+
+        final LinearLayout listPrefabContainer = new LinearLayout(this);
+        listPrefabContainer.setOrientation(LinearLayout.VERTICAL);
+        svPrefab.addView(listPrefabContainer);
+        layoutPrefabSection.addView(svPrefab);
+
+        // Funcion para poblar la lista de frases prefabricadas
+        final Runnable populatePrefabList = new Runnable() {
+            @Override
+            public void run() {
+                listPrefabContainer.removeAllViews();
+                if (skinData == null || skinData.dialogues == null) return;
+
+                String filter = etFilterPrefab.getText().toString().trim().toLowerCase();
+                int count = 0;
+
+                for (final String phrase : skinData.dialogues) {
+                    if (!filter.isEmpty() && !phrase.toLowerCase().contains(filter)) {
+                        continue;
+                    }
+                    count++;
+
+                    LinearLayout card = new LinearLayout(MainActivity.this);
+                    card.setOrientation(LinearLayout.HORIZONTAL);
+                    card.setGravity(Gravity.CENTER_VERTICAL);
+                    GradientDrawable cd = new GradientDrawable();
+                    cd.setShape(GradientDrawable.RECTANGLE);
+                    cd.setCornerRadius(dpToPx(10));
+                    cd.setColor(Color.parseColor("#221C34"));
+                    cd.setStroke(dpToPx(1), Color.parseColor("#342B4C"));
+                    card.setBackground(cd);
+                    card.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+                    LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    cardLp.bottomMargin = dpToPx(6);
+                    card.setLayoutParams(cardLp);
+
+                    TextView tvPhrase = new TextView(MainActivity.this);
+                    tvPhrase.setText(phrase);
+                    tvPhrase.setTextColor(Color.parseColor("#E6E1F0"));
+                    tvPhrase.setTextSize(12);
+                    LinearLayout.LayoutParams textLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+                    textLp.rightMargin = dpToPx(6);
+                    tvPhrase.setLayoutParams(textLp);
+                    card.addView(tvPhrase);
+
+                    TextView tvPlay = new TextView(MainActivity.this);
+                    tvPlay.setText("Decir");
+                    tvPlay.setTextColor(Color.parseColor("#B89FFF"));
+                    tvPlay.setTextSize(10);
+                    tvPlay.setTypeface(null, android.graphics.Typeface.BOLD);
+                    tvPlay.setBackground(createChipDrawable());
+                    tvPlay.setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4));
+                    card.addView(tvPlay);
+
+                    card.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (ShimejiService.isRunning) {
+                                Intent it = new Intent(MainActivity.this, ShimejiService.class);
+                                it.setAction(ShimejiService.ACTION_TRIGGER);
+                                it.putExtra(ShimejiService.EXTRA_TRIGGER_ACTION, "speech:" + phrase);
+                                startService(it);
+                            }
+                            Toast.makeText(MainActivity.this, skinData.name + ": \"" + phrase + "\"", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    listPrefabContainer.addView(card);
+                }
+
+                if (count == 0) {
+                    TextView tvEmpty = new TextView(MainActivity.this);
+                    tvEmpty.setText("No se encontraron frases que coincidan con el filtro.");
+                    tvEmpty.setTextColor(Color.parseColor("#665D7E"));
+                    tvEmpty.setTextSize(11);
+                    tvEmpty.setPadding(dpToPx(10), dpToPx(20), dpToPx(10), dpToPx(20));
+                    tvEmpty.setGravity(Gravity.CENTER);
+                    listPrefabContainer.addView(tvEmpty);
+                }
+            }
+        };
+
+        populatePrefabList.run();
+
+        etFilterPrefab.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                populatePrefabList.run();
+            }
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        btnRandomSpeech.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (skinData != null && skinData.dialogues != null && skinData.dialogues.length > 0) {
+                    int r = new java.util.Random().nextInt(skinData.dialogues.length);
+                    String quote = skinData.dialogues[r];
+                    if (ShimejiService.isRunning) {
+                        Intent it = new Intent(MainActivity.this, ShimejiService.class);
+                        it.setAction(ShimejiService.ACTION_TRIGGER);
+                        it.putExtra(ShimejiService.EXTRA_TRIGGER_ACTION, "speech:" + quote);
+                        startService(it);
+                    }
+                    Toast.makeText(MainActivity.this, skinData.name + ": \"" + quote + "\"", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        btnRandomPoke.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (skinData != null && skinData.poked != null && skinData.poked.length > 0) {
+                    int r = new java.util.Random().nextInt(skinData.poked.length);
+                    String pokeQuote = skinData.poked[r];
+                    if (ShimejiService.isRunning) {
+                        Intent it = new Intent(MainActivity.this, ShimejiService.class);
+                        it.setAction(ShimejiService.ACTION_TRIGGER);
+                        it.putExtra(ShimejiService.EXTRA_TRIGGER_ACTION, "speech:" + pokeQuote);
+                        startService(it);
+                    }
+                    Toast.makeText(MainActivity.this, skinData.name + " (Poke): \"" + pokeQuote + "\"", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        root.addView(layoutPrefabSection);
+
+        // Controladores de cambio de pestaña
+        btnTabAi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layoutAiSection.setVisibility(View.VISIBLE);
+                layoutPrefabSection.setVisibility(View.GONE);
+                btnTabAi.setBackground(gdTabActive);
+                btnTabAi.setTextColor(Color.WHITE);
+                btnTabPrefab.setBackground(gdTabInactive);
+                btnTabPrefab.setTextColor(Color.parseColor("#B89FFF"));
+            }
+        });
+
+        btnTabPrefab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layoutAiSection.setVisibility(View.GONE);
+                layoutPrefabSection.setVisibility(View.VISIBLE);
+                btnTabPrefab.setBackground(gdTabActive);
+                btnTabPrefab.setTextColor(Color.WHITE);
+                btnTabAi.setBackground(gdTabInactive);
+                btnTabAi.setTextColor(Color.parseColor("#B89FFF"));
+            }
+        });
 
         builder.setView(root);
         final AlertDialog dialog = builder.create();

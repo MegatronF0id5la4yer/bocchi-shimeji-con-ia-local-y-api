@@ -4662,17 +4662,18 @@ class ChatWindow:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
                 payload = {
-                    "system_instruction": {"parts": [{"text": sys_prompt}]},
                     "contents": self.history,
                     "generationConfig": {"temperature": 0.9, "maxOutputTokens": 1024}
                 }
+                if m != "gemini-pro":
+                    payload["system_instruction"] = {"parts": [{"text": sys_prompt}]}
                 resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=40)
                 if resp.status_code == 200:
                     data = resp.json()
                     reply = data["candidates"][0]["content"]["parts"][0]["text"]
                     break
-                elif resp.status_code != 404:
-                    last_err = f"HTTP {resp.status_code}: {resp.text[:100]}"
+                else:
+                    last_err = f"HTTP {resp.status_code} ({m}): {resp.text[:100]}"
             except Exception as e:
                 last_err = str(e)
 
