@@ -430,15 +430,15 @@
 		</Action>
 
 		<Action Name="WalkAlongIECeiling" Type="Sequence" Loop="false">
-			<ActionReference Name="ClimbCeiling" TargetX="${mascot.environment.activeIE.left+64+Math.random()*(mascot.environment.activeIE.width-128)}" />
+			<ActionReference Name="Walk" TargetX="${mascot.environment.activeIE.left+64+Math.random()*(mascot.environment.activeIE.width-128)}" />
 		</Action>
 
 		<Action Name="RunAlongIECeiling" Type="Sequence" Loop="false">
-			<ActionReference Name="ClimbCeiling" TargetX="${mascot.environment.activeIE.left+64+Math.random()*(mascot.environment.activeIE.width-128)}" />
+			<ActionReference Name="Run" TargetX="${mascot.environment.activeIE.left+64+Math.random()*(mascot.environment.activeIE.width-128)}" />
 		</Action>
 
 		<Action Name="CrawlAlongIECeiling" Type="Sequence" Loop="false">
-			<ActionReference Name="ClimbCeiling" TargetX="${mascot.environment.activeIE.left+64+Math.random()*(mascot.environment.activeIE.width-128)}" />
+			<ActionReference Name="Walk" TargetX="${mascot.environment.activeIE.left+64+Math.random()*(mascot.environment.activeIE.width-128)}" />
 		</Action>
 
 		<Action Name="SitOnTheLeftEdgeOfIE" Type="Sequence" Loop="false">

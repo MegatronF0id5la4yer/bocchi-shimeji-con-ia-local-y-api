@@ -614,7 +614,7 @@ public class SkinData {
         } else if ("Monika".equalsIgnoreCase(skinId)) {
             return new String[]{
                 "Ouch! Cuidado con el monitor o borrare tus archivos .chr! >_<",
-                "Ayyy! Senti esa colision hasta en el codigo fuente de Ren'Py! 💚",
+                "Ayyy! Senti esa colision hasta en el codigo fuente de Ren'Py! ",
                 "Ten mas cuidado! No querras que una excepcion NullPointer me corrompa...",
                 "Oye! Incluso las presidentas de club tienen colisiones solidas! D:"
             };
@@ -623,7 +623,7 @@ public class SkinData {
                 "B-BAKA! Quieres que te pegue un punetazo?! Eso dolio! >:(",
                 "Oye idiota! Casi aplastas mis pastelitos con ese golpe! (>_<)",
                 "Ayyy mi cabeza! Si vuelves a lanzarme te voy a patear!",
-                "Que te pasa estupido?! No soy una pelota de beisbol! 🧁"
+                "Que te pasa estupido?! No soy una pelota de beisbol! "
             };
         } else if ("Sayori".equalsIgnoreCase(skinId)) {
             return new String[]{
@@ -656,13 +656,13 @@ public class SkinData {
             return new String[]{
                 "YAHAAAAA!! PULULU! >:O",
                 "URAAAA!! HA!! El suelo esta muy duro! XD",
-                "PULULULULU! Rebote como resorte! 🐰"
+                "PULULULULU! Rebote como resorte! "
             };
         } else {
             return new String[]{
                 "Miauuch! *ronroneo mareado y confundido* =^._.^=",
-                "Miau! Las siete vidas acaban de perder una vida! 🐾",
-                "Prrr-ouch! Mi pancita esponjosa amortiguo el golpe! 🍩"
+                "Miau! Las siete vidas acaban de perder una vida! ",
+                "Prrr-ouch! Mi pancita esponjosa amortiguo el golpe! "
             };
         }
     }
@@ -670,66 +670,66 @@ public class SkinData {
     public static String[][] getCustomActions(String skinId) {
         if ("Monika".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Glitch", "glitch", "fall1", "stand1", "Oops! Un error en el tejido de la realidad... Just Monika 💚"},
-                {"Piano", "piano", "sit1", "sit2", "Tocando Your Reality en el piano con suavidad~ 🎶"},
-                {"Poema", "poem", "sit1", "sit1", "Escribiendo un verso filosofico para ti 📝"},
-                {"Mirar", "look", "stand1", "stand2", "Te estoy mirando directamente... solo tu y yo 💚"}
+                {"Glitch", "glitch", "fall1", "stand1", "Oops! Un error en el tejido de la realidad... Just Monika "},
+                {"Piano", "piano", "sit1", "sit2", "Tocando Your Reality en el piano con suavidad~ "},
+                {"Poema", "poem", "sit1", "sit1", "Escribiendo un verso filosofico para ti "},
+                {"Mirar", "look", "stand1", "stand2", "Te estoy mirando directamente... solo tu y yo "}
             };
         } else if ("Natsuki".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Cupcake", "cupcake", "sit1", "sit2", "Mordiendo un delicioso cupcake horneado con glaseado 🧁"},
-                {"Manga", "manga", "sit1", "sit1", "Leyendo Parfait Girls en el suelo. El manga ES literatura! 📖"},
+                {"Cupcake", "cupcake", "sit1", "sit2", "Mordiendo un delicioso cupcake horneado con glaseado "},
+                {"Manga", "manga", "sit1", "sit1", "Leyendo Parfait Girls en el suelo. El manga ES literatura! "},
                 {"Pout", "pout", "kneel1", "fall1", "B-BAKA! No me mires con esa cara de bobo! >:("},
-                {"Hornear", "bake", "stand1", "sit1", "Espolvoreando azucar glass y confeti dulce ✨"}
+                {"Hornear", "bake", "stand1", "sit1", "Espolvoreando azucar glass y confeti dulce "}
             };
         } else if ("Sayori".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Galleta", "cookie", "sit1", "sit2", "Comiendo una galleta gigante con chispas de chocolate! 🍪"},
-                {"Mr. Cow", "cow", "sit1", "sit1", "Abrazando con mucho carino a su peluche Mr. Cow 🐄"},
-                {"Siesta", "nap", "sit1", "sit1", "Durmiendo una siesta pacifica bajo el sol... zzz 💤"},
-                {"Abrazo", "hug", "stand1", "stand1", "Abrazame fuerte! Un abrazo alegra el corazon! 💖"}
+                {"Galleta", "cookie", "sit1", "sit2", "Comiendo una galleta gigante con chispas de chocolate! "},
+                {"Mr. Cow", "cow", "sit1", "sit1", "Abrazando con mucho carino a su peluche Mr. Cow "},
+                {"Siesta", "nap", "sit1", "sit1", "Durmiendo una siesta pacifica bajo el sol... zzz "},
+                {"Abrazo", "hug", "stand1", "stand1", "Abrazame fuerte! Un abrazo alegra el corazon! "}
             };
         } else if ("Yuri".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Te Oolong", "tea", "sit1", "sit2", "Saboreando una taza de te Oolong caliente y reconfortante 🍵"},
-                {"Markov", "book", "sit1", "sit1", "Sumergida intensamente en Retrato de Markov 📖"},
+                {"Te Oolong", "tea", "sit1", "sit2", "Saboreando una taza de te Oolong caliente y reconfortante "},
+                {"Markov", "book", "sit1", "sit1", "Sumergida intensamente en Retrato de Markov "},
                 {"Sonrojo", "blush", "kneel1", "kneel1", "N-No me mires con tanta atencion... es vergonzoso... /_\\"},
-                {"Poesia", "poetry", "sit1", "sit1", "Escribiendo metaforas complejas con pluma y tinta ✒️"}
+                {"Poesia", "poetry", "sit1", "sit1", "Escribiendo metaforas complejas con pluma y tinta "}
             };
         } else if ("Konata".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Coronet", "coronet", "sit1", "sit2", "Comiendo una corneta de chocolate empezando por la punta! :v 🍞"},
-                {"Gaming", "gaming", "sit1", "sit2", "Farmeando en el MMO a 120 FPS. Esta noche no duermo! 🎮"},
-                {"Timotei", "timotei", "stand1", "stand2", "Timotei, Timotei, Timoteeei! Sacudiendo la cabellera azul ✨"},
-                {"Anime", "anime", "sit1", "sit1", "Viendo una maraton completa de anime de temporada 📺"}
+                {"Coronet", "coronet", "sit1", "sit2", "Comiendo una corneta de chocolate empezando por la punta! :v "},
+                {"Gaming", "gaming", "sit1", "sit2", "Farmeando en el MMO a 120 FPS. Esta noche no duermo! "},
+                {"Timotei", "timotei", "stand1", "stand2", "Timotei, Timotei, Timoteeei! Sacudiendo la cabellera azul "},
+                {"Anime", "anime", "sit1", "sit1", "Viendo una maraton completa de anime de temporada "}
             };
         } else if ("Hachi".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Camarita", "camera", "stand1", "stand2", "Click! Sacando una hermosa fotografia del escritorio! 📸"},
-                {"Cantar", "sing", "stand1", "sit1", "Hitorigoto canta alegremente! La la la~ 🎶"},
-                {"Sasumata", "sasumata", "stand1", "stand1", "Haciendo guardia con el sasumata azul de proteccion! 🛡️"},
-                {"Ramen", "ramen", "sit1", "sit2", "Sorbiendo un tazon de ramen calientito y delicioso! 🍜"}
+                {"Camarita", "camera", "stand1", "stand2", "Click! Sacando una hermosa fotografia del escritorio! "},
+                {"Cantar", "sing", "stand1", "sit1", "Hitorigoto canta alegremente! La la la~ "},
+                {"Sasumata", "sasumata", "stand1", "stand1", "Haciendo guardia con el sasumata azul de proteccion! "},
+                {"Ramen", "ramen", "sit1", "sit2", "Sorbiendo un tazon de ramen calientito y delicioso! "}
             };
         } else if ("Usagi".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Grito URA", "urara", "fall1", "stand1", "URAAA!! YAHAAAAA!! PULULULULU!! 🐰💨"},
-                {"Baculo", "staff", "stand1", "fall1", "Blandiendo su baculo magico con chispas de estrellas! ⭐"},
-                {"Danza", "dance", "stand1", "stand2", "Bailando descontroladamente y girando las orejas! 💃"},
-                {"Salto", "jump", "fall1", "stand1", "Boing! Saltando hasta la estratosfera de la pantalla! 🚀"}
+                {"Grito URA", "urara", "fall1", "stand1", "URAAA!! YAHAAAAA!! PULULULULU!! "},
+                {"Baculo", "staff", "stand1", "fall1", "Blandiendo su baculo magico con chispas de estrellas! "},
+                {"Danza", "dance", "stand1", "stand2", "Bailando descontroladamente y girando las orejas! "},
+                {"Salto", "jump", "fall1", "stand1", "Boing! Saltando hasta la estratosfera de la pantalla! "}
             };
         } else if ("Pusheen".equalsIgnoreCase(skinId)) {
             return new String[][]{
-                {"Dona", "donut", "sit1", "sit2", "Munch munch comiendo una dona con chispas! =^._.^= 🍩"},
-                {"Modo Pan", "loaf", "sit1", "sit1", "Metinedo las patitas bajo la pancita, modo hogaza suave! 🍞"},
-                {"Purr", "purr", "sit1", "sit2", "Purrrr... ronroneando con corazones flotantes! 💕"},
-                {"Cajita", "box_cat", "sit1", "sit1", "Si quepo me siento. Esta cajita de carton es mia! 📦"}
+                {"Dona", "donut", "sit1", "sit2", "Munch munch comiendo una dona con chispas! =^._.^= "},
+                {"Modo Pan", "loaf", "sit1", "sit1", "Metinedo las patitas bajo la pancita, modo hogaza suave! "},
+                {"Purr", "purr", "sit1", "sit2", "Purrrr... ronroneando con corazones flotantes! "},
+                {"Cajita", "box_cat", "sit1", "sit1", "Si quepo me siento. Esta cajita de carton es mia! "}
             };
         } else {
             return new String[][]{
-                {"Guitarra", "guitar", "sit1", "sit2", "Tocando un solo virtuoso en su Gibson Les Paul temblando 🎸"},
-                {"Caja", "box", "sit1", "sit1", "Metinedose en la caja de mango para evitar hablar 📦"},
-                {"Polvo", "blob", "sit1", "sit1", "Se desintegra en particulas de polvo por ansiedad social 🫠"},
-                {"Desmayo", "faint", "fall1", "kneel1", "Se desmaya hacia atras al tener que hacer una llamada 😵"}
+                {"Guitarra", "guitar", "sit1", "sit2", "Tocando un solo virtuoso en su Gibson Les Paul temblando "},
+                {"Caja", "box", "sit1", "sit1", "Metinedose en la caja de mango para evitar hablar "},
+                {"Polvo", "blob", "sit1", "sit1", "Se desintegra en particulas de polvo por ansiedad social "},
+                {"Desmayo", "faint", "fall1", "kneel1", "Se desmaya hacia atras al tener que hacer una llamada "}
             };
         }
     }

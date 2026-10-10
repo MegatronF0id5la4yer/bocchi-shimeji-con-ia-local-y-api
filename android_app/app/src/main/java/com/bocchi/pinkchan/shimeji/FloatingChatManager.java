@@ -152,7 +152,7 @@ public class FloatingChatManager {
 
         // Botón cerrar
         TextView btnClose = new TextView(service);
-        btnClose.setText("✕");
+        btnClose.setText("X");
         btnClose.setTextColor(Color.parseColor("#EF4444"));
         btnClose.setTextSize(14);
         btnClose.setTypeface(null, Typeface.BOLD);
@@ -194,9 +194,9 @@ public class FloatingChatManager {
         tabsRow.setOrientation(LinearLayout.HORIZONTAL);
         tabsRow.setPadding(0, 0, 0, service.dpToPx(8));
 
-        btnTabChat = createTabButton("🤖 Chat IA", true);
-        btnTabDialogues = createTabButton("💬 Diálogos", false);
-        btnTabActions = createTabButton("⚡ Acciones", false);
+        btnTabChat = createTabButton("Chat IA", true);
+        btnTabDialogues = createTabButton("Dialogos", false);
+        btnTabActions = createTabButton("Acciones", false);
 
         btnTabChat.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -264,7 +264,7 @@ public class FloatingChatManager {
         inputBar.addView(etInput);
 
         TextView btnSend = new TextView(service);
-        btnSend.setText("➤ Enviar");
+        btnSend.setText("Enviar");
         btnSend.setTextColor(Color.WHITE);
         btnSend.setTextSize(12);
         btnSend.setTypeface(null, Typeface.BOLD);
@@ -348,7 +348,7 @@ public class FloatingChatManager {
         layout.setPadding(0, 0, 0, service.dpToPx(10));
 
         TextView tvHeader = new TextView(service);
-        tvHeader.setText("💬 Toca una frase para que " + entity.skin.name + " la diga en pantalla:");
+        tvHeader.setText("Toca una frase para que " + entity.skin.name + " la diga en pantalla:");
         tvHeader.setTextColor(Color.parseColor("#A382FF"));
         tvHeader.setTextSize(11);
         tvHeader.setPadding(0, 0, 0, service.dpToPx(8));
@@ -395,7 +395,7 @@ public class FloatingChatManager {
 
         // Estado de Salud (HP)
         TextView tvHp = new TextView(service);
-        tvHp.setText("❤️ Salud de " + entity.skin.name + ": " + entity.hp + "/100 HP" + (entity.isKo ? " (¡K.O.!)" : ""));
+        tvHp.setText("Salud de " + entity.skin.name + ": " + entity.hp + "/100 HP" + (entity.isKo ? " (K.O.)" : ""));
         tvHp.setTextColor(entity.hp > 30 ? Color.parseColor("#34D399") : Color.parseColor("#F87171"));
         tvHp.setTextSize(12);
         tvHp.setTypeface(null, Typeface.BOLD);
@@ -408,7 +408,7 @@ public class FloatingChatManager {
         rowHealth.setPadding(0, 0, 0, service.dpToPx(8));
 
         TextView btnHeal = new TextView(service);
-        btnHeal.setText("❤️ Curar y Alimentar (100 HP)");
+        btnHeal.setText("Curar y Alimentar (100 HP)");
         btnHeal.setTextColor(Color.WHITE);
         btnHeal.setTextSize(11);
         btnHeal.setTypeface(null, Typeface.BOLD);
@@ -427,7 +427,7 @@ public class FloatingChatManager {
         rowHealth.addView(btnHeal);
 
         TextView btnFling = new TextView(service);
-        btnFling.setText("💥 Lanzar (Fling)");
+        btnFling.setText("Lanzar (Fling)");
         btnFling.setTextColor(Color.WHITE);
         btnFling.setTextSize(11);
         btnFling.setTypeface(null, Typeface.BOLD);
@@ -445,7 +445,7 @@ public class FloatingChatManager {
 
         // Acciones especiales de la skin
         TextView tvSpecial = new TextView(service);
-        tvSpecial.setText("✨ Acciones personalizadas de " + entity.skin.name + ":");
+        tvSpecial.setText("Acciones personalizadas de " + entity.skin.name + ":");
         tvSpecial.setTextColor(Color.parseColor("#A382FF"));
         tvSpecial.setTextSize(11);
         tvSpecial.setTypeface(null, Typeface.BOLD);
@@ -459,7 +459,7 @@ public class FloatingChatManager {
             String speech = customActs[i][4];
 
             TextView btnAct = new TextView(service);
-            btnAct.setText("✨ " + label + " -> \"" + speech + "\"");
+            btnAct.setText("[>] " + label + " -> \"" + speech + "\"");
             btnAct.setTextColor(Color.parseColor("#F5F3FF"));
             btnAct.setTextSize(11);
             btnAct.setBackgroundResource(R.drawable.chip_action_bg);
@@ -481,7 +481,7 @@ public class FloatingChatManager {
 
         // Acciones generales del sistema
         TextView tvSys = new TextView(service);
-        tvSys.setText("🛠️ Herramientas útiles del sistema:");
+        tvSys.setText("Herramientas utiles del sistema:");
         tvSys.setTextColor(Color.parseColor("#A382FF"));
         tvSys.setTextSize(11);
         tvSys.setTypeface(null, Typeface.BOLD);
@@ -547,7 +547,7 @@ public class FloatingChatManager {
         addBubble("Tú", text, true);
 
         // Indicador de escritura
-        final TextView tvThinking = addBubble(skinName, skinName + " está pensando... 💭", false);
+        final TextView tvThinking = addBubble(skinName, skinName + " esta pensando...", false);
 
         AiEngineHelper.askAi(service, skinId, text, new AiEngineHelper.AiCallback() {
             @Override
@@ -557,7 +557,8 @@ public class FloatingChatManager {
                     addBubble(skinName, reply, false);
                 }
                 if (entity != null) {
-                    entity.say(reply, 3800);
+                    int bubbleDur = Math.max(5000, Math.min(35000, reply.length() * 85));
+                    entity.say(reply, bubbleDur);
                     service.triggerHaptic(20);
                 }
             }
@@ -566,7 +567,7 @@ public class FloatingChatManager {
             public void onError(final String errorMsg) {
                 if (layoutMessages != null) {
                     layoutMessages.removeView(tvThinking);
-                    addBubble(skinName, "⚠️ " + errorMsg, false);
+                    addBubble(skinName, "[!] " + errorMsg, false);
                 }
             }
         });
@@ -574,7 +575,7 @@ public class FloatingChatManager {
 
     private TextView addBubble(String sender, String message, boolean isUser) {
         TextView bubble = new TextView(service);
-        bubble.setText((isUser ? "👤 " : "✨ ") + sender + ":\n" + message);
+        bubble.setText((isUser ? "[Tu] " : "[" + sender + "]:\n") + message);
         bubble.setTextSize(11);
         bubble.setPadding(service.dpToPx(10), service.dpToPx(6), service.dpToPx(10), service.dpToPx(6));
 

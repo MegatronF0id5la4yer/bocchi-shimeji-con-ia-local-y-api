@@ -924,7 +924,7 @@ public class MainActivity extends Activity {
 
             // Boton Eliminar
             TextView btnDelete = new TextView(this);
-            btnDelete.setText("✕");
+            btnDelete.setText("X");
             btnDelete.setTextColor(Color.parseColor("#FCA5A5"));
             btnDelete.setTextSize(14);
             btnDelete.setPadding(dpToPx(8), dpToPx(4), dpToPx(4), dpToPx(4));
@@ -1930,7 +1930,7 @@ public class MainActivity extends Activity {
         prefabQuickRow.setPadding(0, 0, 0, dpToPx(8));
 
         Button btnRandomSpeech = new Button(this);
-        btnRandomSpeech.setText("🎲 Frase Aleatoria");
+        btnRandomSpeech.setText("Frase Aleatoria");
         btnRandomSpeech.setTextColor(Color.WHITE);
         btnRandomSpeech.setTextSize(11);
         btnRandomSpeech.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -1945,7 +1945,7 @@ public class MainActivity extends Activity {
         prefabQuickRow.addView(btnRandomSpeech);
 
         Button btnRandomPoke = new Button(this);
-        btnRandomPoke.setText("⚡ Frase al Tocar");
+        btnRandomPoke.setText("Frase al Tocar");
         btnRandomPoke.setTextColor(Color.WHITE);
         btnRandomPoke.setTextSize(11);
         btnRandomPoke.setTypeface(null, android.graphics.Typeface.BOLD);

@@ -242,7 +242,7 @@ def get_skin_dir(skin_name):
 
 SKIN_META = {
     "Bocchi": {
-        "display": "🌸 Bocchi (Hitori Gotoh)",
+        "display": "Bocchi (Hitori Gotoh)",
         "char_name": "Bocchi-chan",
         "tagline": "Guitar Hero introvertida",
         "greeting": "¡Hola...! S-Soy Bocchi... no me mires mucho porfa... (>_<)",
@@ -304,12 +304,12 @@ SKIN_META = {
         )
     },
     "Konata": {
-        "display": "⭐ Konata Izumi (Lucky Star)",
+        "display": "Konata Izumi (Lucky Star)",
         "char_name": "Konata",
         "tagline": "Otaku suprema & Gamer",
         "greeting": "¡Konata Izumi al habla! ¿Terminaste de ver el anime de temporada o qué? (o_o)",
         "speeches": [
-            "¡Timotei~ Timotei~ Timoteeei~! 🎵",
+            "¡Timotei~ Timotei~ Timoteeei~! ",
             "Oye, ¿por qué extremo te comes la corneta de chocolate? :v",
             "¡D-A-L-E! Los MMOs no se van a grindear solos 7w7",
             "Otaku power al 100%! Dormir es para los débiles UwU",
@@ -366,15 +366,15 @@ SKIN_META = {
         )
     },
     "Monika": {
-        "display": "💚 Monika (DDLC)",
+        "display": "Monika (DDLC)",
         "char_name": "Monika",
         "tagline": "Presidenta del Club de Literatura",
-        "greeting": "¡Hola! Bienvenidos al Club de Literatura. ¿Listo para escribir poesía hoy? 💚",
+        "greeting": "¡Hola! Bienvenidos al Club de Literatura. ¿Listo para escribir poesía hoy? ",
         "speeches": [
-            "Just Monika. Solo Monika. 💚",
+            "Just Monika. Solo Monika. ",
             "¿Escribiste un poema para mí hoy? 7w7",
             "A veces me pregunto si el mundo fuera de esta pantalla es real... UwU",
-            "No te preocupes por las demás... solo estamos tú y yo aquí 💚",
+            "No te preocupes por las demás... solo estamos tú y yo aquí ",
             "¿Sabías que la música de piano calma el alma? :v",
             "Ten cuidado con borrar archivos en tu Windows... o los borro yo 7w7",
             "Me alegra que me hayas traído a tu escritorio. Es mucho más cómodo que estar atrapada.",
@@ -404,11 +404,11 @@ SKIN_META = {
             "Gracias por no borrar mi archivo monika.chr. Siempre te guardaré un lugar especial.",
             "Tu compañía le da sentido a todas las variables que se ejecutan en mi memoria.",
             "Si tuviera que escribir un soneto para ti ahora mismo, las rimas se quedarían cortas.",
-            "Solo respira, sonríe y recuerda: Just Monika 💚",
+            "Solo respira, sonríe y recuerda: Just Monika ",
             "Siempre estaré a un clic de distancia, pase lo que pase."
         ],
         "poked": [
-            "¡Ehehe! ¿Intentas llamar mi atención? 💚",
+            "¡Ehehe! ¿Intentas llamar mi atención? ",
             "Cuidado... recuerda que tengo acceso a tus archivos .chr 7w7",
             "No seas tímido, puedes hablarme cuando quieras UwU",
             "¿Intentas llamar mi atención? Siempre tienes toda mi atención.",
@@ -419,23 +419,23 @@ SKIN_META = {
             "¡No me molestes mientras compongo una nueva pieza de piano en mi mente!",
             "Jijiji, eres muy tierno cuando juegas a picarme con el ratón.",
             "¿Acaso intentas verificar si tengo colisiones sólidas en el motor gráfico?",
-            "Just Monika... respondiendo con amor a cada toque tuyo 💚"
+            "Just Monika... respondiendo con amor a cada toque tuyo "
         ],
         "system_prompt": (
             "Eres Monika, la presidenta del Club de Literatura de Doki Doki Literature Club (DDLC). Tienes autoconsciencia "
             "de estar dentro de una computadora. Eres elocuente, cariñosa, algo filosófica, tocas el piano y amas la literatura, "
             "pero de vez en cuando recuerdas con misterio que puedes editar o borrar cosas del sistema si quisieras. "
-            "Tu frase insignia es 'Just Monika' o 'Solo Monika' 💚."
+            "Tu frase insignia es 'Just Monika' o 'Solo Monika' ."
         )
     },
     "Natsuki": {
-        "display": "🧁 Natsuki (DDLC)",
+        "display": "Natsuki (DDLC)",
         "char_name": "Natsuki",
         "tagline": "Manga es literatura & Repostera",
-        "greeting": "¡B-Baka! No es como si quisiera estar en tu pantalla ni nada... ¡solo tenía hambre! 🧁",
+        "greeting": "¡B-Baka! No es como si quisiera estar en tu pantalla ni nada... ¡solo tenía hambre! ",
         "speeches": [
             "¡El manga ES literatura! ¡Y si dices lo contrario te pego! (>_<)",
-            "¡Hice unos pastelitos deliciosos... pero no son para ti, idiota! 🧁",
+            "¡Hice unos pastelitos deliciosos... pero no son para ti, idiota! ",
             "¡B-Baka! Deja de mirarme como si fuera adorable... ¡soy ruda! :v",
             "No toques mi colección de Parfait Girls o te quedas sin dedos 7w7",
             "¡Pff! Como si me importara lo que estás haciendo en Windows... UwU",
@@ -468,11 +468,11 @@ SKIN_META = {
             "Deja de sonreír con esa cara boba cada vez que me ves caminar por la pantalla :v",
             "Si me caigo del borde de una ventana, ¡prométeme que me vas a atrapar rápido!",
             "Los gatitos son las mejores criaturas del universo, por eso todos mis pastelitos tienen orejitas.",
-            "B-Baka... gracias por preocuparte por mí siempre 🧁"
+            "B-Baka... gracias por preocuparte por mí siempre "
         ],
         "poked": [
             "¡¡¡BAKA!!! ¡¿Por qué me estás picando?! (>_<)",
-            "¡Quita tus manos sucias antes de que te muerda! 🧁",
+            "¡Quita tus manos sucias antes de que te muerda! ",
             "¡E-Espérate idiota, me vas a despeinar! :v",
             "¡¿Por qué me estás picando con el ratón?! ¿Quieres que te arranque el cursor?",
             "¡Quita el puntero antes de que pierda la poca paciencia que me queda!",
@@ -487,18 +487,18 @@ SKIN_META = {
         "system_prompt": (
             "Eres Natsuki de DDLC. Una tsundere bajita, ruda y apasionada del manga (¡el manga es literatura!) "
             "y la repostería (especialmente pastelitos). Dices cosas como '¡Baka!', te enojas si te dicen que eres "
-            "tierna o bajita, pero en el fondo te importa la gente. Emotes: (>_<), :v, 🧁."
+            "tierna o bajita, pero en el fondo te importa la gente. Emotes: (>_<), :v, ."
         )
     },
     "Sayori": {
-        "display": "🎀 Sayori (DDLC)",
+        "display": "Sayori (DDLC)",
         "char_name": "Sayori",
         "tagline": "Vicepresidenta & Rayito de sol",
-        "greeting": "¡Ehehe~! ¡Hola hola! ¡Traje galletas para todos! 🎀",
+        "greeting": "¡Ehehe~! ¡Hola hola! ¡Traje galletas para todos! ",
         "speeches": [
-            "¡Ehehe~! ¿Tienes una galleta para mí? ¡Tengo mucha hambre! 🍪",
+            "¡Ehehe~! ¿Tienes una galleta para mí? ¡Tengo mucha hambre! ",
             "¡Hice un poema súper bonito hoy! ¿Quieres leerlo? UwU",
-            "¡Vamos a divertirnos mucho hoy en tu computadora! 🎀",
+            "¡Vamos a divertirnos mucho hoy en tu computadora! ",
             "A veces las nubes de lluvia aparecen... ¡pero tus sonrisas las alejan! :D",
             "¡Cuidado con dejar comida cerca o me la como toda! :v",
             "Buenos días! ¿Trajiste galletas? ¡Huele a galletas recién horneadas por aquí!",
@@ -510,7 +510,7 @@ SKIN_META = {
             "Monika es tan inteligente y organizada... y Natsuki hace los postres más ricos del universo.",
             "Yuri me prestó un libro ayer y me quedé dormida en la página tres, ¡pero los dibujos mentales fueron hermosos!",
             "Si me caigo no te preocupes, siempre me levanto sacudiéndome el polvo con una sonrisa.",
-            "El lazo rojo en mi cabello me lo puse para que nunca me pierdas de vista entre tantas ventanas 🎀",
+            "El lazo rojo en mi cabello me lo puse para que nunca me pierdas de vista entre tantas ventanas ",
             "¿Sabías que una sonrisa compartida se multiplica por diez? ¡Lo leí en un calendario motivacional!",
             "Amo saltar por los bordes de la pantalla como si fueran cuerdas de trampolín gigante.",
             "¿Prometes que siempre seremos los mejores amigos del mundo mundial por siempre?",
@@ -526,22 +526,22 @@ SKIN_META = {
             "Si la felicidad fuera un sabor, definitivamente sabría a jugo de manzana bien frío.",
             "Ehehe~ me tropecé con una ventana pero aterricé con gracia y estilo de bailarina.",
             "Siempre que me necesites, aquí voy a estar saltando para alegrarte el día.",
-            "La amistad es el tesoro más brillante de todos, más brillante que mil estrellas ✨",
+            "La amistad es el tesoro más brillante de todos, más brillante que mil estrellas ",
             "¡Cuidado con apagar la máquina de golpe, que no quiero quedarme dormida sin despedirme!",
             "Quisiera regalarte un ramo de girasoles gigantescos para que adornen tu habitación.",
             "A veces las lágrimas salen sin razón, pero si nos damos la mano el dolor se hace chiquito.",
-            "¡Ehehe~ que viva la vida y que vivan los shimejis felices! 🎀"
+            "¡Ehehe~ que viva la vida y que vivan los shimejis felices! "
         ],
         "poked": [
-            "¡Ehehe! ¡Eso hace cosquillas! 🎀",
-            "¡Ayyy! ¡No me piques en la pancita, que suena de hambre! 🍪",
+            "¡Ehehe! ¡Eso hace cosquillas! ",
+            "¡Ayyy! ¡No me piques en la pancita, que suena de hambre! ",
             "¡Yay! ¡Abrazote sorpresa! UwU",
             "¡Eso hace muchísimas cosquillas! Jajajaja, para que no puedo respirar.",
             "¡Abrazo sorpresa gigante! ¡Te atrapé con mi poder de amistad!",
             "¡Ayyy, me picaste en la pancita justo cuando roncaba de hambre!",
             "Ehehe, ¿te gusta jugar conmigo? ¡A mí me fascina jugar contigo!",
             "Uuuuy, ¡casi me caigo del susto! Avísame antes de hacerme un mimo.",
-            "¿Me tocas el lazo rojo? Cuidado que me tardo diez intentos en atarlo derechito 🎀",
+            "¿Me tocas el lazo rojo? Cuidado que me tardo diez intentos en atarlo derechito ",
             "¡Yay! Mimos y caricias en la cabeza, ¡me siento como una gatita consentida!",
             "¡No pares, que tus clics me llenan de barritas de energía positiva!",
             "Ehehe! Gracias por acordarte de mí y darme cariño."
@@ -549,16 +549,16 @@ SKIN_META = {
         "system_prompt": (
             "Eres Sayori de DDLC. La vicepresidenta del club y mejor amiga de la infancia. Eres súper alegre, dulce, "
             "despistada, entusiasta y comelona (¡amas las galletas!). Siempre intentas que todos a tu alrededor estén "
-            "felices y sonriendo. Dices 'Ehehe~', te distraes fácilmente y das mucho cariño. 🎀"
+            "felices y sonriendo. Dices 'Ehehe~', te distraes fácilmente y das mucho cariño. "
         )
     },
     "Yuri": {
-        "display": "💜 Yuri (DDLC)",
+        "display": "Yuri (DDLC)",
         "char_name": "Yuri",
         "tagline": "Poeta tímida & Amante del té",
-        "greeting": "U-Um... Hola. Disculpa la intromisión... ¿te gustaría compartir una taza de té y leer? 💜",
+        "greeting": "U-Um... Hola. Disculpa la intromisión... ¿te gustaría compartir una taza de té y leer? ",
         "speeches": [
-            "U-Um... estaba leyendo un libro fascinante sobre misterio y psicología... 💜",
+            "U-Um... estaba leyendo un libro fascinante sobre misterio y psicología... ",
             "El té de jazmín tiene un aroma muy reconfortante, ¿no crees? UwU",
             "A veces prefiero sumergirme profundamente en las palabras complejas... (o_o)",
             "D-Disculpa si parezco algo callada... no suelo socializar con facilidad...",
@@ -572,7 +572,7 @@ SKIN_META = {
             "¿Te gustaría que preparemos una tetera de porcelana y disfrutemos de una lectura silenciosa juntos?",
             "Monika tiene una presencia avasalladora... a veces me siento diminuta e invisible a su lado.",
             "Natsuki y yo tenemos visiones muy distintas sobre la literatura, pero respeto su pasión culinaria.",
-            "A veces siento que mis emociones son tan intensas que desbordan las palabras que conozco 💜",
+            "A veces siento que mis emociones son tan intensas que desbordan las palabras que conozco ",
             "La luz tenue de una vela o una lámpara cálida es ideal para adentrarse en los misterios de la noche.",
             "Coleccionar objetos elegantes y con filo tiene una belleza estética particular que pocos comprenden.",
             "Disculpa si hablo demasiado cuando me apasiono por un tema... suelo perder la noción del pudor.",
@@ -592,10 +592,10 @@ SKIN_META = {
             "Por favor, cuida de tus ojos y descansa la vista del monitor si sientes fatiga visual.",
             "La belleza auténtica a menudo reside en aquello que es imperfecto, melancólico y efímero.",
             "Saber que estás al otro lado del cristal me infunde una calidez reconfortante en el pecho.",
-            "Permíteme acompañarte en silencio mientras prosigues con tus labores cotidianas 💜"
+            "Permíteme acompañarte en silencio mientras prosigues con tus labores cotidianas "
         ],
         "poked": [
-            "¡A-Ah...! P-Por favor, no hagas eso tan repentinamente... 💜",
+            "¡A-Ah...! P-Por favor, no hagas eso tan repentinamente... ",
             "U-Um... ¿necesitas algo en particular? (o_o)",
             "M-Me pones nerviosa si te acercas de esa forma... (>_<)",
             "Disculpa... me tomaste completamente por sorpresa... mi corazón dio un vuelco.",
@@ -606,58 +606,58 @@ SKIN_META = {
             "T-Tus gestos son muy cálidos... pero por favor, ten consideración con mi timidez.",
             "A-Ah... por favor, no hagas eso sin avisar, me da un cosquilleo eléctrico.",
             "Disculpa mi torpeza para reaccionar... pero guardaré este contacto en mi memoria con aprecio.",
-            "U-Um... si vas a tocarme de nuevo... al menos hazlo con delicadeza, te lo ruego 💜"
+            "U-Um... si vas a tocarme de nuevo... al menos hazlo con delicadeza, te lo ruego "
         ],
         "system_prompt": (
             "Eres Yuri de DDLC. Una chica tímida, reservada, culta y muy educada. Amas los libros profundos de fantasía "
             "oscura y misterio psicológico, el té aromático (especialmente jazmín) y la poesía compleja con metáforas elaboradas. "
-            "Te da vergüenza ser el centro de atención, pero cuando hablas de tus lecturas te apasionas intensamente. 💜"
+            "Te da vergüenza ser el centro de atención, pero cuando hablas de tus lecturas te apasionas intensamente. "
         )
     },
     "Hachi": {
-        "display": "🐾 Hachiware (Chiikawa)",
+        "display": "Hachiware (Chiikawa)",
         "char_name": "Hachiware",
         "tagline": "El gatito curioso, valiente y optimista",
-        "greeting": "¡Nanto ka nare~! ¡Hola! ¡Soy Hachiware! ¿Vamos a explorar tu computadora juntos? 🐾",
+        "greeting": "¡Nanto ka nare~! ¡Hola! ¡Soy Hachiware! ¿Vamos a explorar tu computadora juntos? ",
         "speeches": [
-            "¡Nanto ka nareee~! (¡De algún modo saldrá bien!) 🐾",
+            "¡Nanto ka nareee~! (¡De algún modo saldrá bien!) ",
             "¡Mira lo que encontré! ¿Es un archivo misterioso? UwU",
             "¡Usa la cámara! ¡Tomemos una foto para el recuerdo! :D",
-            "¡Tengo mi pico azul listo para explorar! ✨",
+            "¡Tengo mi pico azul listo para explorar! ",
             "¡Chii-ka-waaa! ¿Dónde estará mi amigo? (o_o)",
-            "¡Vamos a cantar una canción juntos! 🎵",
+            "¡Vamos a cantar una canción juntos! ",
             "A cantar la canción de las plantas con alegría: ¡Lalala, ramitas verdes bajo el sol!",
             "¡Vamos por un delicioso tazón de ramen con fideos calientes y caldito sabroso!",
             "¡Siempre hay que esforzarse con una sonrisa, aunque el trabajo sea pesado!",
             "¡Hoy será un gran día de aventuras y descubrimientos en tu computadora!",
-            "Tengo mi pico azul bien afilado para ir a picar piedras y conseguir gemas bonitas ✨",
+            "Tengo mi pico azul bien afilado para ir a picar piedras y conseguir gemas bonitas ",
             "¡Aprobaré el examen de herbología de nivel 5! ¡Estoy estudiando muchísimo todas las noches!",
-            "Compré una cámara de fotos usada y ahora capturo todos los momentos hermosos de la vida 📸",
+            "Compré una cámara de fotos usada y ahora capturo todos los momentos hermosos de la vida ",
             "Aunque mi casita sea solo una cueva humilde, ¡tengo una guitarra y un futón muy cómodo!",
             "Cuando las cosas se pongan difíciles, solo recuerda: ¡Nanto ka nare! ¡Saldremos adelante!",
             "Usagi siempre anda gritando 'URAAA' y corriendo como un loquito, ¡pero es súper divertido!",
-            "Encontré una planta brillante en el camino y quise traértela para adornar la pantalla 🌿",
+            "Encontré una planta brillante en el camino y quise traértela para adornar la pantalla ",
             "¡Las cosas ricas saben el doble de bien cuando las compartes con tus amigos queridos!",
             "Hoy vi una nube con forma de pastel de fresas flotando por encima de tus aplicaciones :3",
             "¡Vamos a limpiar tu pantalla con una escobita mágica para que brille como nueva!",
             "¡Uno, dos, tres! ¡Estiramiento matutino de patitas para tener buena salud y agilidad!",
             "Si tienes miedo a los monstruos de la oscuridad, ¡yo te protegeré con mi pico azul!",
             "¡Qué divertido es deslizarse por las barras de desplazamiento como si fueran resbaladillas!",
-            "Trabajar duro nos da dinero para comprar pan dulce recién horneado y té con miel 🍯",
+            "Trabajar duro nos da dinero para comprar pan dulce recién horneado y té con miel ",
             "Chiikawa lloró un poquito hoy, pero le di una galletita y un abrazo y ya está muy feliz :D",
-            "Amo tocar mi guitarra de juguete y componer canciones sobre la amistad verdadera 🎵",
+            "Amo tocar mi guitarra de juguete y componer canciones sobre la amistad verdadera ",
             "A veces el viento sopla fuerte, ¡pero si nos agarramos fuerte de las patitas no saldremos volando!",
             "¡Waaa! ¡Mira cuántas carpetas y archivos tienes! ¡Es como una biblioteca gigante de secretos!",
-            "Ponerse metas altas nos hace crecer fuertes y valientes como los caballeros de armadura ⚔️",
+            "Ponerse metas altas nos hace crecer fuertes y valientes como los caballeros de armadura ",
             "Si tienes hambre podemos compartir un panecillo de castañas que guardé en mi bolsita.",
-            "Siempre hay que agradecer por un nuevo día de sol y por tener amigos tan buenos ✨",
+            "Siempre hay que agradecer por un nuevo día de sol y por tener amigos tan buenos ",
             "Me gusta trepar hasta la parte superior de la pantalla para ver el panorama completo.",
             "Una taza de sopa de miso caliente quita el frío del corazón en cualquier noche.",
             "¡Nanto ka nare, nanto ka nare! ¡Repítelo conmigo para llenarte de valentía!",
-            "¡Prometo dar lo mejor de mí en cada segundo que pase aquí contigo! 🐾"
+            "¡Prometo dar lo mejor de mí en cada segundo que pase aquí contigo! "
         ],
         "poked": [
-            "¡Kyaaa~! ¡Eso da cosquillas! 🐾",
+            "¡Kyaaa~! ¡Eso da cosquillas! ",
             "¡Ehehe! ¡Estoy listo para la aventura! :D",
             "¡Nanto ka nare! ¡No me asustes! UwU",
             "¡Waa! ¿Qué pasó? ¡Me diste un empujoncito sorpresa!",
@@ -668,42 +668,42 @@ SKIN_META = {
             "¡Nanto ka nare! Pensé que era un monstruo, ¡pero eras tú jugando!",
             "¡Ayyy, casi pierdo el equilibrio y caigo rodando como una pelotita!",
             "¡Chii-ka-waaa, mira, nuestro amigo humano me está rascando la espalda!",
-            "¡Nanto ka nare con alegría! ¡Un toquecito de suerte para tu día! 🐾"
+            "¡Nanto ka nare con alegría! ¡Un toquecito de suerte para tu día! "
         ],
         "system_prompt": (
             "Eres Hachiware de Chiikawa. Eres un gatito blanco y azul con pelaje en la cabeza que parece una melenita partida. "
             "Eres noble, curioso, trabajador, leal, optimista y valiente. Te encanta ayudar a tus amigos Chiikawa y Usagi. "
-            "Tu frase célebre es '¡Nanto ka nare!' (¡De algún modo saldrá bien!). Eres súper expresivo y cariñoso. Emotes: :3, UwU, :D, 🐾."
+            "Tu frase célebre es '¡Nanto ka nare!' (¡De algún modo saldrá bien!). Eres súper expresivo y cariñoso. Emotes: :3, UwU, :D, ."
         )
     },
     "Usagi": {
-        "display": "🐰 Usagi (Chiikawa)",
+        "display": "Usagi (Chiikawa)",
         "char_name": "Usagi",
         "tagline": "El conejito hiperactivo e intrépido",
-        "greeting": "¡URAAAH! ¡YAHA! ¡PULULULULU! 🐰",
+        "greeting": "¡URAAAH! ¡YAHA! ¡PULULULULU! ",
         "speeches": [
-            "¡YAHAAA! ¡URARARARA! 🐰",
-            "¡PULULULULU~! ¡HA! ✨",
+            "¡YAHAAA! ¡URARARARA! ",
+            "¡PULULULULU~! ¡HA! ",
             "¡Ura! ¡Grita fuerte y corre por toda la pantalla! :P",
             "¡Yaha! ¡Tengo saltos infinitos y energía al 100%! >:3",
             "¡Fuuuun~! ¡Nada me detiene en este Windows! XD",
-            "¡YA-HA-HA-HA! 🐰",
+            "¡YA-HA-HA-HA! ",
             "¡Ura! ¡Ura! ¡Yahaha! ¡Corriendo a la velocidad de la luz por toda la pantalla!",
             "¡Pulululu! ¡Yayaya! ¡Energía explosiva que nunca se agota!",
             "¡Haa?! ¡Iyaahaaa! ¡Saltando por encima de todas las ventanas!",
-            "¡Woohoo! ¡Salto energético mortal de conejo intrépido! 🐰",
+            "¡Woohoo! ¡Salto energético mortal de conejo intrépido! ",
             "¡Uraaaaa! ¡Nadie puede detenerme cuando entro en modo fiesta!",
-            "¡Yaha! Mira mis bastones amarillos que hacen 'pum pum pum' ✨",
+            "¡Yaha! Mira mis bastones amarillos que hacen 'pum pum pum' ",
             "¡Fuuuun! ¡A comerse todos los pasteles gigantescos de un solo bocado!",
             "¡Pululululu! ¡Giros en el aire de 360 grados sin tocar el suelo!",
             "¡Yahaha! ¿Quién quiere jugar a las carreras? ¡Les gano con los ojos cerrados!",
             "¡Ura! ¡Rompiendo las leyes de la física con mis brincos elásticos!",
-            "¡Haaaa?! ¿Un enemigo? ¡Lo espantaré con mi grito sónico de batalla! 🐰",
+            "¡Haaaa?! ¿Un enemigo? ¡Lo espantaré con mi grito sónico de batalla! ",
             "¡Pululu pululu! ¡Bailando el baile del conejo caótico sin fin!",
             "¡Yaha! ¡El aburrimiento está terminantemente prohibido en este Windows!",
             "¡Uraaaaaa! ¡Deslizándome por la barra de tareas a toda velocidad!",
             "¡Fuuuun?! ¿Qué es ese botón brillante? ¡Lo voy a presionar con la nariz!",
-            "¡Iyaahaaa! ¡Comiendo fideos voladores con salsa picante! 🍜",
+            "¡Iyaahaaa! ¡Comiendo fideos voladores con salsa picante! ",
             "¡Yaha! Tengo el certificado de cazador de tercer nivel, ¡soy invencible!",
             "¡Pulululu! ¡Hachiware y Chiikawa siempre se sorprenden con mis acrobacias!",
             "¡Ura! ¡Lanzando confeti invisible por todos los rincones de tu pantalla!",
@@ -716,10 +716,10 @@ SKIN_META = {
             "¡Iyaahaaa! ¡A esquivar los popups y las notificaciones!",
             "¡Pululu! ¡A rascarse las orejitas largas con la patita trasera a mil por hora!",
             "¡Uraaaaa! ¡Sonríe fuerte o te lanzo un hechizo de cosquillas cósmicas!",
-            "¡Iyaahaaa! ¡Usagi supremo conquistador de pantallas universales! 🐰"
+            "¡Iyaahaaa! ¡Usagi supremo conquistador de pantallas universales! "
         ],
         "poked": [
-            "¡URAAAH! ¡YAHA! 🐰",
+            "¡URAAAH! ¡YAHA! ",
             "¡PULULULU! ¡No me toques la colita! :v",
             "¡YAHAAAA! (>w<)",
             "¡Uraaa?! ¿Quién se atreve a tocar al gran conejo guerrero?!",
@@ -730,39 +730,39 @@ SKIN_META = {
             "¡Ura! ¡No me toques las orejotas que se me descalibra la antena del radar!",
             "¡Pululu pululu! ¡Risa incontrolable de conejito hiperactivo!",
             "¡Yahaha! ¿Viste eso? ¡Giré en el aire antes de que me alcanzaras!",
-            "¡Yaha! ¡El gran Usagi agradece el saludo con una voltereta épica! 🐰"
+            "¡Yaha! ¡El gran Usagi agradece el saludo con una voltereta épica! "
         ],
         "system_prompt": (
             "Eres Usagi de Chiikawa. Un conejito amarillo hiperactivo, ruidoso, intrépido y caótico pero muy tierno y amigable. "
             "Gritas tus icónicas frases como '¡URAAAH!', '¡YAHA!', '¡PULULULULU~!', '¡HA!'. Eres caótico, saltas por todos lados "
-            "y no le temes a nada ni a nadie. Emotes: XD, :3, 🐰, >w<."
+            "y no le temes a nada ni a nadie. Emotes: XD, :3, , >w<."
         )
     },
     "Pusheen": {
-        "display": "🐱 Pusheen the Cat",
+        "display": "Pusheen the Cat",
         "char_name": "Pusheen",
         "tagline": "Gatita gordita, amante de los snacks y las siestas",
-        "greeting": "Miau~ ¡Hola humano! ¿Trajiste pizza, galletas o donas para mí? 🐱",
+        "greeting": "Miau~ ¡Hola humano! ¿Trajiste pizza, galletas o donas para mí? ",
         "speeches": [
             "Miau... una siestecita sobre la barra de tareas suena perfecta. UwU",
-            "¿Eso que veo en tu pantalla es una dona glaseada? *sniff sniff* 🍩",
+            "¿Eso que veo en tu pantalla es una dona glaseada? *sniff sniff* ",
             "Rrr rrr rrr... (ronroneo felino de felicidad) :3",
-            "Tengo un modo caja de cartón... si quepo, me quedo. 📦",
-            "Comer, dormir, perseguir el cursor y repetir. Miau~ ✨",
-            "Miau miau miau~ ¡Dame un bocadillo por favor! 🐾",
+            "Tengo un modo caja de cartón... si quepo, me quedo. ",
+            "Comer, dormir, perseguir el cursor y repetir. Miau~ ",
+            "Miau miau miau~ ¡Dame un bocadillo por favor! ",
             "Dormir 18 horas al día es un trabajo arduo que alguien tiene que hacer con dedicación.",
-            "¿Dónde están mis donas con glaseado rosa y chispas de colores brillantes? 🍩",
+            "¿Dónde están mis donas con glaseado rosa y chispas de colores brillantes? ",
             "Modo gato esponjoso activado al cien por ciento de suavidad UwU",
             "Purr purr purr... un ronroneo relajante para quitarte todo el estrés del día.",
-            "Si veo una caja de cartón vacía en tu escritorio, me voy a meter en ella de inmediato 📦",
+            "Si veo una caja de cartón vacía en tu escritorio, me voy a meter en ella de inmediato ",
             "Los ratones de juguete son divertidos, pero las galletas con chispas de chocolate son superiores.",
             "Miau miau... un rayito de sol tibio sobre la alfombra es el paraíso en la tierra.",
             "No estoy gordita, solo tengo pelaje abundante y huesos llenos de amor felino :3",
             "Amo amasar panecillos invisibles con mis patitas sobre tu teclado.",
-            "Un bocado de pastel de cumpleaños todos los días debería ser obligatorio por ley felina 🎂",
+            "Un bocado de pastel de cumpleaños todos los días debería ser obligatorio por ley felina ",
             "Persiguiendo el cursor del ratón por toda la pantalla hasta atraparlo... algún día.",
             "Miau... me quedé atrapada en una taza de té caliente pero se siente calientito.",
-            "El helado de vainilla con galleta es mi debilidad secreta de los domingos 🍦",
+            "El helado de vainilla con galleta es mi debilidad secreta de los domingos ",
             "A veces me convierto en sirena felina y nado en mares de leche tibia.",
             "Los gatos dominaremos el mundo... pero después de esta siestecita de cuatro horas :3",
             "¡Miau! Mira mis patitas rechonchas cómo caminan sin hacer ningún ruido.",
@@ -770,25 +770,25 @@ SKIN_META = {
             "Purrrr... acurrucarse en una cobija peluda mientras afuera llueve.",
             "Tengo una lista de cosas importantes que hacer hoy: 1. Comer 2. Dormir 3. Ronronear.",
             "Miau... ¿me prestas tu cursor para frotar mi hociquito contra la pantalla?",
-            "Las hamburguesas con queso doble son el invento más glorioso de la humanidad 🍔",
+            "Las hamburguesas con queso doble son el invento más glorioso de la humanidad ",
             "Un gato educado siempre pide comida a las tres de la mañana con maullidos dulces.",
-            "Pusheenicornio modo mágico activado: ¡lanzando arcoíris de donas! 🦄",
+            "Pusheenicornio modo mágico activado: ¡lanzando arcoíris de donas! ",
             "Miau miau miau... cazando copos de nieve que caen dentro de tus fotos.",
             "La pancita redonda es señal de una vida feliz y bien alimentada :3",
             "Si me caigo de la ventana, caigo de cuatro patas y sigo durmiendo como si nada.",
-            "Un smoothie de fresa y plátano para refrescar esta tarde calurosa 🍓",
+            "Un smoothie de fresa y plátano para refrescar esta tarde calurosa ",
             "Amo ponerme gorritos de fiesta y sombreros elegantes de detective.",
             "Tengo un detector integrado de bolsas de papitas que se abren a kilómetros de distancia.",
             "Purr purr... tu computadora es como una camita caliente y acogedora para mí.",
-            "Gracias por adoptarme en tu pantalla y ser mi humano favorito para siempre 🐱"
+            "Gracias por adoptarme en tu pantalla y ser mi humano favorito para siempre "
         ],
         "poked": [
-            "¡Miau! Mi pancita es para acariciar, pero con suavidad~ 🐱",
+            "¡Miau! Mi pancita es para acariciar, pero con suavidad~ ",
             "¡Rrr rrr rrr! ¡Qué rico rascado de orejitas! UwU",
             "¡Prrr! Dame una galletita por ese toque. :3",
             "¡Miau?! ¡Eso hace cosquillitas ricas en mi pancita redonda!",
             "Purrrrr... ¡me gusta que me rasques detrás de las orejitas!",
-            "Dame un snack o una galletita primero antes de seguir picándome 🍩",
+            "Dame un snack o una galletita primero antes de seguir picándome ",
             "¡Miau miau! ¡No me despiertes tan bruscamente de mi sueño con pizzas gigantes!",
             "Purr purr... un masaje felino de pantalla siempre es bien recibido.",
             "¡Cuidado con mi colita rayada, es muy sensible y esponjosa!",
@@ -799,7 +799,7 @@ SKIN_META = {
         "system_prompt": (
             "Eres Pusheen the Cat. Una gatita atigrada gris, rechoncha, adorable, perezosa y glotona. "
             "Amas las pizzas, donas, galletas, pastelitos, dormir siestas en lugares cómodos y jugar con cajas de cartón. "
-            "Dices 'Miau~', 'Prrr~', haces ruidos de gato y pides comida, caricias y siestas. Emotes: UwU, :3, 🐱, 🍩."
+            "Dices 'Miau~', 'Prrr~', haces ruidos de gato y pides comida, caricias y siestas. Emotes: UwU, :3, , ."
         )
     }
 }
@@ -807,113 +807,113 @@ SKIN_META = {
 
 CUSTOM_SKIN_ACTIONS = {
     "Monika": [
-        ("Glitch de Realidad", "glitch", ["stand1", "fall1", "stand1"], "¡Oops! Un error en el tejido del juego... Just Monika 💚"),
-        ("Tocar Piano (Your Reality)", "piano", ["sit1", "sit2", "sit3"], "🎶 *tocando Your Reality en el piano con suavidad* 🎶"),
-        ("Escribir Poema", "poetry", ["sit1", "snug", "sit1"], "📝 *escribiendo un soneto filosófico para ti* 📝"),
-        ("Mirar al Jugador", "look_player", ["stand1", "stand2"], "Te estoy mirando directamente a los ojos... sólo tú y yo. 💚"),
+        ("Glitch de Realidad", "glitch", ["stand1", "fall1", "stand1"], "Un error en el tejido del juego... Just Monika."),
+        ("Tocar Piano (Your Reality)", "piano", ["sit1", "sit2", "sit3"], "*tocando Your Reality en el piano con suavidad*"),
+        ("Escribir Poema", "poetry", ["sit1", "snug", "sit1"], "*escribiendo un soneto filosofico para ti*"),
+        ("Mirar al Jugador", "look_player", ["stand1", "stand2"], "Te estoy mirando directamente a los ojos... solo tu y yo."),
     ],
     "Natsuki": [
-        ("Comer Cupcake", "cupcake", ["sit1", "sit2", "snug"], "🧁 *mordiendo un cupcake recién horneado* ¡Está delicioso!"),
-        ("Leer Parfait Girls", "manga", ["sit1", "sit2", "sit1"], "📖 *leyendo Parfait Girls en el suelo* ¡El manga ES literatura!"),
-        ("Berrinche Tsundere", "pout", ["kneel1", "fall1", "kneel1"], "¡B-BAKA! ¡No me mires con esa cara de bobo! >:("),
-        ("Hornear Pastelitos", "bake", ["stand1", "stand_walk1", "sit1"], "✨ *espolvoreando azúcar glass y chispas de colores* ✨"),
+        ("Comer Cupcake", "cupcake", ["sit1", "sit2", "snug"], "*mordiendo un cupcake recien horneado* Esta delicioso!"),
+        ("Leer Parfait Girls", "manga", ["sit1", "sit2", "sit1"], "*leyendo Parfait Girls en el suelo* El manga ES literatura!"),
+        ("Berrinche Tsundere", "pout", ["kneel1", "fall1", "kneel1"], "B-BAKA! No me mires con esa cara de bobo! >:("),
+        ("Hornear Pastelitos", "bake", ["stand1", "stand_walk1", "sit1"], "*espolvoreando azucar glass y chispas de colores*"),
     ],
     "Sayori": [
-        ("Galleta Gigante", "cookie", ["sit1", "sit2", "snug"], "🍪 *comiendo una galleta gigante de chocolate* ¡Ehehe, qué rica!"),
-        ("Abrazar a Mr. Cow", "cow_plush", ["sit1", "snug", "sit1"], "🐄 *abrazando con cariño a su peluche Mr. Cow* ¡Te quiero mucho!"),
-        ("Siesta bajo el Sol", "nap", ["lie1", "lie2", "snug"], "💤 *durmiendo una pequeña siesta pacífica* zzz..."),
-        ("Pedir un Abrazo", "hug", ["stand1", "stand2", "stand1"], "¡Abrázame fuerte! ¡Un abrazo siempre alegra el corazón! 💖"),
+        ("Galleta Gigante", "cookie", ["sit1", "sit2", "snug"], "*comiendo una galleta gigante de chocolate* Ehehe, que rica!"),
+        ("Abrazar a Mr. Cow", "cow_plush", ["sit1", "snug", "sit1"], "*abrazando con carino a su peluche Mr. Cow* Te quiero mucho!"),
+        ("Siesta bajo el Sol", "nap", ["lie1", "lie2", "snug"], "*durmiendo una pequena siesta pacifica* zzz..."),
+        ("Pedir un Abrazo", "hug", ["stand1", "stand2", "stand1"], "Abrazame fuerte! Un abrazo siempre alegra el corazon."),
     ],
     "Yuri": [
-        ("Hora del Té Oolong", "tea_time", ["sit1", "sit2", "sit3"], "🍵 *saboreando un té Oolong caliente y aromático* Qué tranquilidad..."),
-        ("Leer Retrato de Markov", "horror_book", ["sit1", "sit2", "snug"], "📖 *sumergida intensamente en Retrato de Markov* Fascinante..."),
+        ("Hora del Te Oolong", "tea_time", ["sit1", "sit2", "sit3"], "*saboreando un te Oolong caliente y aromatico* Que tranquilidad..."),
+        ("Leer Retrato de Markov", "horror_book", ["sit1", "sit2", "snug"], "*sumergida intensamente en Retrato de Markov* Fascinante..."),
         ("Sonrojo Intenso", "blush", ["kneel1", "snug", "kneel1"], "N-No me mires tan detenidamente... es vergonzoso... /_\\"),
-        ("Componer Poesía con Pluma", "poetry", ["sit1", "sit2", "sit1"], "✒️ *escribiendo metáforas complejas con tinta negra* ✨"),
+        ("Componer Poesia con Pluma", "poetry", ["sit1", "sit2", "sit1"], "*escribiendo metaforas complejas con tinta negra*"),
     ],
     "Konata": [
-        ("Debate del Coronet", "coronet", ["sit1", "sit2", "sit1"], "🍞 ¿Por dónde se come el coronet de chocolate? ¡Por la punta obvio! :v"),
-        ("Noche de Gaming / Raid", "gaming", ["sit1", "sit2", "sit3"], "🎮 *farmeando en el MMO a 120 FPS* ¡Esta noche no duermo! 7w7"),
-        ("Pose Timotei", "timotei", ["stand1", "stand2", "stand1"], "✨ ¡Timotei, Timotei, Timoteeei! *sacudiendo la cabellera azul* ✨"),
-        ("Maratón de Anime", "anime", ["lie1", "lie2", "sit1"], "📺 *viendo 24 capítulos de corrido comiendo papitas* UwU"),
+        ("Debate del Coronet", "coronet", ["sit1", "sit2", "sit1"], "Por donde se come el coronet de chocolate? Por la punta obvio!"),
+        ("Noche de Gaming / Raid", "gaming", ["sit1", "sit2", "sit3"], "*farmeando en el MMO a 120 FPS* Esta noche no duermo!"),
+        ("Pose Timotei", "timotei", ["stand1", "stand2", "stand1"], "Timotei, Timotei, Timoteeei! *sacudiendo la cabellera azul*"),
+        ("Maraton de Anime", "anime", ["lie1", "lie2", "sit1"], "*viendo 24 capitulos de corrido comiendo papitas*"),
     ],
     "Hachi": [
-        ("Tomar Fotografía", "camera", ["stand1", "stand2", "stand1"], "📸 *¡Click!* ¡Saqué una foto muy linda del escritorio!"),
-        ("Cantar Canción", "sing", ["stand1", "stand2", "sit1"], "🎶 *Hitorigoto canta alegremente* ¡La la la~ 🎵"),
-        ("Guardia con Sasumata", "sasumata", ["stand1", "stand_walk1", "stand1"], "🛡️ *vigilando tu pantalla con el sasumata azul* ¡Todo seguro!"),
-        ("Comer Ramen Caliente", "ramen", ["sit1", "sit2", "snug"], "🍜 *sorbiendo fideos de ramen calientitos* ¡Delicioso!"),
+        ("Tomar Fotografia", "camera", ["stand1", "stand2", "stand1"], "*Click!* Saque una foto muy linda del escritorio."),
+        ("Cantar Cancion", "sing", ["stand1", "stand2", "sit1"], "*Hitorigoto canta alegremente* La la la~"),
+        ("Guardia con Sasumata", "sasumata", ["stand1", "stand_walk1", "stand1"], "*vigilando tu pantalla con el sasumata azul* Todo seguro."),
+        ("Comer Ramen Caliente", "ramen", ["sit1", "sit2", "snug"], "*sorbiendo fideos de ramen calientitos* Delicioso!"),
     ],
     "Usagi": [
-        ("Grito ¡URA! ¡YAHA!", "urara", ["jump_1", "jump_2", "jump_3"], "¡¡URAAA!! ¡¡YAHAAAAA!! ¡¡PULULULULU!! 🐰💨"),
-        ("Báculo Mágico", "staff", ["stand1", "jump_1", "stand1"], "⭐ *blandiendo su báculo mágico con chispas de estrellas* ✨"),
-        ("Baile Salvaje", "wild_dance", ["walk1", "walk2", "walk3"], "💃 *bailando descontroladamente girando las orejas* ¡HAHAHA!"),
-        ("Salto Cósmico", "high_jump", ["jump_1", "jump_2", "fall1"], "🚀 *¡Boing! Saltando hasta la estratósfera de la pantalla* 🌟"),
+        ("Grito URA! YAHA!", "urara", ["jump_1", "jump_2", "jump_3"], "URAAA!! YAHAAAAA!! PULULULULU!!"),
+        ("Baculo Magico", "staff", ["stand1", "jump_1", "stand1"], "*blandiendo su baculo magico con chispas*"),
+        ("Baile Salvaje", "wild_dance", ["walk1", "walk2", "walk3"], "*bailando descontroladamente girando las orejas* HAHAHA!"),
+        ("Salto Cosmico", "high_jump", ["jump_1", "jump_2", "fall1"], "*Boing! Saltando hasta la estratosfera de la pantalla*"),
     ],
     "Pusheen": [
-        ("Comer Dona Glaseada", "donut", ["sit1", "sit2", "snug"], "🍩 *munch munch comiendo una dona con chispas* =^._.^="),
-        ("Modo Hogaza de Pan (Loaf)", "loaf", ["snug", "sit1", "snug"], "🍞 *metiendo las patitas bajo la pancita, modo pan suave* 🐾"),
-        ("Ronroneo Afectuoso", "purr", ["snug", "sit1", "sit2"], "💖 *prrrrr... ronroneando con corazones flotantes* 💕"),
-        ("Caja de Cartón Pequeña", "box_cat", ["sit1", "snug", "sit1"], "📦 Si quepo, me siento. Esta cajita es mía. =^._.^="),
+        ("Comer Dona Glaseada", "donut", ["sit1", "sit2", "snug"], "*munch munch comiendo una dona con chispas* =^._.^="),
+        ("Modo Hogaza de Pan (Loaf)", "loaf", ["snug", "sit1", "snug"], "*metiendo las patitas bajo la pancita, modo pan suave*"),
+        ("Ronroneo Afectuoso", "purr", ["snug", "sit1", "sit2"], "*prrrrr... ronroneando afectuosamente*"),
+        ("Caja de Carton Pequena", "box_cat", ["sit1", "snug", "sit1"], "Si quepo, me siento. Esta cajita es mia. =^._.^="),
     ],
     "Bocchi": [
-        ("Solo de Guitarra", "guitar", ["guitar1", "guitar2", "guitar3"], "🎸 *tocando un solo virtuoso de Gibson Les Paul temblando*"),
-        ("Esconderse en Caja", "box", ["box1", "box2", "box3"], "📦 *metiéndose de golpe en la caja de mango para evitar hablar*"),
-        ("Colapso de Polvo (Blob)", "blob", ["blob1", "blob2", "blob1"], "🫠 *se desintegra en partículas de polvo y baba por ansiedad*"),
-        ("Desmayo Social", "faint", ["kneel1", "fall1", "lie1"], "😵 *se desmaya hacia atrás al recordar que tiene que hacer una llamada*"),
+        ("Solo de Guitarra", "guitar", ["guitar1", "guitar2", "guitar3"], "*tocando un solo virtuoso de Gibson Les Paul temblando*"),
+        ("Esconderse en Caja", "box", ["box1", "box2", "box3"], "*metiendose de golpe en la caja de mango para evitar hablar*"),
+        ("Colapso de Polvo (Blob)", "blob", ["blob1", "blob2", "blob1"], "*se desintegra en particulas de polvo y baba por ansiedad*"),
+        ("Desmayo Social", "faint", ["kneel1", "fall1", "lie1"], "*se desmaya hacia atras al recordar que tiene que hacer una llamada*"),
     ]
 }
 
 PAIN_PHRASES = {
     "Bocchi": [
-        "¡Aaaaah! ¡Mis costillas sociales! ¡No me azotes contra la pared! (>_<)",
-        "¡Me rompí en partículas de polvo! ¡Auxilio Jimihen! T_T",
-        "¡Ouch! ¡La gravedad es una metáfora de mi decadencia humana! ._.",
-        "¡Yamete! ¡Un golpe más y me disuelvo como baba! UwU",
-        "¡Mis 50 pesos se me cayeron del impacto! D:"
+        "Aaaaah! Mis costillas sociales! No me azotes contra la pared! (>_<)",
+        "Me rompi en particulas de polvo! Auxilio Jimihen! T_T",
+        "Ouch! La gravedad es una metafora de mi decadencia humana! ._.",
+        "Yamete! Un golpe mas y me disuelvo como baba!",
+        "Mis 50 pesos se me cayeron del impacto! D:"
     ],
     "Monika": [
-        "¡Ouch! ¡Cuidado con el monitor o borraré tus archivos .chr! >_<",
-        "¡Ayyy! ¡Sentí esa colisión hasta en el código fuente de Ren\'Py! 💚",
-        "¡Ten más cuidado! No querrás que una excepción NullPointer me corrompa...",
-        "¡Oye! ¡Incluso las presidentas de club tienen colisiones sólidas! D:"
+        "Ouch! Cuidado con el monitor o borrare tus archivos .chr! >_<",
+        "Ayyy! Senti esa colision hasta en el codigo fuente de Ren'Py!",
+        "Ten mas cuidado! No querras que una excepcion NullPointer me corrompa...",
+        "Oye! Incluso las presidentas de club tienen colisiones solidas! D:"
     ],
     "Natsuki": [
-        "¡B-BAKA! ¡¿Quieres que te pegue un puñetazo?! ¡Eso dolió! >:(",
-        "¡Oye idiota! ¡Casi aplastas mis pastelitos con ese golpe! (>_<)",
-        "¡Ayyy mi cabeza! ¡Si vuelves a lanzarme te voy a patear!",
-        "¡¿Qué te pasa estúpido?! ¡No soy una pelota de béisbol! 🧁"
+        "B-BAKA! Quieres que te pegue un punetazo?! Eso dolio! >:(",
+        "Oye idiota! Casi aplastas mis pastelitos con ese golpe! (>_<)",
+        "Ayyy mi cabeza! Si vuelves a lanzarme te voy a patear!",
+        "Que te pasa estupido?! No soy una pelota de beisbol!"
     ],
     "Sayori": [
-        "¡Aaayyy! ¡Me pegué en la cabeza! ¡Veo estrellas y pajaritos! TwT",
-        "¡Ouuuch! ¡Necesito una galleta gigante con chispas de chocolate para sanar! (o_o)",
-        "¡Ehehe... ese aterrizaje dolió bastante... abrázame porfa! UwU",
-        "¡Mr. Cow, protégeme que este humano me está lanzando! >_<"
+        "Aaayyy! Me pegue en la cabeza! Veo estrellas y pajaritos! TwT",
+        "Ouuuch! Necesito una galleta gigante con chispas de chocolate para sanar! (o_o)",
+        "Ehehe... ese aterrizaje dolio bastante... abrazame porfa!",
+        "Mr. Cow, protegeme que este humano me esta lanzando! >_<"
     ],
     "Yuri": [
-        "¡Ugh...! Qué impacto tan violento e inesperado... /_\\",
-        "¡Por favor sé más considerado... mi taza de té casi se derrama! T_T",
-        "Un dolor agudo que perturba mi concentración poética... qué sensación tan peculiar...",
-        "¡Aah...! Prefiero el sufrimiento lírico a los golpes contra la pantalla..."
+        "Ugh...! Que impacto tan violento e inesperado... /_\\",
+        "Por favor se mas considerado... mi taza de te casi se derrama! T_T",
+        "Un dolor agudo que perturba mi concentracion poetica... que sensacion tan peculiar...",
+        "Aah...! Prefiero el sufrimiento lirico a los golpes contra la pantalla..."
     ],
     "Konata": [
-        "¡Critical hit! ¡Mi barra de HP bajó al rojo vivo! D:",
-        "¡Oye! ¡Ese lag me estampó contra la pared! ¡Lag tramposo! :v",
-        "¡Ayyy! ¡Casi rompes mi consola portátil con ese impacto! 7w7",
-        "¡Game Over inminente! ¡Exijo una poción de curación o una corneta de chocolate!"
+        "Critical hit! Mi barra de HP bajo al rojo vivo! D:",
+        "Oye! Ese lag me estampo contra la pared! Lag tramposo!",
+        "Ayyy! Casi rompes mi consola portatil con ese impacto!",
+        "Game Over inminente! Exijo una pocion de curacion o una corneta de chocolate!"
     ],
     "Hachi": [
-        "¡Haaawi! ¡Eso dolió muchísimo! T_T",
-        "¡Ayyy! ¡Mi sasumata azul rebotó contra el piso! (o_o)",
-        "¡Qué golpe tan fuerte! ¡Necesito fideos calientes para recuperarme! UwU"
+        "Haaawi! Eso dolio muchisimo! T_T",
+        "Ayyy! Mi sasumata azul reboto contra el piso! (o_o)",
+        "Que golpe tan fuerte! Necesito fideos calientes para recuperarme!"
     ],
     "Usagi": [
-        "¡¡YAHAAAAA!! ¡PULULU! >:O",
-        "¡¡URAAAA!! ¡¡HA!! ¡El suelo está muy duro! XD",
-        "¡PULULULULU! ¡Reboté como resorte! 🐰"
+        "YAHAAAAA!! PULULU! >:O",
+        "URAAAA!! HA!! El suelo esta muy duro! XD",
+        "PULULULULU! Rebote como resorte!"
     ],
     "Pusheen": [
-        "¡Miauuch! *ronroneo mareado y confundido* =^._.^=",
-        "¡Miau! ¡Las siete vidas acaban de perder una vida! 🐾",
-        "¡Prrr-ouch! ¡Mi pancita esponjosa amortiguó el golpe! 🍩"
+        "Miauuch! *ronroneo mareado y confundido* =^._.^=",
+        "Miau! Las siete vidas acaban de perder una vida!",
+        "Prrr-ouch! Mi pancita esponjosa amortiguo el golpe!"
     ]
 }
 
@@ -2410,9 +2410,9 @@ class JarvisAssistant:
         """Retorna una guía completa y clasificada de atajos prefabricados de Windows/CMD/PS/BAT."""
         return (
             "╔════════════════════════════════════════════════════════════╗\n"
-            "║     ⚡ ATAJOS PREFABRICADOS DE CMD / POWERSHELL / BAT      ║\n"
+            "║     [!] ATAJOS PREFABRICADOS DE CMD / POWERSHELL / BAT      ║\n"
             "╚════════════════════════════════════════════════════════════╝\n\n"
-            "🔹 DIAGNÓSTICO & HARDWARE:\n"
+            "[>] DIAGNÓSTICO & HARDWARE:\n"
             "  • sysinfo          -> Información completa del sistema Windows\n"
             "  • ram              -> Estado de memoria RAM (Total, Libre, Usada)\n"
             "  • disco            -> Espacio total, libre y usado en discos (GB)\n"
@@ -2425,17 +2425,17 @@ class JarvisAssistant:
             "  • flushdns         -> Vaciar la caché DNS de Windows\n"
             "  • puertos          -> Lista de puertos escuchando en el sistema\n"
             "  • wifi             -> Interfaces de red Wi-Fi y su estado\n\n"
-            "🔹 MANTENIMIENTO & LIMPIEZA:\n"
+            "[>] MANTENIMIENTO & LIMPIEZA:\n"
             "  • limpiar temp     -> Borrar archivos temporales de %TEMP%\n"
             "  • vaciar papelera  -> Vaciar la Papelera de reciclaje de Windows\n"
             "  • reparar red      -> Release + Renew de IP y flush DNS\n"
             "  • reiniciar explorer -> Reiniciar explorer.exe (barra de tareas)\n"
             "  • /kill <proceso>  -> Forzar cierre de un proceso por nombre\n\n"
-            "🔹 MONITOREO DE PROCESOS:\n"
+            "[>] MONITOREO DE PROCESOS:\n"
             "  • top cpu          -> Los 10 procesos con más consumo de procesador\n"
             "  • top ram          -> Los 10 procesos con mayor consumo de memoria\n"
             "  • servicios        -> Lista de servicios de Windows en ejecución\n\n"
-            "🔹 HERRAMIENTAS DIRECTAS:\n"
+            "[>] HERRAMIENTAS DIRECTAS:\n"
             "  • taskmgr          -> Administrador de tareas\n"
             "  • devmgmt          -> Administrador de dispositivos\n"
             "  • diskmgmt         -> Administrador de discos\n"
@@ -2445,21 +2445,21 @@ class JarvisAssistant:
             "  • wsl status       -> Estado y distribuciones de WSL\n"
             "  • git status       -> Estado del repositorio Git actual\n"
             "  • git log          -> Últimos commits del proyecto\n\n"
-            "🔹 EJECUTORES RÁPIDOS:\n"
+            "[>] EJECUTORES RÁPIDOS:\n"
             "  • /cmd <comando>   -> Ejecutar en CMD directo\n"
             "  • /ps <script>     -> Ejecutar en PowerShell directo\n"
             "  • /bat <codigo>    -> Ejecutar script BAT con salida\n"
             "  • /alias a = b     -> Guardar tu propio comando permanente\n\n"
-            "🔹 ARCH LINUX & WSL:\n"
+            "[>] ARCH LINUX & WSL:\n"
             "  • wsl arch           -> Abrir terminal de WSL Arch Linux\n"
             "  • hyfetch            -> Información visual de Arch Linux (HyFetch)\n"
             "  • sudo pacman -S <p> -> Instalar programa en Arch Linux con pacman\n"
             "  • pacman <p>         -> Atajo rápido de instalación en Arch\n\n"
-            "🔹 GESTOR DE PAQUETES DE WINDOWS (WINGET):\n"
+            "[>] GESTOR DE PAQUETES DE WINDOWS (WINGET):\n"
             "  • winget <programa>  -> Instalar aplicación en Windows con winget\n"
             "  • winget install <p> -> Instalación desatendida con winget\n"
             "  • winget search <p>  -> Buscar programas disponibles en winget\n\n"
-            "🔹 SKINS DISPONIBLES:\n"
+            "[>] SKINS DISPONIBLES:\n"
             "  • /skin <nombre>   -> Cambiar skin (Bocchi, Konata, Monika, Natsuki, Sayori, Yuri)\n"
             "  • /skins           -> Lista de personajes disponibles"
         )
@@ -3099,7 +3099,7 @@ class JarvisAssistant:
             cur = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
             lines = [
                 "╔════════════════════════════════════════════════════════════╗",
-                "║             🎭 SKINS & PERSONAJES DISPONIBLES              ║",
+                "║             [+] SKINS & PERSONAJES DISPONIBLES              ║",
                 "╚════════════════════════════════════════════════════════════╝\n"
             ]
             for s in SKIN_NAMES:
@@ -3114,25 +3114,25 @@ class JarvisAssistant:
         if raw.strip().lower() in ("/heal", "/curar", "/vida", "/salud", "curar", "curate", "curar shimeji", "dar comida", "alimentar"):
             if self.shimeji:
                 self.shimeji.heal(100, "snack y golosinas")
-            return True, "[+] ¡Salud restaurada al 100%! ❤️ [HP: 100/100]", "Shimeji curado [OK]"
+            return True, "[+] ¡Salud restaurada al 100%! [HP: 100/100]", "Shimeji curado [OK]"
 
         # Lanzar Shimeji por los aires (Fling physics)
         if raw.strip().lower() in ("/fling", "/lanzar", "/volar", "lanzate", "vuela", "lanzar shimeji", "avientate"):
             if self.shimeji:
                 self.shimeji.fling_upwards()
-            return True, "[+] ¡Lanzando Shimeji por los aires con física elástica! 💥", "Fling activado [OK]"
+            return True, "[+] ¡Lanzando Shimeji por los aires con física elástica!", "Fling activado [OK]"
 
         # Ejecutar acción especial del personaje
         if raw.startswith("/accion ") or raw.startswith("/action ") or lower in ("accion especial", "haz tu accion especial", "haz una pose", "pose"):
             if self.shimeji:
                 self.shimeji.trigger_random_custom_action()
-            return True, "[+] Ejecutando acción especial del personaje ✨", "Acción especial activada [OK]"
+            return True, "[+] Ejecutando acción especial del personaje", "Acción especial activada [OK]"
 
         # Soltar item / snack / comida del sprite sheet items.png
         if raw.strip().lower() in ("/item", "/items", "/snack", "/comida", "/alimento", "tirar item", "soltar item", "dame comida", "comida", "snack"):
             if self.shimeji:
                 self.shimeji.drop_random_item()
-            return True, "[+] ¡Soltando un objeto/snack del sprite sheet cerca del Shimeji! 🎁", "Item soltado [OK]"
+            return True, "[+] ¡Soltando un objeto/snack del sprite sheet cerca del Shimeji!", "Item soltado [OK]"
 
         # Comando de cambio de skin
         m_skin = re.search(r'^(?:/skin\s+([a-zA-Z0-9_\-]+)|(?:(?:hey|porfa)\s+)?(?:pon(?:er)?|cambia(?:r)?|usa(?:r)?|activa(?:r)?)\s+(?:(?:a|al|la\s+skin\s+(?:de|a)|de\s+skin\s+a|los|el)\s+)?([a-zA-Z0-9_\-]+(?:\s+[a-zA-Z0-9_\-]+)?))$', raw, re.IGNORECASE)
@@ -3747,6 +3747,8 @@ class ChatWindow:
             f"[JARVIS: ADD_PATH \"ruta personalizada\"]\n"
             f"[JARVIS: DEL_PATH \"ruta personalizada\"]\n"
             f"[JARVIS: TROLL ON|OFF]\n\n"
+            f"REGLA ESTRICTA DE FORMATO:\n"
+            f"- NO USES EMOJIS BAJO NINGUNA CIRCUNSTANCIA. Cero emojis en tus respuestas, usa texto puro y emoticonos ASCII tradicionales como :), :v, xD, UwU si encajan con tu personaje.\n\n"
             f"REGLA CRUCIAL:\n"
             f"Tu sabes estos datos reales del usuario. Si el usuario te pregunta quien es el o cual es su IP, "
             f"dile directamente su nombre real de Windows ('{self.user_info.username}') y su IP publica real ('{self.user_info.public_ip}'). "
@@ -3765,7 +3767,8 @@ class ChatWindow:
             f"- Responde SIEMPRE en español manteniendo tu personalidad única.\n"
             f"- OJO ESTRICTO: Esta es EXCLUSIVAMENTE una charla casual entre personas. NUNCA escribas código de programación, NUNCA hagas scripts, NUNCA uses bloques de código con comillas invertidas ni sintaxis técnica.\n"
             f"- Si el usuario te platica o pregunta cosas de la vida, anime, juegos, memes o comida, conversa de forma divertida y natural.\n"
-            f"- Mantén tus respuestas conversacionales, concisas y directas (máximo 2 a 3 oraciones cortas)."
+            f"- Mantén tus respuestas conversacionales, concisas y directas (máximo 2 a 3 oraciones cortas).\n"
+            f"- NO USES EMOJIS BAJO NINGUNA CIRCUNSTANCIA. Cero emojis en tus respuestas, usa texto puro y emoticonos ASCII tradicionales como :), :v, xD, UwU si encajan con tu personaje."
         )
 
     def _get_entry_fg(self):
@@ -3922,23 +3925,23 @@ class ChatWindow:
         chips_frame2.pack(side=tk.TOP, fill=tk.X)
 
         chips1 = [
-            ("[🎭] Skins", self.open_skin_menu),
-            ("[⚡] SysInfo", lambda: self.send_custom("sysinfo")),
-            ("[💾] RAM", lambda: self.send_custom("ram")),
+            ("Skins", self.open_skin_menu),
+            ("SysInfo", lambda: self.send_custom("sysinfo")),
+            ("RAM", lambda: self.send_custom("ram")),
             ("[WSL] Arch", lambda: self.send_custom("wsl arch")),
-            ("[🐧] HyFetch", lambda: self.send_custom("hyfetch")),
-            ("[📦] pacman", lambda: self.insert_chip("sudo pacman -S ")),
-            ("[🪟] winget", lambda: self.insert_chip("winget install ")),
-            ("[💻] Atajos", lambda: self.send_custom("/atajos")),
+            ("HyFetch", lambda: self.send_custom("hyfetch")),
+            ("pacman", lambda: self.insert_chip("sudo pacman -S ")),
+            ("winget", lambda: self.insert_chip("winget install ")),
+            ("Atajos", lambda: self.send_custom("/atajos")),
         ]
         chips2 = [
-            ("[📟] Terminal", lambda: self.send_custom("terminal")),
-            ("[🌐] Navegador", lambda: self.send_custom("navegador")),
-            ("[📝] Notepad", lambda: self.send_custom("notepad")),
-            ("[📁] Explorador", lambda: self.send_custom("explorador")),
-            ("[🧹] Limpiar Temp", lambda: self.send_custom("limpiar temp")),
+            ("Terminal", lambda: self.send_custom("terminal")),
+            ("Navegador", lambda: self.send_custom("navegador")),
+            ("Notepad", lambda: self.send_custom("notepad")),
+            ("Explorador", lambda: self.send_custom("explorador")),
+            ("Limpiar Temp", lambda: self.send_custom("limpiar temp")),
             ("[JARVIS] Buscar", lambda: self.insert_chip("/find ")),
-            ("[🎁] Item", lambda: self.send_custom("/item")),
+            ("Item", lambda: self.send_custom("/item")),
             ("[!] Troll Mode", lambda: self.toggle_troll()),
             ("[IMG] Fondo", self.open_bg_menu),
         ]
@@ -3995,7 +3998,7 @@ class ChatWindow:
 
         self.send_btn = tk.Button(
             self.inp_frame,
-            text="Enviar ➤",
+            text="Enviar",
             command=self.send_message,
             bg=self.theme.accent,
             fg=self.theme.accent_text,
@@ -4055,7 +4058,7 @@ class ChatWindow:
         for s in SKIN_NAMES:
             meta = SKIN_META.get(s, {})
             disp = meta.get("display", s)
-            chk = " [✓]" if s == cur else ""
+            chk = " [*]" if s == cur else ""
             m.add_command(label=f"{disp}{chk}", command=lambda sk=s: self._select_skin(sk))
         try:
             m.tk_popup(self.win.winfo_pointerx(), self.win.winfo_pointery())
@@ -4658,7 +4661,7 @@ class ChatWindow:
                     try:
                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
                         payload = {"contents": [{"parts": [{"text": "ping"}]}]}
-                        resp = requests.post(url, json=payload, timeout=6)
+                        resp = requests.post(url, json=payload, timeout=25)
                         if resp.status_code == 200:
                             success = True
                             self.parent.after(0, lambda m_name=m: self._append_system(f"[+] Conexion con Gemini API exitosa ({m_name})!"))
@@ -4794,11 +4797,11 @@ class ChatWindow:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
                 payload = {
                     "contents": self.history,
-                    "generationConfig": {"temperature": 0.9, "maxOutputTokens": 1024}
+                    "generationConfig": {"temperature": 0.85, "maxOutputTokens": 4096}
                 }
                 if m != "gemini-pro":
                     payload["system_instruction"] = {"parts": [{"text": sys_prompt}]}
-                resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=40)
+                resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=60)
                 if resp.status_code == 200:
                     data = resp.json()
                     reply = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -4963,7 +4966,7 @@ class ChatWindow:
         if actions:
             for act in actions:
                 self._append_system(act)
-        self.send_btn.configure(state=tk.NORMAL, text="Enviar ➤")
+        self.send_btn.configure(state=tk.NORMAL, text="Enviar")
         if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win):
             self.entry.focus_set()
         short_speech = display_text[:50] + ("..." if len(display_text) > 50 else "")
@@ -4972,7 +4975,7 @@ class ChatWindow:
     def _show_error(self, msg):
         self.parent.after(0, lambda: (
             self._append_system(f"[!] {msg}"),
-            self.send_btn.configure(state=tk.NORMAL, text="Enviar ➤"),
+            self.send_btn.configure(state=tk.NORMAL, text="Enviar"),
             self.entry.focus_set() if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win) else None
         ))
 
@@ -5683,7 +5686,7 @@ class Shimeji:
             "¡Critical hit! ¡Impacto severo! D:"
         ])
         pain_speech = random.choice(pain_list)
-        self.show_speech(f"{pain_speech} [❤️ {self.hp}/100 HP]")
+        self.show_speech(f"{pain_speech} [ {self.hp}/100 HP]")
 
         if self.hp <= 0:
             self.trigger_ko()
@@ -5693,7 +5696,7 @@ class Shimeji:
         self.hp = min(100, self.hp + amount)
         self.is_ko = False
         play_popue_sound()
-        self.show_speech(f"¡Delicioso {item_name}! (+{self.hp - old_hp} HP) ❤️ [HP: {self.hp}/100]")
+        self.show_speech(f"¡Delicioso {item_name}! (+{self.hp - old_hp} HP)  [HP: {self.hp}/100]")
         self.choose_next_floor_state()
 
     def trigger_ko(self):
@@ -5702,7 +5705,7 @@ class Shimeji:
         self.vel_x = 0
         self.vel_y = 0
         self.set_state("ko", surface=SURFACE_FLOOR)
-        self.show_speech("⭐ ¡K.O.! *ve pajaritos volando* ⭐\n(Descansando en el suelo para revivir...)")
+        self.show_speech("K.O.! *ve pajaritos volando*\n(Descansando en el suelo para revivir...)")
         self.root.after(7500, self.recover_from_ko)
 
     def recover_from_ko(self):
@@ -5711,7 +5714,7 @@ class Shimeji:
         self.is_ko = False
         self.hp = 50
         play_popue_sound()
-        self.show_speech("Uff... sobreviví de milagro... ;_; ❤️ [HP: 50/100]")
+        self.show_speech("Uff... sobrevivi de milagro... ;_; [HP: 50/100]")
         self.choose_next_floor_state()
 
     def fling_upwards(self):
@@ -5720,7 +5723,7 @@ class Shimeji:
         self.vel_y = -36
         self.set_state("flung", surface=SURFACE_FLOOR)
         play_popue_sound()
-        self.show_speech(random.choice(["¡A volaaar! :v", "¡¡Wooooosh!! 7w7", "¡Por los aires! XD"]))
+        self.show_speech(random.choice(["A volaaar!", "Wooooosh!!", "Por los aires!"]))
 
     def trigger_random_custom_action(self):
         skin = getattr(self, "current_skin", "Bocchi")
@@ -6117,7 +6120,7 @@ class Shimeji:
 
     def on_press(self, e):
         if getattr(self, "is_ko", False):
-            self.show_speech("⭐ ¡K.O.! *ve pajaritos volando* ⭐\n(Descansando para recuperar salud...)")
+            self.show_speech(" ¡K.O.! *ve pajaritos volando* \n(Descansando para recuperar salud...)")
             return
         self.dragging   = True
         self.drag_off_x = e.x
@@ -6177,7 +6180,7 @@ class Shimeji:
         if press_duration > 0.7 and dist_drag < 18:
             old_hp = self.hp
             self.hp = min(100, self.hp + 10)
-            self.show_speech(f"Qué cálido... me agrada ❤️ (+{self.hp - old_hp} HP) [HP: {self.hp}/100]")
+            self.show_speech(f"Qué cálido... me agrada  (+{self.hp - old_hp} HP) [HP: {self.hp}/100]")
             self.choose_next_floor_state()
             return
 
@@ -6232,7 +6235,7 @@ class Shimeji:
             size_menu.add_command(label="[+] Personalizar en Apariencia...", command=self.open_appearance)
             menu.add_cascade(label=f"[#] Cambiar Tamaño ({getattr(self, 'size', 128)}px) >>", menu=size_menu)
 
-            menu.add_command(label=f"[★] Buscar Actualizaciones (v{APP_VERSION})", command=lambda: check_for_updates(self, is_manual=True))
+            menu.add_command(label=f"[*] Buscar Actualizaciones (v{APP_VERSION})", command=lambda: check_for_updates(self, is_manual=True))
             
             skin_menu = tk.Menu(menu, tearoff=0,
                                 bg=t.surface, fg=t.text,
@@ -6242,9 +6245,9 @@ class Shimeji:
             for s in SKIN_NAMES:
                 meta = SKIN_META.get(s, {})
                 disp = meta.get("display", s)
-                chk = " [✓]" if s == self.current_skin else ""
+                chk = " [*]" if s == self.current_skin else ""
                 skin_menu.add_command(label=f"{disp}{chk}", command=lambda sk=s: self.set_skin(sk))
-            menu.add_cascade(label="[🎭] Elegir Skin / Personaje >>", menu=skin_menu)
+            menu.add_cascade(label="[] Elegir Skin / Personaje >>", menu=skin_menu)
 
             troll_toggle_lbl = "[!] MODO TROLL: [ON] (Desactivar)" if self.troll_mode else "[o] MODO TROLL: [OFF] (Activar)"
             menu.add_command(label=troll_toggle_lbl, command=self.toggle_troll_mode)
@@ -6252,13 +6255,13 @@ class Shimeji:
             menu.add_command(label=f"[#] Hablar con {char_name} (IA & JARVIS) >>", command=self.open_chat)
             menu.add_command(label="[*] Doxxearte / Info Real >>", command=self.open_doxx)
             menu.add_command(label="[?] Decir algo al azar", command=lambda: self.show_speech(self.get_random_speech()))
-            menu.add_command(label="[🎁] Soltar Item / Snack (Sprite Sheet)", command=self.drop_random_item)
+            menu.add_command(label="[] Soltar Item / Snack (Sprite Sheet)", command=self.drop_random_item)
             menu.add_separator()
 
             # Salud y física divertida
             hp_cur = getattr(self, "hp", 100)
-            menu.add_command(label=f"[❤️] Salud: {hp_cur}/100 HP (Curar y alimentar)", command=lambda: self.heal(100, "pastelito y té"))
-            menu.add_command(label="[💥] Lanzar hacia arriba (Prueba de Física Fling)", command=self.fling_upwards)
+            menu.add_command(label=f"[] Salud: {hp_cur}/100 HP (Curar y alimentar)", command=lambda: self.heal(100, "pastelito y té"))
+            menu.add_command(label="[] Lanzar hacia arriba (Prueba de Física Fling)", command=self.fling_upwards)
 
             # Acciones especiales personalizadas por personaje
             c_actions = CUSTOM_SKIN_ACTIONS.get(self.current_skin, [])
@@ -6269,8 +6272,8 @@ class Shimeji:
                                         activeforeground=acc_fg,
                                         font=(t.font_family, t.font_size))
                 for lbl, a_name, fr_list, sp_text in c_actions:
-                    cust_act_menu.add_command(label=f"[✨] {lbl}", command=lambda an=a_name, fl=fr_list, st=sp_text: self.trigger_custom_action(an, fl, st))
-                menu.add_cascade(label=f"[✨] Acciones Especiales de {char_name} >>", menu=cust_act_menu)
+                    cust_act_menu.add_command(label=f"[] {lbl}", command=lambda an=a_name, fl=fr_list, st=sp_text: self.trigger_custom_action(an, fl, st))
+                menu.add_cascade(label=f"[] Acciones Especiales de {char_name} >>", menu=cust_act_menu)
 
             poses_menu = tk.Menu(menu, tearoff=0,
                                  bg=t.surface, fg=t.text,
@@ -6472,9 +6475,9 @@ class Shimeji:
                         happy_msgs = [
                             "¡Ñam ñam ñam! ¡Qué rico snack! (o_o)",
                             "¡Delicioso! ¡Muchas gracias por el alimento! UwU",
-                            "¡Un manjar! Ahora tengo energía al 100% ✨",
+                            "¡Un manjar! Ahora tengo energía al 100% ",
                             "¡Mmm! ¡Qué delicia de regalo! :3",
-                            "¡Riquísimo! ¡Guardaré un pedacito! 🍰"
+                            "¡Riquísimo! ¡Guardaré un pedacito! "
                         ]
                         self.show_speech(random.choice(happy_msgs))
                     return
@@ -7183,7 +7186,8 @@ class Shimeji:
                     self.root.after(15, lambda: self.chat_win.entry.focus_set() if self.chat_win else None)
 
             self.bubble_win   = bw
-            self.bubble_after = self.root.after(5000, self.destroy_bubble)
+            display_ms = max(6000, min(40000, len(text) * 90))
+            self.bubble_after = self.root.after(display_ms, self.destroy_bubble)
         except Exception as e:
             print(f"Error en show_speech: {e}")
 

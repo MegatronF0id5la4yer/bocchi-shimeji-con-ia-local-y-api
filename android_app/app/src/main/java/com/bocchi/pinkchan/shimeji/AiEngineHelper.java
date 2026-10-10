@@ -40,8 +40,8 @@ public class AiEngineHelper {
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setConnectTimeout(6000);
-            conn.setReadTimeout(6000);
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(20000);
             if (conn.getResponseCode() == 200) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
                 StringBuilder sb = new StringBuilder();
@@ -199,16 +199,17 @@ public class AiEngineHelper {
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(12000);
+                conn.setConnectTimeout(20000);
+                conn.setReadTimeout(60000);
                 conn.setDoOutput(true);
 
                 JSONObject root = new JSONObject();
 
-                // Construir mensaje contextual con la personalidad del personaje
+                // Construir mensaje contextual con la personalidad del personaje y prohibicion estricta de emojis
+                String noEmojiRule = " [REGLA ESTRICTA: NO USES EMOJIS BAJO NINGUNA CIRCUNSTANCIA. Cero emojis en tu respuesta. Responde en texto plano con emoticonos clasicos si encajan con tu personaje.]";
                 String combinedPrompt = (systemPrompt != null && !systemPrompt.isEmpty())
-                        ? "[Contexto e Instrucciones de Rol: " + systemPrompt + "]\n\nMensaje: " + userMessage
-                        : userMessage;
+                        ? "[Contexto e Instrucciones de Rol: " + systemPrompt + noEmojiRule + "]\n\nMensaje: " + userMessage
+                        : userMessage + noEmojiRule;
 
                 JSONArray contents = new JSONArray();
                 JSONObject userContent = new JSONObject();
@@ -223,7 +224,7 @@ public class AiEngineHelper {
 
                 JSONObject genConfig = new JSONObject();
                 genConfig.put("temperature", 0.8);
-                genConfig.put("maxOutputTokens", 300);
+                genConfig.put("maxOutputTokens", 4096);
                 root.put("generationConfig", genConfig);
 
                 OutputStream os = conn.getOutputStream();
@@ -301,8 +302,8 @@ public class AiEngineHelper {
             if (apiKey != null && !apiKey.isEmpty()) {
                 conn.setRequestProperty("Authorization", "Bearer " + apiKey);
             }
-            conn.setConnectTimeout(8000);
-            conn.setReadTimeout(15000);
+            conn.setConnectTimeout(20000);
+            conn.setReadTimeout(60000);
             conn.setDoOutput(true);
 
             JSONObject root = new JSONObject();
@@ -312,7 +313,7 @@ public class AiEngineHelper {
             if (systemPrompt != null && !systemPrompt.isEmpty()) {
                 JSONObject sysMsg = new JSONObject();
                 sysMsg.put("role", "system");
-                sysMsg.put("content", systemPrompt);
+                sysMsg.put("content", systemPrompt + " REGLA ESTRICTA: NO USES EMOJIS BAJO NINGUNA CIRCUNSTANCIA. Cero emojis en tu respuesta.");
                 messages.put(sysMsg);
             }
 
@@ -322,7 +323,7 @@ public class AiEngineHelper {
             messages.put(userMsg);
 
             root.put("messages", messages);
-            root.put("max_tokens", 250);
+            root.put("max_tokens", 2048);
             root.put("temperature", 0.8);
 
             OutputStream os = conn.getOutputStream();
@@ -383,9 +384,12 @@ public class AiEngineHelper {
 
     private static String cleanAiReply(String raw) {
         if (raw == null) return "";
-        return raw.trim()
+        String cleaned = raw.trim()
                 .replaceAll("\\*\\*", "")
                 .replaceAll("^\"|\"$", "");
+        // Eliminar emojis de la respuesta generada por la IA
+        cleaned = cleaned.replaceAll("[\\p{So}\\p{Cn}\\p{Cs}\\x{1F000}-\\x{1FFFF}\\x{2600}-\\x{27BF}]", "");
+        return cleaned.trim();
     }
 
     private static void postSuccess(final AiCallback callback, final String msg) {

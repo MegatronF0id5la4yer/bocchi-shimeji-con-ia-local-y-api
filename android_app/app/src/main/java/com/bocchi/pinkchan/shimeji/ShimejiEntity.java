@@ -559,7 +559,8 @@ public class ShimejiEntity {
                 }
             }
         };
-        handler.postDelayed(hideBubbleRunnable, durationMs);
+        int effectiveDuration = Math.max(durationMs, Math.min(35000, (text != null ? text.length() : 0) * 85));
+        handler.postDelayed(hideBubbleRunnable, effectiveDuration);
     }
 
     public void updatePhysics(int screenWidth, int screenHeight, boolean globalZeroGravity) {
