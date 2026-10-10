@@ -46,6 +46,7 @@ public class ShimejiService extends Service {
     public static final String ACTION_START_VOICE = "com.bocchi.pinkchan.shimeji.START_VOICE";
     public static final String ACTION_DROP_ITEM = "com.bocchi.pinkchan.shimeji.DROP_ITEM";
     public static final String ACTION_SET_BUBBLE = "com.bocchi.pinkchan.shimeji.SET_BUBBLE";
+    public static final String ACTION_SET_THEME = "com.bocchi.pinkchan.shimeji.SET_THEME";
 
     public static final String EXTRA_SKIN = "extra_skin";
     public static final String EXTRA_SIZE_DP = "extra_size_dp";
@@ -262,9 +263,10 @@ public class ShimejiService extends Service {
     }
 
     public void spawnExtraShimeji(String skinId) {
-        if (shimejiList.size() >= MAX_SHIMEJIS) {
+        int maxAllowed = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE).getInt("max_shimeji_count", MAX_SHIMEJIS);
+        if (shimejiList.size() >= maxAllowed) {
             if (!shimejiList.isEmpty()) {
-                shimejiList.get(0).say("Limite maximo: " + MAX_SHIMEJIS + " Shimejis.", 2500);
+                shimejiList.get(0).say("Limite maximo: " + maxAllowed + " Shimejis.", 2500);
             }
             return;
         }
@@ -610,6 +612,13 @@ public class ShimejiService extends Service {
                 for (ShimejiEntity entity : shimejiList) {
                     entity.applyBubbleStyle();
                 }
+            } else if (ACTION_SET_THEME.equals(action)) {
+                for (ShimejiEntity entity : shimejiList) {
+                    entity.applyBubbleStyle();
+                }
+                if (floatingChatManager != null) {
+                    floatingChatManager.applyTheme();
+                }
             }
         }
         return START_STICKY;
@@ -723,11 +732,58 @@ public class ShimejiService extends Service {
     }
 
     public void speakTts(String text) {
+        String skinId = (currentSkin != null) ? currentSkin.id : "Konata";
+        speakTts(text, skinId);
+    }
+
+    public void speakTts(String text, String skinId) {
         SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
         if (!sp.getBoolean("tts_enabled", false)) return;
         if (text == null || text.trim().isEmpty()) return;
         String clean = AgentToolExecutor.stripTags(text);
+        if (clean.isEmpty()) return;
+
         if (textToSpeech != null) {
+            float baseRate = sp.getFloat("tts_rate", 1.0f);
+            float basePitch = sp.getFloat("tts_pitch", 1.0f);
+
+            float charRateMult = 1.0f;
+            float charPitchMult = 1.0f;
+
+            if (skinId != null) {
+                String s = skinId.toLowerCase();
+                if (s.contains("bocchi")) {
+                    charPitchMult = 0.88f; // Suave, timida
+                    charRateMult = 0.85f;
+                } else if (s.contains("konata")) {
+                    charPitchMult = 1.35f; // Otaku energica
+                    charRateMult = 1.25f;
+                } else if (s.contains("natsuki")) {
+                    charPitchMult = 1.42f; // Tsundere aguda
+                    charRateMult = 1.20f;
+                } else if (s.contains("sayori")) {
+                    charPitchMult = 1.24f; // Alegre y dulce
+                    charRateMult = 1.10f;
+                } else if (s.contains("yuri")) {
+                    charPitchMult = 0.82f; // Elegante, grave, pausada
+                    charRateMult = 0.88f;
+                } else if (s.contains("monika")) {
+                    charPitchMult = 1.06f; // Calida, moderada
+                    charRateMult = 1.00f;
+                } else if (s.contains("hachi")) {
+                    charPitchMult = 1.30f; // Infantil
+                    charRateMult = 1.15f;
+                } else if (s.contains("usagi")) {
+                    charPitchMult = 1.48f; // Hiperactiva
+                    charRateMult = 1.30f;
+                } else if (s.contains("pusheen")) {
+                    charPitchMult = 1.18f; // Gatita tranquila
+                    charRateMult = 0.92f;
+                }
+            }
+
+            textToSpeech.setPitch(Math.max(0.4f, Math.min(2.5f, basePitch * charPitchMult)));
+            textToSpeech.setSpeechRate(Math.max(0.4f, Math.min(2.5f, baseRate * charRateMult)));
             textToSpeech.speak(clean, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "shimeji_tts");
         } else {
             initTts();

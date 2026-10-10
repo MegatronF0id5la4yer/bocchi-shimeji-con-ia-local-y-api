@@ -46,6 +46,32 @@ public class FloatingChatManager {
 
     private float initialTouchX, initialTouchY;
     private int initialParamX, initialParamY;
+    private GradientDrawable cardBg;
+    private LinearLayout mainCard;
+
+    public void applyTheme() {
+        if (cardBg == null) return;
+        SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        int alphaPercent = sp.getInt(MainActivity.KEY_BUBBLE_ALPHA, 92);
+        boolean showBorder = sp.getBoolean(MainActivity.KEY_BUBBLE_BORDER, true);
+        int alpha255 = (int) (Math.max(20, Math.min(100, alphaPercent)) * 2.55f);
+        cardBg.setColor(Color.argb(alpha255, 24, 18, 43));
+        if (showBorder) {
+            String accentHex = sp.getString("accent_color_hex", "#A382FF");
+            int accentColor;
+            try {
+                accentColor = Color.parseColor(accentHex);
+            } catch (Exception e) {
+                accentColor = Color.parseColor("#A382FF");
+            }
+            cardBg.setStroke(service.dpToPx(1.5f), accentColor);
+        } else {
+            cardBg.setStroke(0, 0);
+        }
+        if (mainCard != null) {
+            mainCard.setBackground(cardBg);
+        }
+    }
 
     public FloatingChatManager(ShimejiService service) {
         this.service = service;
@@ -78,23 +104,16 @@ public class FloatingChatManager {
         chatParams.x = (screenWidth - cardWidth) / 2;
         chatParams.y = service.dpToPx(70);
 
-        SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
-        int alphaPercent = sp.getInt(MainActivity.KEY_BUBBLE_ALPHA, 92);
-        boolean showBorder = sp.getBoolean(MainActivity.KEY_BUBBLE_BORDER, true);
-        int alpha255 = (int) (Math.max(20, Math.min(100, alphaPercent)) * 2.55f);
-
         // Tarjeta principal flotante
         LinearLayout card = new LinearLayout(service);
+        mainCard = card;
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(service.dpToPx(12), service.dpToPx(10), service.dpToPx(12), service.dpToPx(12));
 
-        GradientDrawable cardBg = new GradientDrawable();
+        cardBg = new GradientDrawable();
         cardBg.setShape(GradientDrawable.RECTANGLE);
         cardBg.setCornerRadius(service.dpToPx(16));
-        cardBg.setColor(Color.argb(alpha255, 24, 18, 43)); // Dark Slate / Warm Violet #18122B
-        if (showBorder) {
-            cardBg.setStroke(service.dpToPx(1.5f), Color.parseColor("#A382FF"));
-        }
+        applyTheme();
         card.setBackground(cardBg);
         card.setElevation(service.dpToPx(16));
 
@@ -615,7 +634,15 @@ public class FloatingChatManager {
         } else {
             bg.setColor(Color.parseColor("#1F1934")); // Fondo mensaje personaje
             bubble.setTextColor(Color.parseColor("#EDE9FE"));
-            bg.setStroke(service.dpToPx(1), Color.parseColor("#7C3AED"));
+            SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+            String accentHex = sp.getString("accent_color_hex", "#7C3AED");
+            int accentColor;
+            try {
+                accentColor = Color.parseColor(accentHex);
+            } catch (Exception e) {
+                accentColor = Color.parseColor("#7C3AED");
+            }
+            bg.setStroke(service.dpToPx(1), accentColor);
         }
         bubble.setBackground(bg);
 

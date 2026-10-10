@@ -2145,39 +2145,15 @@ class AppearanceWindow:
     def _on_theme_update(self):
         if not self.win or not tk.Toplevel.winfo_exists(self.win):
             return
-        self.win.configure(bg=self.theme.bg)
-        self.win.attributes("-alpha", self.theme.opacity)
-        self.accent_swatch.configure(bg=self.theme.accent)
-        self.accent_hex_lbl.configure(text=self.theme.accent.upper(), fg=self.theme.text, bg=self.theme.surface)
-        self.opac_scale.configure(bg=self.theme.surface, fg=self.theme.text,
-                                  troughcolor=self.theme.surface_variant,
-                                  activebackground=self.theme.accent)
-        if hasattr(self, "bub_opac_scale") and self.bub_opac_scale:
-            self.bub_opac_scale.configure(bg=self.theme.surface, fg=self.theme.text,
-                                          troughcolor=self.theme.surface_variant,
-                                          activebackground=self.theme.accent)
-        if hasattr(self, "size_slider") and self.size_slider:
-            self.size_slider.configure(bg=self.theme.surface, fg=self.theme.text,
-                                       troughcolor=self.theme.surface_variant,
-                                       activebackground=self.theme.accent)
-        self.preview_card.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
-        self.prev_title.configure(fg=self.theme.accent, bg=self.theme.surface,
-                                  font=(self.theme.font_family, self.theme.font_size, "bold"))
-        self.prev_sample.configure(fg=self.theme.text, bg=self.theme.surface,
-                                   font=(self.theme.font_family, self.theme.font_size))
-        self.prev_badge.configure(bg=self.theme.surface_variant, font=(self.theme.font_family, self.theme.font_size - 1, "bold"))
-        self.prev_btn.configure(bg=self.theme.accent, fg=self.theme.accent_text,
-                                font=(self.theme.font_family, self.theme.font_size - 1, "bold"))
-        if hasattr(self, "sec_bg") and self.sec_bg:
-            self.sec_bg.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
-        if hasattr(self, "sec_bubble") and self.sec_bubble:
-            self.sec_bubble.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
-        if hasattr(self, "sec_size") and self.sec_size:
-            self.sec_size.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
-        if hasattr(self, "sec_update") and self.sec_update:
-            self.sec_update.configure(bg=self.theme.surface, highlightbackground=self.theme.border)
-        if hasattr(self, "lbl_bg_status") and self.lbl_bg_status:
-            self.lbl_bg_status.configure(fg=self.theme.text_dim, bg=self.theme.surface)
+        geo = self.win.geometry()
+        self.theme.remove_listener(self._on_theme_update)
+        self.win.destroy()
+        self._build_window()
+        self.theme.add_listener(self._on_theme_update)
+        try:
+            self.win.geometry(geo)
+        except Exception:
+            pass
 
     def _on_close(self):
         self.theme.remove_listener(self._on_theme_update)
@@ -2396,8 +2372,20 @@ class DoxxWindow:
             self.shimeji.doxx_win = None
 
 
+CHARACTER_VOICE_PROFILES = {
+    "Bocchi": {"pitch": -12, "rate": -15, "test": "E-eto... hola... soy Bocchi-chan... gusto en conocerte..."},
+    "Konata": {"pitch": 35, "rate": 25, "test": "Timotei, Timotei! Otaku power al maximo, esta noche no duermo!"},
+    "Monika": {"pitch": 6, "rate": 0, "test": "Hola mi amor! Cada dia es un hermoso dia en el club de literatura."},
+    "Natsuki": {"pitch": 42, "rate": 20, "test": "B-Baka! No es como si estuviera esperando a que me hablaras!"},
+    "Sayori": {"pitch": 24, "rate": 10, "test": "Yay! Buenos dias! Todo es brillante y lleno de alegria!"},
+    "Yuri": {"pitch": -18, "rate": -12, "test": "Un buen libro de misterio y una taza de te caliente calman el alma."},
+    "Hachi": {"pitch": 30, "rate": 15, "test": "Araragi-san! Me mordi la lengua por accidente!"},
+    "Usagi": {"pitch": 48, "rate": 30, "test": "Ura! Yahaha! Energia magica al limite!"},
+    "Pusheen": {"pitch": 18, "rate": -8, "test": "Miau... hora de comer bocadillos y dormir una siesta calientita."},
+}
+
 class JarvisTTS:
-    """Motor de síntesis de voz mediante Windows SAPI nativo en segundo plano."""
+    """Motor de síntesis de voz mediante Windows SAPI nativo con perfiles vocales por personaje y SSML."""
     def __init__(self, config=None):
         self.config = config if config is not None else {}
         self._queue = queue.Queue()
@@ -2442,27 +2430,54 @@ class JarvisTTS:
             if not self.config.get("tts_enabled", False):
                 continue
             try:
-                rate = int(self.config.get("tts_rate", 0))
+                skin_name = "Bocchi"
+                if isinstance(item, (tuple, list)):
+                    raw_text = str(item[0])
+                    if len(item) > 1 and item[1]:
+                        skin_name = str(item[1])
+                else:
+                    raw_text = str(item)
+
+                user_rate_offset = int(self.config.get("tts_rate", 0))
+                user_pitch_offset = int(self.config.get("tts_pitch", 0))
                 vol = int(self.config.get("tts_volume", 100))
-                sp.Rate = max(-10, min(10, rate))
                 sp.Volume = max(0, min(100, vol))
+
                 v_idx = int(self.config.get("tts_voice_idx", 0))
                 voices = sp.GetVoices()
                 if 0 <= v_idx < voices.Count:
                     sp.Voice = voices.Item(v_idx)
+
+                prof = CHARACTER_VOICE_PROFILES.get(skin_name, {"pitch": 0, "rate": 0})
+                char_pitch_num = max(-60, min(70, prof["pitch"] + (user_pitch_offset * 3)))
+                char_rate_num = max(-50, min(60, prof["rate"] + (user_rate_offset * 4)))
+
+                sign_pitch = f"{char_pitch_num:+d}%"
+                sign_rate = f"{char_rate_num:+d}%"
+
                 # Limpiar texto de etiquetas JARVIS y símbolos
-                clean = re.sub(r'\[JARVIS:[^\]]+\]', '', item, flags=re.IGNORECASE)
+                clean = re.sub(r'\[JARVIS:[^\]]+\]', '', raw_text, flags=re.IGNORECASE)
                 clean = re.sub(r'\[[^\]]+\]', '', clean)
                 clean = re.sub(r'[:;=8][\-o\*\']?[\)\]\(\[dDpPoO/\\]', '', clean)
                 clean = clean.replace("UwU", "").replace("7w7", "").replace("OwO", "").replace("XD", "").strip()
-                if clean:
+                if not clean:
+                    continue
+
+                # Intentar sintesis SSML con prosodia de personaje
+                escaped = clean.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+                ssml = f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-MX"><prosody pitch="{sign_pitch}" rate="{sign_rate}">{escaped}</prosody></speak>'
+                try:
+                    sp.Speak(ssml, 8)
+                except Exception:
+                    sapi_rate = max(-10, min(10, user_rate_offset + int(prof["rate"] / 8)))
+                    sp.Rate = sapi_rate
                     sp.Speak(clean)
             except Exception as e:
                 print(f"TTS Speak Error: {e}")
 
-    def speak(self, text_to_speak):
+    def speak(self, text_to_speak, skin=None):
         if SAPI_AVAILABLE and self.config.get("tts_enabled", False):
-            self._queue.put(text_to_speak)
+            self._queue.put((text_to_speak, skin))
 
 
 class JarvisWakeWordListener:
@@ -2829,7 +2844,8 @@ class AgentSettingsWindow:
                   background=[("selected", self.theme.accent)],
                   foreground=[("selected", self.theme.accent_text)])
 
-        nb = ttk.Notebook(self.win, style="Jarvis.TNotebook")
+        self.nb = ttk.Notebook(self.win, style="Jarvis.TNotebook")
+        nb = self.nb
         nb.pack(fill=tk.BOTH, expand=True, padx=10, pady=8)
 
         tab_agent = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
@@ -2928,13 +2944,24 @@ class AgentSettingsWindow:
         self.scale_rate.set(self.config.get("tts_rate", 0))
         self.scale_rate.grid(row=0, column=1, sticky="ew", padx=6)
 
-        tk.Label(row_tts_controls, text="Volumen (0 a 100):", bg=self.theme.surface, fg=self.theme.text).grid(row=1, column=0, sticky="w")
+        tk.Label(row_tts_controls, text="Tono / Pitch (-10 a 10):", bg=self.theme.surface, fg=self.theme.text).grid(row=1, column=0, sticky="w")
+        self.scale_pitch = tk.Scale(row_tts_controls, from_=-10, to=10, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text, highlightthickness=0)
+        self.scale_pitch.set(self.config.get("tts_pitch", 0))
+        self.scale_pitch.grid(row=1, column=1, sticky="ew", padx=6)
+
+        tk.Label(row_tts_controls, text="Volumen (0 a 100):", bg=self.theme.surface, fg=self.theme.text).grid(row=2, column=0, sticky="w")
         self.scale_vol = tk.Scale(row_tts_controls, from_=0, to=100, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text, highlightthickness=0)
         self.scale_vol.set(self.config.get("tts_volume", 100))
-        self.scale_vol.grid(row=1, column=1, sticky="ew", padx=6)
+        self.scale_vol.grid(row=2, column=1, sticky="ew", padx=6)
 
-        tk.Button(tab_voice, text="[>] Probar Voz", bg=self.theme.surface_variant, fg=self.theme.accent,
-                  command=self._test_voice).pack(anchor="w", pady=4)
+        row_voice_test_btns = tk.Frame(tab_voice, bg=self.theme.surface)
+        row_voice_test_btns.pack(fill=tk.X, pady=4)
+
+        tk.Button(row_voice_test_btns, text="[>] Probar Voz", bg=self.theme.surface_variant, fg=self.theme.accent,
+                  command=self._test_voice).pack(side=tk.LEFT, padx=(0, 4))
+        tk.Button(row_voice_test_btns, text="[♫] Probar Voz del Personaje Activo", bg=self.theme.surface_variant, fg=self.theme.accent,
+                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                  command=self._test_character_voice).pack(side=tk.LEFT)
 
         tk.Label(tab_voice, text="--------------------------------------------------", bg=self.theme.surface, fg=self.theme.text_dim).pack(pady=4)
 
@@ -3089,7 +3116,21 @@ class AgentSettingsWindow:
 
     def _select_preset(self, pkey):
         self.theme.apply_preset(pkey)
-        messagebox.showinfo("Tema", f"Se aplicó el tema '{ThemeManager.THEME_PRESETS[pkey]['name']}' correctamente.")
+        active_tab = 0
+        if hasattr(self, "nb") and self.nb:
+            try:
+                active_tab = self.nb.index("current")
+            except Exception:
+                pass
+        if self.win and tk.Toplevel.winfo_exists(self.win):
+            self.win.destroy()
+        self._build_window()
+        if hasattr(self, "nb") and self.nb:
+            try:
+                self.nb.select(active_tab)
+            except Exception:
+                pass
+        messagebox.showinfo("Tema", f"Se aplico el tema '{ThemeManager.THEME_PRESETS[pkey]['name']}' correctamente.")
 
     def _on_theme_opac_change(self, val):
         self.theme.set_opacity(int(val) / 100.0)
@@ -3123,11 +3164,26 @@ class AgentSettingsWindow:
         tts = self.shimeji.tts if self.shimeji and hasattr(self.shimeji, "tts") else JarvisTTS(self.config)
         cfg_test = dict(self.config)
         cfg_test["tts_enabled"] = True
-        cfg_test["tts_voice_idx"] = self.cbo_voice.current()
+        cfg_test["tts_voice_idx"] = self.cbo_voice.current() if self.cbo_voice.current() >= 0 else 0
         cfg_test["tts_rate"] = self.scale_rate.get()
+        cfg_test["tts_pitch"] = self.scale_pitch.get()
         cfg_test["tts_volume"] = self.scale_vol.get()
         tts.config = cfg_test
         tts.speak("Hola! Sistema de voz SAPI del Agente JARVIS configurado correctamente.")
+
+    def _test_character_voice(self):
+        tts = self.shimeji.tts if self.shimeji and hasattr(self.shimeji, "tts") else JarvisTTS(self.config)
+        cfg_test = dict(self.config)
+        cfg_test["tts_enabled"] = True
+        cfg_test["tts_voice_idx"] = self.cbo_voice.current() if self.cbo_voice.current() >= 0 else 0
+        cfg_test["tts_rate"] = self.scale_rate.get()
+        cfg_test["tts_pitch"] = self.scale_pitch.get()
+        cfg_test["tts_volume"] = self.scale_vol.get()
+        tts.config = cfg_test
+        skin = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
+        prof = CHARACTER_VOICE_PROFILES.get(skin, CHARACTER_VOICE_PROFILES.get("Bocchi", {}))
+        test_txt = prof.get("test", f"Hola! Soy {skin} y esta es mi voz personalizada.")
+        tts.speak(test_txt, skin=skin)
 
     def _listen_now(self):
         if self.shimeji:
@@ -3204,19 +3260,30 @@ class AgentSettingsWindow:
         self.config["tts_enabled"] = self.var_tts.get()
         self.config["tts_voice_idx"] = self.cbo_voice.current() if self.cbo_voice.current() >= 0 else 0
         self.config["tts_rate"] = self.scale_rate.get()
+        self.config["tts_pitch"] = self.scale_pitch.get()
         self.config["tts_volume"] = self.scale_vol.get()
 
         self.config["wake_word_enabled"] = self.var_wake.get()
         self.config["wake_word"] = self.var_wake_word.get().strip().lower()
 
-        self.config["walk_speed_mult"] = float(self.scale_speed.get())
-        self.config["gravity_mult"] = float(self.scale_grav.get())
-        self.config["random_speech_interval"] = int(self.var_speech_interval.get())
+        sp_val = float(self.scale_speed.get())
+        self.config["walk_speed_mult"] = sp_val
+        self.config["shimeji_walk_speed_mult"] = sp_val
+
+        gr_val = float(self.scale_grav.get())
+        self.config["gravity_mult"] = gr_val
+        self.config["shimeji_gravity_mult"] = gr_val
+
+        sp_int = int(self.var_speech_interval.get())
+        self.config["random_speech_interval"] = sp_int
+        self.config["shimeji_talk_interval_sec"] = sp_int
 
         self.config["allow_wall_climb"] = self.anim_wall.get()
         self.config["allow_ceiling_climb"] = self.anim_ceiling.get()
+        self.config["allow_ceiling"] = self.anim_ceiling.get()
         self.config["allow_sitting"] = self.anim_sit.get()
         self.config["allow_jump_fall"] = self.anim_jump.get()
+        self.config["allow_fall_jump"] = self.anim_jump.get()
         self.config["allow_custom_actions"] = self.anim_custom.get()
 
         self.config["chat_position_locked"] = self.chat_lock.get()
@@ -3225,6 +3292,8 @@ class AgentSettingsWindow:
 
         # Aplicar en caliente al Shimeji
         if self.shimeji:
+            if hasattr(self.shimeji, "config") and isinstance(self.shimeji.config, dict):
+                self.shimeji.config.update(self.config)
             if hasattr(self.shimeji, "tts"):
                 self.shimeji.tts.config = self.config
             if hasattr(self.shimeji, "sync_wake_word_state"):
@@ -7408,6 +7477,13 @@ class Shimeji:
             self.set_state("ko", surface=SURFACE_FLOOR)
             return
 
+        allow_jump = self.config.get("allow_jump_fall", True) or self.config.get("allow_fall_jump", True)
+        if allow_jump and random.random() < 0.12:
+            self.vel_y = -random.randint(7, 13)
+            self.vel_x = random.choice([-1, 1]) * random.randint(2, 4)
+            self.set_state("falling", surface=SURFACE_FLOOR)
+            return
+
         allow_sit = self.config.get("allow_sitting", True)
         allow_custom = self.config.get("allow_custom_actions", True)
 
@@ -8895,6 +8971,9 @@ class Shimeji:
             self.bubble_win   = bw
             display_ms = max(6000, min(40000, len(text) * 90))
             self.bubble_after = self.root.after(display_ms, self.destroy_bubble)
+
+            if hasattr(self, "tts") and self.tts:
+                self.tts.speak(text, skin=getattr(self, "current_skin", "Bocchi"))
         except Exception as e:
             print(f"Error en show_speech: {e}")
 

@@ -592,7 +592,17 @@ public class ShimejiEntity {
         gd.setCornerRadius(service.dpToPx(14));
         gd.setColor(android.graphics.Color.argb(alpha, 0x1A, 0x14, 0x2A));
         if (showBorder) {
-            int strokeColor = android.graphics.Color.argb(Math.min(255, alpha + 50), 0x8A, 0x56, 0xE2);
+            String accentHex = sp.getString("accent_color_hex", "#8A56E2");
+            int accentColor;
+            try {
+                accentColor = android.graphics.Color.parseColor(accentHex);
+            } catch (Exception e) {
+                accentColor = 0xFF8A56E2;
+            }
+            int strokeColor = android.graphics.Color.argb(Math.min(255, alpha + 50),
+                android.graphics.Color.red(accentColor),
+                android.graphics.Color.green(accentColor),
+                android.graphics.Color.blue(accentColor));
             gd.setStroke(service.dpToPx(1.5f), strokeColor);
         } else {
             gd.setStroke(0, 0);
@@ -619,6 +629,10 @@ public class ShimejiEntity {
         };
         int effectiveDuration = Math.max(durationMs, Math.min(35000, (text != null ? text.length() : 0) * 85));
         handler.postDelayed(hideBubbleRunnable, effectiveDuration);
+
+        if (service != null && skin != null) {
+            service.speakTts(text, skin.id);
+        }
     }
 
     public void updatePhysics(int screenWidth, int screenHeight, boolean globalZeroGravity) {

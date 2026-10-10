@@ -162,6 +162,12 @@ public class MainActivity extends Activity {
     private Button btnJarvisAccessibility, btnJarvisTestTts, btnJarvisPushToTalk, btnAddJarvisMacro, btnSaveJarvisAll;
     private LinearLayout layoutMacrosContainer;
 
+    private TextView tagFilterLuckyStar, tagFilterBocchi, tagFilterDokiDoki, tagFilterMascots, tagFilterAddCustom;
+    private CheckBox cbSettingsBoot;
+    private TextView badgeCountNum;
+    private android.speech.tts.TextToSpeech localTts;
+    private String activeGridFilter = null;
+
     private SharedPreferences prefs;
 
     @Override
@@ -280,6 +286,14 @@ public class MainActivity extends Activity {
         btnSettingsStop = findViewById(R.id.btn_settings_stop);
         btnSettingsCheckUpdate = findViewById(R.id.btn_settings_check_update);
         tvUpdateInfo = findViewById(R.id.tv_update_info);
+
+        cbSettingsBoot = findViewById(R.id.cb_settings_boot);
+        badgeCountNum = findViewById(R.id.badge_count_num);
+        tagFilterLuckyStar = findViewById(R.id.tag_filter_luckystar);
+        tagFilterBocchi = findViewById(R.id.tag_filter_bocchi);
+        tagFilterDokiDoki = findViewById(R.id.tag_filter_dokidoki);
+        tagFilterMascots = findViewById(R.id.tag_filter_mascots);
+        tagFilterAddCustom = findViewById(R.id.tag_filter_add_custom);
 
         // AI Engine Views
         rgAiMode = findViewById(R.id.rg_ai_mode);
@@ -474,6 +488,48 @@ public class MainActivity extends Activity {
         };
         btnSpawnPusheen.setOnClickListener(clickPusheen);
         if (cardCharPusheen != null) cardCharPusheen.setOnClickListener(clickPusheen);
+
+        // Tag Filter click listeners
+        if (tagFilterLuckyStar != null) {
+            tagFilterLuckyStar.setOnClickListener(v -> filterCharacterGrid("luckystar"));
+        }
+        if (tagFilterBocchi != null) {
+            tagFilterBocchi.setOnClickListener(v -> filterCharacterGrid("bocchi"));
+        }
+        if (tagFilterDokiDoki != null) {
+            tagFilterDokiDoki.setOnClickListener(v -> filterCharacterGrid("dokidoki"));
+        }
+        if (tagFilterMascots != null) {
+            tagFilterMascots.setOnClickListener(v -> filterCharacterGrid("mascots"));
+        }
+        if (tagFilterAddCustom != null) {
+            tagFilterAddCustom.setOnClickListener(v -> showAddCustomTagDialog());
+        }
+    }
+
+    private void filterCharacterGrid(String tag) {
+        if (tag.equals(activeGridFilter)) {
+            activeGridFilter = null;
+            Toast.makeText(this, "Filtro restablecido: Mostrando todos", Toast.LENGTH_SHORT).show();
+        } else {
+            activeGridFilter = tag;
+            Toast.makeText(this, "Filtro activo: " + tag, Toast.LENGTH_SHORT).show();
+        }
+        updateCardVisibility(cardCharKonata, activeGridFilter == null || activeGridFilter.equals("luckystar"));
+        updateCardVisibility(cardCharBocchi, activeGridFilter == null || activeGridFilter.equals("bocchi"));
+        updateCardVisibility(cardCharMonika, activeGridFilter == null || activeGridFilter.equals("dokidoki"));
+        updateCardVisibility(cardCharNatsuki, activeGridFilter == null || activeGridFilter.equals("dokidoki"));
+        updateCardVisibility(cardCharSayori, activeGridFilter == null || activeGridFilter.equals("dokidoki"));
+        updateCardVisibility(cardCharYuri, activeGridFilter == null || activeGridFilter.equals("dokidoki"));
+        updateCardVisibility(cardCharHachi, activeGridFilter == null || activeGridFilter.equals("mascots"));
+        updateCardVisibility(cardCharUsagi, activeGridFilter == null || activeGridFilter.equals("mascots"));
+        updateCardVisibility(cardCharPusheen, activeGridFilter == null || activeGridFilter.equals("mascots"));
+    }
+
+    private void updateCardVisibility(View card, boolean visible) {
+        if (card != null) {
+            card.setAlpha(visible ? 1.0f : 0.35f);
+        }
     }
 
     private void setGridSizeTab(int idx) {
@@ -490,20 +546,54 @@ public class MainActivity extends Activity {
 
         btnGridWide.setBackgroundResource(idx == 2 ? R.drawable.tab_item_selected : R.drawable.tab_item_unselected);
         btnGridWide.setTextColor(idx == 2 ? activeColor : inactiveColor);
+
+        prefs.edit().putInt("selected_grid_size", idx).apply();
+
+        int imgSizeDp = (idx == 0) ? 56 : (idx == 1 ? 72 : 88);
+        int padDp = (idx == 0) ? 8 : (idx == 1 ? 12 : 16);
+        int imgSizePx = dpToPx(imgSizeDp);
+        int padPx = dpToPx(padDp);
+
+        View[] cards = {
+            cardCharKonata, cardCharBocchi, cardCharMonika, cardCharNatsuki, cardCharSayori,
+            cardCharYuri, cardCharHachi, cardCharUsagi, cardCharPusheen
+        };
+
+        for (View c : cards) {
+            if (c instanceof ViewGroup) {
+                ViewGroup vg = (ViewGroup) c;
+                vg.setPadding(padPx, padPx, padPx, padPx);
+                for (int i = 0; i < vg.getChildCount(); i++) {
+                    View child = vg.getChildAt(i);
+                    if (child instanceof ImageView) {
+                        ViewGroup.LayoutParams lp = child.getLayoutParams();
+                        if (lp != null) {
+                            lp.width = imgSizePx;
+                            lp.height = imgSizePx;
+                            child.setLayoutParams(lp);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     private void setupInstalledScreen() {
         btnActionImport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Importar Shimeji: Carpeta de assets/skins lista", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(Intent.createChooser(intent, "Seleccionar archivo ZIP de Skin"), REQUEST_PICK_SKIN_ZIP);
             }
         });
 
         btnActionGuide.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Guia: Usa frames PNG de 128x128 píxeles", Toast.LENGTH_LONG).show();
+                showCustomizationGuideDialog();
             }
         });
 
@@ -573,7 +663,7 @@ public class MainActivity extends Activity {
         btnAddCategories.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Nueva categoria personalizada anadida", Toast.LENGTH_SHORT).show();
+                showAddCategoryDialog();
             }
         });
 
@@ -622,7 +712,7 @@ public class MainActivity extends Activity {
         btnCustomizeViews.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                triggerAction("cycle_skin");
+                showCustomizeViewsDialog();
             }
         });
 
@@ -774,6 +864,27 @@ public class MainActivity extends Activity {
                         it.setAction(ShimejiService.ACTION_SET_BUBBLE);
                         startService(it);
                     }
+                }
+            });
+        }
+
+        if (cbSettingsBoot != null) {
+            cbSettingsBoot.setChecked(prefs.getBoolean("keep_background_alive", true));
+            cbSettingsBoot.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    prefs.edit().putBoolean("keep_background_alive", isChecked).apply();
+                    Toast.makeText(MainActivity.this, "Segundo plano: " + (isChecked ? "Activo permanente" : "Estándar"), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (badgeCountNum != null) {
+            badgeCountNum.setText(prefs.getInt("max_shimeji_count", 6) + " Max");
+            badgeCountNum.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showMaxCountDialog();
                 }
             });
         }
@@ -1268,16 +1379,17 @@ public class MainActivity extends Activity {
                 public void onClick(View v) {
                     String name = etJarvisName != null ? etJarvisName.getText().toString().trim() : "Jarvis";
                     if (name.isEmpty()) name = "Jarvis";
-                    String testPhrase = "Hola, soy " + name + ", tu asistente inteligente.";
+                    String skin = prefs.getString(KEY_SKIN, "Konata");
+                    String testPhrase = "Hola, soy " + name + " con la voz de " + skin + ". Sistema de voz listo.";
+                    float r = sbTtsRate != null ? (sbTtsRate.getProgress() / 10.0f) : 1.0f;
+                    float p = sbTtsPitch != null ? (sbTtsPitch.getProgress() / 10.0f) : 1.0f;
+                    prefs.edit().putFloat("tts_rate", r).putFloat("tts_pitch", p).putBoolean("tts_enabled", true).apply();
                     ShimejiService s = ShimejiService.getInstance();
                     if (s != null) {
-                        float r = sbTtsRate != null ? (sbTtsRate.getProgress() / 10.0f) : 1.0f;
-                        float p = sbTtsPitch != null ? (sbTtsPitch.getProgress() / 10.0f) : 1.0f;
-                        prefs.edit().putFloat("tts_rate", r).putFloat("tts_pitch", p).putBoolean("tts_enabled", true).apply();
                         s.syncTtsSettings();
-                        s.speakTts(testPhrase);
+                        s.speakTts(testPhrase, skin);
                     } else {
-                        Toast.makeText(MainActivity.this, "[TTS]: " + testPhrase, Toast.LENGTH_SHORT).show();
+                        speakLocalTts(testPhrase, skin, r, p);
                     }
                 }
             });
@@ -1804,6 +1916,15 @@ public class MainActivity extends Activity {
         if (cbBubbleBorder != null) {
             cbBubbleBorder.setChecked(savedBorder);
         }
+        int savedGrid = prefs.getInt("selected_grid_size", 1);
+        setGridSizeTab(savedGrid);
+
+        if (cbSettingsBoot != null) {
+            cbSettingsBoot.setChecked(prefs.getBoolean("keep_background_alive", true));
+        }
+        if (badgeCountNum != null) {
+            badgeCountNum.setText(prefs.getInt("max_shimeji_count", 6) + " Max");
+        }
 
         String savedSkin = prefs.getString(KEY_SKIN, "Konata");
         updateInspectorMascot(savedSkin);
@@ -1941,6 +2062,14 @@ public class MainActivity extends Activity {
 
         // Re-apply tab coloring with currentAccentColor
         selectTab(currentTabIndex);
+
+        String hexColor = String.format("#%06X", (0xFFFFFF & currentAccentColor));
+        prefs.edit().putString("accent_color_hex", hexColor).apply();
+        if (ShimejiService.isRunning) {
+            Intent it = new Intent(MainActivity.this, ShimejiService.class);
+            it.setAction(ShimejiService.ACTION_SET_THEME);
+            startService(it);
+        }
 
         Toast.makeText(this, "Tema aplicado: " + colorName, Toast.LENGTH_SHORT).show();
     }
@@ -2916,6 +3045,281 @@ public class MainActivity extends Activity {
         });
 
         dialog.show();
+    }
+
+    private void showCustomizationGuideDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#120F1F"));
+        root.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("[*] Guia de Personalizacion y Sprites");
+        tvTitle.setTextSize(16);
+        tvTitle.setTextColor(currentAccentColor != 0 ? currentAccentColor : Color.parseColor("#A382FF"));
+        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitle.setPadding(0, 0, 0, dpToPx(8));
+        root.addView(tvTitle);
+
+        TextView tvContent = new TextView(this);
+        tvContent.setText(
+            "1. Importacion de Sprites:\n" +
+            "   Usa archivos ZIP que contengan imagenes PNG de 128x128 pixeles con fondo transparente.\n" +
+            "   Nombres clave: stand1.png, walk1.png, walk2.png, fall1.png, climb1.png.\n\n" +
+            "2. Modulacion de Voces:\n" +
+            "   Cada personaje adapta tono y velocidad segun su personalidad en la sintesis TTS.\n" +
+            "   Bocchi: Suave y timida (-12% pitch)\n" +
+            "   Konata: Otaku hiperactiva (+35% pitch)\n" +
+            "   Natsuki: Tsundere energica (+42% pitch)\n" +
+            "   Sayori: Dulce y alegre (+24% pitch)\n" +
+            "   Yuri: Pausada y profunda (-18% pitch)\n\n" +
+            "3. Controles en Pantalla:\n" +
+            "   Arrastra el Shimeji para moverlo, tocalo dos veces para que hable, o lanzalo para activar la fisica elastica."
+        );
+        tvContent.setTextSize(12);
+        tvContent.setTextColor(Color.parseColor("#E0D8F0"));
+        tvContent.setPadding(0, 0, 0, dpToPx(12));
+        root.addView(tvContent);
+
+        Button btnClose = new Button(this);
+        btnClose.setText("Entendido");
+        btnClose.setBackgroundResource(R.drawable.btn_accent);
+        if (currentAccentColor != 0) {
+            btnClose.setBackgroundTintList(ColorStateList.valueOf(currentAccentColor));
+        }
+        btnClose.setTextColor(Color.WHITE);
+        root.addView(btnClose);
+
+        builder.setView(root);
+        AlertDialog dialog = builder.create();
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    private void showAddCategoryDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#120F1F"));
+        root.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("[+] Nueva Categoria de Personajes");
+        tvTitle.setTextSize(15);
+        tvTitle.setTextColor(currentAccentColor != 0 ? currentAccentColor : Color.parseColor("#A382FF"));
+        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitle.setPadding(0, 0, 0, dpToPx(6));
+        root.addView(tvTitle);
+
+        TextView tvDesc = new TextView(this);
+        tvDesc.setText("Escribe el nombre de la categoria para agrupar shimejis:");
+        tvDesc.setTextSize(12);
+        tvDesc.setTextColor(Color.parseColor("#9E92B4"));
+        tvDesc.setPadding(0, 0, 0, dpToPx(8));
+        root.addView(tvDesc);
+
+        EditText etName = new EditText(this);
+        etName.setHint("Ejemplo: Favoritos, Vocaloid, Anime 2026");
+        etName.setHintTextColor(Color.parseColor("#5A526E"));
+        etName.setTextColor(Color.WHITE);
+        etName.setBackgroundResource(R.drawable.chip_tag_bg);
+        etName.setPadding(dpToPx(12), dpToPx(10), dpToPx(12), dpToPx(10));
+        LinearLayout.LayoutParams etLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        etLp.bottomMargin = dpToPx(12);
+        root.addView(etName, etLp);
+
+        Button btnSave = new Button(this);
+        btnSave.setText("Guardar Categoria");
+        btnSave.setBackgroundResource(R.drawable.btn_accent);
+        if (currentAccentColor != 0) {
+            btnSave.setBackgroundTintList(ColorStateList.valueOf(currentAccentColor));
+        }
+        btnSave.setTextColor(Color.WHITE);
+        root.addView(btnSave);
+
+        builder.setView(root);
+        AlertDialog dialog = builder.create();
+        btnSave.setOnClickListener(v -> {
+            String name = etName.getText().toString().trim();
+            if (!name.isEmpty()) {
+                Set<String> catSet = new HashSet<>(prefs.getStringSet("custom_categories", new HashSet<>()));
+                catSet.add(name);
+                prefs.edit().putStringSet("custom_categories", catSet).apply();
+                Toast.makeText(MainActivity.this, "Categoria '" + name + "' guardada correctamente.", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } else {
+                Toast.makeText(MainActivity.this, "Ingresa un nombre valido.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        dialog.show();
+    }
+
+    private void showCustomizeViewsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("[*] Personalizar Vistas y Shimeji");
+        String[] options = {
+            "Cambiar Personaje Activo",
+            "Ajustar Tamaño Exacto (dp / escala)",
+            "Cambiar Color de Acento Visual",
+            "Configurar Gravedad y Fisica",
+            "Gestionar Shimejis en Pantalla"
+        };
+        builder.setItems(options, (dialog, which) -> {
+            switch (which) {
+                case 0:
+                    showSelectSkinDialog();
+                    break;
+                case 1:
+                    showCustomSizeDialog();
+                    break;
+                case 2:
+                    selectTab(3);
+                    break;
+                case 3:
+                    if (cbSettingsZeroG != null) {
+                        cbSettingsZeroG.setChecked(!cbSettingsZeroG.isChecked());
+                        Toast.makeText(MainActivity.this, "Gravedad alternada: " + (cbSettingsZeroG.isChecked() ? "Gravedad Cero" : "Normal"), Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                case 4:
+                    showMaxCountDialog();
+                    break;
+            }
+        });
+        builder.setNegativeButton("Cerrar", null);
+        builder.show();
+    }
+
+    private void showSelectSkinDialog() {
+        String[] skins = {"Konata", "Bocchi", "Monika", "Natsuki", "Sayori", "Yuri", "Hachi", "Usagi", "Pusheen"};
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("Seleccionar Personaje Shimeji");
+        b.setItems(skins, (d, which) -> {
+            spawnOrSelectSkin(skins[which]);
+        });
+        b.setNegativeButton("Cancelar", null);
+        b.show();
+    }
+
+    private void showMaxCountDialog() {
+        final int[] counts = {1, 2, 4, 6, 8, 12, 16};
+        String[] labels = {"1 Shimeji", "2 Shimejis", "4 Shimejis", "6 Shimejis (Predeterminado)", "8 Shimejis", "12 Shimejis", "16 Shimejis"};
+        int current = prefs.getInt("max_shimeji_count", 6);
+        int selectedIndex = 3;
+        for (int i = 0; i < counts.length; i++) {
+            if (counts[i] == current) {
+                selectedIndex = i;
+                break;
+            }
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("Limite Maximo de Shimejis");
+        b.setSingleChoiceItems(labels, selectedIndex, (dialog, which) -> {
+            int chosen = counts[which];
+            prefs.edit().putInt("max_shimeji_count", chosen).apply();
+            if (badgeCountNum != null) {
+                badgeCountNum.setText(chosen + " Max");
+            }
+            Toast.makeText(MainActivity.this, "Limite fijado en: " + chosen + " Shimejis", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+        b.setNegativeButton("Cancelar", null);
+        b.show();
+    }
+
+    private void showAddCustomTagDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#120F1F"));
+        root.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("[+] Crear Tag Personalizado");
+        tvTitle.setTextSize(15);
+        tvTitle.setTextColor(currentAccentColor != 0 ? currentAccentColor : Color.parseColor("#A382FF"));
+        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitle.setPadding(0, 0, 0, dpToPx(6));
+        root.addView(tvTitle);
+
+        EditText etTag = new EditText(this);
+        etTag.setHint("Ej: Kawaii, Waifu, Retro");
+        etTag.setHintTextColor(Color.parseColor("#5A526E"));
+        etTag.setTextColor(Color.WHITE);
+        etTag.setBackgroundResource(R.drawable.chip_tag_bg);
+        etTag.setPadding(dpToPx(12), dpToPx(10), dpToPx(12), dpToPx(10));
+        LinearLayout.LayoutParams etLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        etLp.bottomMargin = dpToPx(12);
+        root.addView(etTag, etLp);
+
+        Button btnAdd = new Button(this);
+        btnAdd.setText("Agregar Tag");
+        btnAdd.setBackgroundResource(R.drawable.btn_accent);
+        if (currentAccentColor != 0) {
+            btnAdd.setBackgroundTintList(ColorStateList.valueOf(currentAccentColor));
+        }
+        btnAdd.setTextColor(Color.WHITE);
+        root.addView(btnAdd);
+
+        builder.setView(root);
+        AlertDialog dialog = builder.create();
+        btnAdd.setOnClickListener(v -> {
+            String t = etTag.getText().toString().trim();
+            if (!t.isEmpty()) {
+                if (tagFilterAddCustom != null) {
+                    tagFilterAddCustom.setText("+ " + t);
+                }
+                Toast.makeText(MainActivity.this, "Tag '" + t + "' activado correctamente.", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    private void speakLocalTts(String text, String skinId, float userRate, float userPitch) {
+        if (localTts == null) {
+            localTts = new android.speech.tts.TextToSpeech(getApplicationContext(), status -> {
+                if (status == android.speech.tts.TextToSpeech.SUCCESS && localTts != null) {
+                    localTts.setLanguage(new Locale("es", "ES"));
+                    doSpeakLocal(text, skinId, userRate, userPitch);
+                }
+            });
+        } else {
+            doSpeakLocal(text, skinId, userRate, userPitch);
+        }
+    }
+
+    private void doSpeakLocal(String text, String skinId, float userRate, float userPitch) {
+        if (localTts == null) return;
+        float charRateMult = 1.0f;
+        float charPitchMult = 1.0f;
+        if (skinId != null) {
+            String s = skinId.toLowerCase();
+            if (s.contains("bocchi")) { charPitchMult = 0.88f; charRateMult = 0.85f; }
+            else if (s.contains("konata")) { charPitchMult = 1.35f; charRateMult = 1.25f; }
+            else if (s.contains("natsuki")) { charPitchMult = 1.42f; charRateMult = 1.20f; }
+            else if (s.contains("sayori")) { charPitchMult = 1.24f; charRateMult = 1.10f; }
+            else if (s.contains("yuri")) { charPitchMult = 0.82f; charRateMult = 0.88f; }
+            else if (s.contains("monika")) { charPitchMult = 1.06f; charRateMult = 1.00f; }
+            else if (s.contains("hachi")) { charPitchMult = 1.30f; charRateMult = 1.15f; }
+            else if (s.contains("usagi")) { charPitchMult = 1.48f; charRateMult = 1.30f; }
+            else if (s.contains("pusheen")) { charPitchMult = 1.18f; charRateMult = 0.92f; }
+        }
+        localTts.setPitch(Math.max(0.4f, Math.min(2.5f, userPitch * charPitchMult)));
+        localTts.setSpeechRate(Math.max(0.4f, Math.min(2.5f, userRate * charRateMult)));
+        localTts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "local_test_tts");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (localTts != null) {
+            try {
+                localTts.shutdown();
+            } catch (Exception ignored) {}
+            localTts = null;
+        }
     }
 
     private void checkForUpdates(final boolean isManual) {
