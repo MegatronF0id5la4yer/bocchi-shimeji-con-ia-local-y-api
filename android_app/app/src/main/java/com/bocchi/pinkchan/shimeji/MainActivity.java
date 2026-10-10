@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -166,6 +167,7 @@ public class MainActivity extends Activity {
     private CheckBox cbSettingsBoot;
     private TextView badgeCountNum;
     private android.speech.tts.TextToSpeech localTts;
+    private MediaPlayer previewMediaPlayer;
     private String activeGridFilter = null;
 
     private SharedPreferences prefs;
@@ -3163,7 +3165,8 @@ public class MainActivity extends Activity {
             "Ajustar Tamaño Exacto (dp / escala)",
             "Cambiar Color de Acento Visual",
             "Configurar Gravedad y Fisica",
-            "Gestionar Shimejis en Pantalla"
+            "Gestionar Shimejis en Pantalla",
+            "[*] Google Voice Studio (Clonar Voces IA)"
         };
         builder.setItems(options, (dialog, which) -> {
             switch (which) {
@@ -3185,8 +3188,161 @@ public class MainActivity extends Activity {
                 case 4:
                     showMaxCountDialog();
                     break;
+                case 5:
+                    showVoiceStudioDialog();
+                    break;
             }
         });
+        builder.setNegativeButton("Cerrar", null);
+        builder.show();
+    }
+
+    private void showVoiceStudioDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#120F1F"));
+        root.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("[*] Google Voice Studio (Gemini 3.8 Flash TTS)");
+        tvTitle.setTextSize(15);
+        tvTitle.setTextColor(currentAccentColor != 0 ? currentAccentColor : Color.parseColor("#A382FF"));
+        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitle.setPadding(0, 0, 0, dpToPx(4));
+        root.addView(tvTitle);
+
+        TextView tvSub = new TextView(this);
+        tvSub.setText("Clona y genera voces neurales de los personajes usando Gemini 3.8 Flash TTS y Voice Design.");
+        tvSub.setTextSize(12);
+        tvSub.setTextColor(Color.parseColor("#9E92B4"));
+        tvSub.setPadding(0, 0, 0, dpToPx(10));
+        root.addView(tvSub);
+
+        Button btnAiStudio = new Button(this);
+        btnAiStudio.setText("[^] Abrir Google AI Studio Voice Studio");
+        btnAiStudio.setBackgroundResource(R.drawable.chip_tag_bg);
+        btnAiStudio.setTextColor(Color.parseColor("#C3ACF8"));
+        btnAiStudio.setTextSize(12);
+        btnAiStudio.setOnClickListener(v -> {
+            try {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://aistudio.google.com/generate-speech"));
+                startActivity(browserIntent);
+            } catch (Exception e) {
+                Toast.makeText(MainActivity.this, "Error abriendo navegador", Toast.LENGTH_SHORT).show();
+            }
+        });
+        LinearLayout.LayoutParams btnAiLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btnAiLp.bottomMargin = dpToPx(10);
+        root.addView(btnAiStudio, btnAiLp);
+
+        CheckBox cbEnableVs = new CheckBox(this);
+        cbEnableVs.setText("Activar Voice Studio AI en Shimejis");
+        cbEnableVs.setTextColor(Color.WHITE);
+        cbEnableVs.setChecked(prefs.getBoolean("voice_studio_enabled", true));
+        cbEnableVs.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.edit().putBoolean("voice_studio_enabled", isChecked).apply();
+            Toast.makeText(MainActivity.this, "Voice Studio AI: " + (isChecked ? "Habilitado" : "Deshabilitado"), Toast.LENGTH_SHORT).show();
+        });
+        root.addView(cbEnableVs);
+
+        TextView tvCharLbl = new TextView(this);
+        tvCharLbl.setText("Selecciona un Personaje:");
+        tvCharLbl.setTextSize(13);
+        tvCharLbl.setTextColor(Color.WHITE);
+        tvCharLbl.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvCharLbl.setPadding(0, dpToPx(8), 0, dpToPx(4));
+        root.addView(tvCharLbl);
+
+        final String[] charKeys = {"Konata", "Bocchi", "Monika", "Natsuki", "Sayori", "Yuri", "Hachi", "Usagi", "Pusheen"};
+        final int[] selectedCharIdx = {0};
+
+        HorizontalScrollView hsv = new HorizontalScrollView(this);
+        LinearLayout charBtnLayout = new LinearLayout(this);
+        charBtnLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+        final TextView tvCharDetail = new TextView(this);
+        tvCharDetail.setTextSize(12);
+        tvCharDetail.setTextColor(Color.parseColor("#E0D9F6"));
+        tvCharDetail.setBackgroundResource(R.drawable.chip_tag_bg);
+        tvCharDetail.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        LinearLayout.LayoutParams detLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        detLp.topMargin = dpToPx(8);
+        detLp.bottomMargin = dpToPx(12);
+
+        final Runnable updateCharDisplay = () -> {
+            String cKey = charKeys[selectedCharIdx[0]];
+            VoiceStudioHelper.VoiceProfile prof = VoiceStudioHelper.getProfile(cKey);
+            StringBuilder sb = new StringBuilder();
+            sb.append("Personaje: ").append(prof.name).append("\n\n");
+            sb.append("Estilo: ").append(prof.style).append("\n");
+            sb.append("Fallback: ").append(prof.prebuilt).append("\n\n");
+            sb.append("Voice Design Prompt:\n\"").append(prof.prompt).append("\"\n\n");
+            sb.append("Frase de prueba:\n\"").append(prof.testDialogue).append("\"");
+            tvCharDetail.setText(sb.toString());
+        };
+
+        for (int i = 0; i < charKeys.length; i++) {
+            final int idx = i;
+            Button b = new Button(this);
+            b.setText(charKeys[i]);
+            b.setTextSize(11);
+            b.setBackgroundResource(R.drawable.chip_tag_bg);
+            b.setTextColor(Color.WHITE);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dpToPx(36));
+            lp.rightMargin = dpToPx(6);
+            b.setLayoutParams(lp);
+            b.setOnClickListener(v -> {
+                selectedCharIdx[0] = idx;
+                updateCharDisplay.run();
+            });
+            charBtnLayout.addView(b);
+        }
+        hsv.addView(charBtnLayout);
+        root.addView(hsv);
+        root.addView(tvCharDetail, detLp);
+
+        Button btnTestSpeech = new Button(this);
+        btnTestSpeech.setText("[♫] Generar y Probar Voz (Gemini TTS)");
+        btnTestSpeech.setBackgroundResource(R.drawable.btn_accent);
+        if (currentAccentColor != 0) {
+            btnTestSpeech.setBackgroundTintList(ColorStateList.valueOf(currentAccentColor));
+        }
+        btnTestSpeech.setTextColor(Color.WHITE);
+        btnTestSpeech.setOnClickListener(v -> {
+            String cKey = charKeys[selectedCharIdx[0]];
+            VoiceStudioHelper.VoiceProfile prof = VoiceStudioHelper.getProfile(cKey);
+            Toast.makeText(MainActivity.this, "Sintetizando voz de " + cKey + "...", Toast.LENGTH_SHORT).show();
+            VoiceStudioHelper.synthesizeSpeech(MainActivity.this, prof.testDialogue, cKey, new VoiceStudioHelper.VoiceStudioCallback() {
+                @Override
+                public void onSuccess(File audioFile) {
+                    try {
+                        if (previewMediaPlayer != null) {
+                            try { previewMediaPlayer.stop(); previewMediaPlayer.release(); } catch (Exception ignored) {}
+                            previewMediaPlayer = null;
+                        }
+                        previewMediaPlayer = new MediaPlayer();
+                        previewMediaPlayer.setDataSource(audioFile.getAbsolutePath());
+                        previewMediaPlayer.prepare();
+                        previewMediaPlayer.start();
+                        Toast.makeText(MainActivity.this, "Reproduciendo voz de " + cKey + " [Gemini 3.8 Flash TTS]", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(MainActivity.this, "Error reproduciendo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(MainActivity.this, "Fallo Voice Studio: " + error + ". Probando local...", Toast.LENGTH_SHORT).show();
+                    speakLocalTts(prof.testDialogue, cKey, 1.0f, 1.0f);
+                }
+            });
+        });
+        root.addView(btnTestSpeech);
+
+        updateCharDisplay.run();
+
+        builder.setView(root);
         builder.setNegativeButton("Cerrar", null);
         builder.show();
     }
@@ -3319,6 +3475,12 @@ public class MainActivity extends Activity {
                 localTts.shutdown();
             } catch (Exception ignored) {}
             localTts = null;
+        }
+        if (previewMediaPlayer != null) {
+            try {
+                previewMediaPlayer.release();
+            } catch (Exception ignored) {}
+            previewMediaPlayer = null;
         }
     }
 

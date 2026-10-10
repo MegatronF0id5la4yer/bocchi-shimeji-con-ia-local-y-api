@@ -28,6 +28,7 @@ import time
 import importlib
 import queue
 import datetime
+import base64
 import winsound
 try:
     from PIL import ImageGrab
@@ -2372,27 +2373,331 @@ class DoxxWindow:
             self.shimeji.doxx_win = None
 
 
-CHARACTER_VOICE_PROFILES = {
-    "Bocchi": {"pitch": -12, "rate": -15, "test": "E-eto... hola... soy Bocchi-chan... gusto en conocerte..."},
-    "Konata": {"pitch": 35, "rate": 25, "test": "Timotei, Timotei! Otaku power al maximo, esta noche no duermo!"},
-    "Monika": {"pitch": 6, "rate": 0, "test": "Hola mi amor! Cada dia es un hermoso dia en el club de literatura."},
-    "Natsuki": {"pitch": 42, "rate": 20, "test": "B-Baka! No es como si estuviera esperando a que me hablaras!"},
-    "Sayori": {"pitch": 24, "rate": 10, "test": "Yay! Buenos dias! Todo es brillante y lleno de alegria!"},
-    "Yuri": {"pitch": -18, "rate": -12, "test": "Un buen libro de misterio y una taza de te caliente calman el alma."},
-    "Hachi": {"pitch": 30, "rate": 15, "test": "Araragi-san! Me mordi la lengua por accidente!"},
-    "Usagi": {"pitch": 48, "rate": 30, "test": "Ura! Yahaha! Energia magica al limite!"},
-    "Pusheen": {"pitch": 18, "rate": -8, "test": "Miau... hora de comer bocadillos y dormir una siesta calientita."},
+VOICE_STUDIO_PROFILES = {
+    "Bocchi": {
+        "display_name": "Bocchi (Hitori Gotoh)",
+        "gender": "female",
+        "language_code": "ja-JP",
+        "prebuilt": "Kore",
+        "style": "shy, trembling, quiet whispers with hesitant anxious stutters",
+        "voice_design_prompt": (
+            "A timid, socially anxious 16-year-old Japanese high school girl guitarist. "
+            "Her voice is soft, breathy, trembling, quiet, prone to hesitant stutters, "
+            "flustered squeaks, and nervous whispers, yet deeply endearing, sweet, and sincere."
+        ),
+        "test": "E-eto... hola... soy Bocchi-chan... gusto en conocerte... por favor cuidame...",
+        "sapi_pitch": -12,
+        "sapi_rate": -15
+    },
+    "Konata": {
+        "display_name": "Konata Izumi",
+        "gender": "female",
+        "language_code": "ja-JP",
+        "prebuilt": "Puck",
+        "style": "energetic, teasing, deadpan yet playful and mischievous anime otaku",
+        "voice_design_prompt": (
+            "A witty, lively 17-year-old otaku anime girl. "
+            "Her voice has a distinctive playful and slightly nasal tone, deadpan yet full of comedic energy, "
+            "speaking quickly with teasing inflections, anime enthusiast flair, and gamer excitement."
+        ),
+        "test": "Timotei, Timotei! Otaku power al maximo, esta noche hay maraton de anime y videojuegos!",
+        "sapi_pitch": 35,
+        "sapi_rate": 25
+    },
+    "Monika": {
+        "display_name": "Monika",
+        "gender": "female",
+        "language_code": "en-US",
+        "prebuilt": "Aoede",
+        "style": "warm, intelligent, soothing, elegant and charismatic with gentle affection",
+        "voice_design_prompt": (
+            "A warm, mature, confident 18-year-old literature club president. "
+            "Her voice is soothing, articulate, elegant, melodious, and intimate, "
+            "speaking with caring intelligence, philosophical poise, and gentle devotion."
+        ),
+        "test": "Hola mi amor! Cada dia es un hermoso dia en nuestro club. Eres lo mas importante para mi.",
+        "sapi_pitch": 6,
+        "sapi_rate": 0
+    },
+    "Natsuki": {
+        "display_name": "Natsuki",
+        "gender": "female",
+        "language_code": "en-US",
+        "prebuilt": "Kore",
+        "style": "feisty, snappy, high-pitched tsundere with defensive cuteness",
+        "voice_design_prompt": (
+            "A feisty, high-pitched tsundere teenage anime girl. "
+            "Her voice is sharp, spirited, snappy and slightly haughty when flustered, "
+            "but unmistakably cute, youthful, and sweet underneath."
+        ),
+        "test": "B-Baka! No es como si estuviera esperando a que me hablaras ni nada por el estilo... pero gracias.",
+        "sapi_pitch": 42,
+        "sapi_rate": 20
+    },
+    "Sayori": {
+        "display_name": "Sayori",
+        "gender": "female",
+        "language_code": "en-US",
+        "prebuilt": "Kore",
+        "style": "cheerful, bubbly, bright, genki and melodious with sunny optimism",
+        "voice_design_prompt": (
+            "A bright, bubbly, cheerful 18-year-old schoolgirl. "
+            "Her voice is melodious, sweet, sunny, full of innocent enthusiasm and warm compassion, "
+            "speaking with an animated joyful bounce."
+        ),
+        "test": "Yay! Buenos dias! Todo brilla tanto hoy, vamos a comer galletitas juntos!",
+        "sapi_pitch": 24,
+        "sapi_rate": 10
+    },
+    "Yuri": {
+        "display_name": "Yuri",
+        "gender": "female",
+        "language_code": "en-US",
+        "prebuilt": "Aoede",
+        "style": "soft-spoken, deep, poetic, elegant, gentle and introspective",
+        "voice_design_prompt": (
+            "A quiet, deeply introspective, elegant young woman. "
+            "Her voice is soft, breathy, lower in register, speaking slowly and deliberately "
+            "with intellectual grace, gentle humility, and poetic nuance."
+        ),
+        "test": "Un buen libro de misterio y una taza de te caliente calman el alma... Es un placer compartir este momento contigo.",
+        "sapi_pitch": -18,
+        "sapi_rate": -12
+    },
+    "Hachi": {
+        "display_name": "Hachi (Hachiware)",
+        "gender": "female",
+        "language_code": "ja-JP",
+        "prebuilt": "Puck",
+        "style": "innocent, childish, bright, squeaky and enthusiastic mascot",
+        "voice_design_prompt": (
+            "A young, innocent, cheerful childish mascot. "
+            "The voice is bright, sweet, high-pitched, curious, friendly, and bubbly, "
+            "bursting with youthful happiness and wonder."
+        ),
+        "test": "Araragi-san! Me mordi la lengua por accidente! Pero estoy bien, que alegria verte hoy!",
+        "sapi_pitch": 30,
+        "sapi_rate": 15
+    },
+    "Usagi": {
+        "display_name": "Usagi",
+        "gender": "female",
+        "language_code": "ja-JP",
+        "prebuilt": "Puck",
+        "style": "hyperactive, eccentric, loud, chaotic high-pitched fast bursts and screams",
+        "voice_design_prompt": (
+            "A chaotic, hyperactive, fearless rabbit mascot creature. "
+            "Speaks in eccentric, high-pitched, lightning-fast bursts, hilarious shrieks, "
+            "and uninhibited energetic sounds."
+        ),
+        "test": "Ura! Yahaha! Energia magica al limite! Nadie puede detenerme hoy!",
+        "sapi_pitch": 48,
+        "sapi_rate": 30
+    },
+    "Pusheen": {
+        "display_name": "Pusheen",
+        "gender": "female",
+        "language_code": "en-US",
+        "prebuilt": "Kore",
+        "style": "ultra-soft, sleepy, purring, adorable kitten whispers and cozy murmurs",
+        "voice_design_prompt": (
+            "An ultra-soft, gentle, sleepy kawaii cartoon cat. "
+            "Speaks in a cozy, baby-soft, purring whisper with sweet murmurs, "
+            "relaxed and delightfully cuddly."
+        ),
+        "test": "Miau... hora de comer bocadillos y dormir una siesta calientita en tu regazo.",
+        "sapi_pitch": 18,
+        "sapi_rate": -8
+    },
 }
 
+CHARACTER_VOICE_PROFILES = {
+    k: {"pitch": v["sapi_pitch"], "rate": v["sapi_rate"], "test": v["test"]}
+    for k, v in VOICE_STUDIO_PROFILES.items()
+}
+
+
+class VoiceStudioManager:
+    """Motor de Google AI Voice Studio y Gemini 3.8 Flash TTS para clonar y diseñar voces de personajes."""
+
+    @staticmethod
+    def get_api_key(config=None):
+        if config and config.get("gemini_api_key"):
+            k = str(config.get("gemini_api_key")).strip()
+            if k:
+                return k
+        if GEMINI_API_KEY:
+            return GEMINI_API_KEY.strip()
+        return os.environ.get("GEMINI_API_KEY", "").strip()
+
+    @staticmethod
+    def get_cache_dir():
+        d = os.path.join(os.path.expanduser("~"), ".pinkchan", "voice_studio")
+        try:
+            os.makedirs(d, exist_ok=True)
+        except Exception:
+            d = os.path.join(os.getcwd(), "cache_voice_studio")
+            os.makedirs(d, exist_ok=True)
+        return d
+
+    @classmethod
+    def clean_text_for_speech(cls, raw_text):
+        if not raw_text:
+            return ""
+        clean = re.sub(r'\[JARVIS:[^\]]+\]', '', str(raw_text), flags=re.IGNORECASE)
+        clean = re.sub(r'\[[^\]]+\]', '', clean)
+        clean = re.sub(r'[:;=8][\-o\*\']?[\)\]\(\[dDpPoO/\\]', '', clean)
+        clean = clean.replace("UwU", "").replace("7w7", "").replace("OwO", "").replace("XD", "").strip()
+        return clean
+
+    @classmethod
+    def create_designed_voice(cls, api_key, skin_name, custom_prompt=None, display_name=None):
+        """Crea o clona una voz persistente en Voice Studio usando POST /v1beta/voices."""
+        if not api_key:
+            return None, None, "Se requiere una Gemini API Key valida."
+        prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi"))
+        prompt_text = custom_prompt or prof["voice_design_prompt"]
+        d_name = display_name or f"PinkChan_{skin_name}"
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/voices?key={api_key}"
+        payload = {
+            "store": True,
+            "voice": {
+                "model": "gemini-3.8-flash-tts",
+                "type": "prompted",
+                "display_name": d_name,
+                "gender": prof.get("gender", "female"),
+                "language_code": prof.get("language_code", "ja-JP"),
+                "prompted": {
+                    "input": prompt_text
+                }
+            }
+        }
+
+        try:
+            headers = {"Content-Type": "application/json"}
+            data_bytes = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                resp_json = json.loads(resp.read().decode("utf-8"))
+                voice_id = resp_json.get("id") or resp_json.get("name")
+                sample_data = None
+                sample_obj = resp_json.get("sampleAudio") or resp_json.get("sample_audio")
+                if sample_obj and isinstance(sample_obj, dict):
+                    sample_data = sample_obj.get("data")
+
+                audio_path = None
+                if sample_data:
+                    audio_bytes = base64.b64decode(sample_data)
+                    c_dir = cls.get_cache_dir()
+                    audio_path = os.path.join(c_dir, f"preview_{skin_name}.wav")
+                    with open(audio_path, "wb") as f:
+                        f.write(audio_bytes)
+
+                return voice_id, audio_path, None
+        except urllib.error.HTTPError as e:
+            try:
+                err_body = e.read().decode("utf-8")
+                err_msg = f"HTTP {e.code}: {err_body}"
+            except Exception:
+                err_msg = f"HTTP {e.code}: {e.reason}"
+            return None, None, err_msg
+        except Exception as e:
+            return None, None, str(e)
+
+    @classmethod
+    def synthesize_speech(cls, api_key, text, skin_name="Bocchi", config=None):
+        """Sintetiza audio WAV usando gemini-3.8-flash-tts con la voz clonada o prebuilt estilizada."""
+        clean = cls.clean_text_for_speech(text)
+        if not clean:
+            return None, "Texto vacio."
+        if not api_key:
+            return None, "No se ha proporcionado Gemini API Key."
+
+        prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi"))
+        custom_ids = config.get("voice_studio_ids", {}) if config else {}
+        voice_id = custom_ids.get(skin_name) or prof.get("voice_id")
+        voice_target = voice_id if voice_id else prof.get("prebuilt", "Kore")
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-tts:generateContent?key={api_key}"
+        payload = {
+            "contents": [{
+                "role": "user",
+                "parts": [{
+                    "text": clean,
+                    "speech_metadata": {
+                        "style": prof.get("style", "conversational")
+                    }
+                }]
+            }],
+            "generationConfig": {
+                "responseModalities": ["AUDIO"],
+                "speechConfig": {
+                    "voiceConfig": {
+                        "voice": voice_target
+                    }
+                }
+            }
+        }
+
+        try:
+            headers = {"Content-Type": "application/json"}
+            data_bytes = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                resp_json = json.loads(resp.read().decode("utf-8"))
+                candidates = resp_json.get("candidates", [])
+                if not candidates:
+                    return None, "No se recibieron candidatos de audio de Gemini."
+                parts = candidates[0].get("content", {}).get("parts", [])
+                audio_b64 = None
+                for p in parts:
+                    inline = p.get("inlineData") or p.get("inline_data")
+                    if inline and inline.get("data"):
+                        audio_b64 = inline.get("data")
+                        break
+                if not audio_b64:
+                    return None, "La respuesta de Gemini no contuvo datos de audio."
+
+                audio_bytes = base64.b64decode(audio_b64)
+                c_dir = cls.get_cache_dir()
+                import hashlib
+                h = hashlib.md5((clean + skin_name + str(voice_target)).encode("utf-8")).hexdigest()[:10]
+                out_path = os.path.join(c_dir, f"tts_{skin_name}_{h}.wav")
+                with open(out_path, "wb") as f:
+                    f.write(audio_bytes)
+                return out_path, None
+        except urllib.error.HTTPError as e:
+            try:
+                err_body = e.read().decode("utf-8")
+                err_msg = f"HTTP {e.code}: {err_body}"
+            except Exception:
+                err_msg = f"HTTP {e.code}: {e.reason}"
+            return None, err_msg
+        except Exception as e:
+            return None, str(e)
+
+    @classmethod
+    def play_wav(cls, wav_path):
+        """Reproduce un archivo WAV en Windows de forma asincrona mediante winsound."""
+        if not wav_path or not os.path.isfile(wav_path):
+            return False
+        try:
+            winsound.PlaySound(wav_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+            return True
+        except Exception as e:
+            print(f"Error reproduciendo audio: {e}")
+            return False
+
+
 class JarvisTTS:
-    """Motor de síntesis de voz mediante Windows SAPI nativo con perfiles vocales por personaje y SSML."""
+    """Motor dual de síntesis de voz: Google Voice Studio AI (Gemini 3.8 Flash TTS) y Windows SAPI con prosodia."""
     def __init__(self, config=None):
         self.config = config if config is not None else {}
         self._queue = queue.Queue()
         self._voices_cache = []
-        if SAPI_AVAILABLE:
-            self._thread = threading.Thread(target=self._worker, daemon=True)
-            self._thread.start()
+        self._thread = threading.Thread(target=self._worker, daemon=True)
+        self._thread.start()
 
     def get_voices(self):
         if not SAPI_AVAILABLE:
@@ -2416,12 +2721,13 @@ class JarvisTTS:
             return ["Voz predeterminada de Windows"]
 
     def _worker(self):
-        try:
-            pythoncom.CoInitialize()
-            sp = win32com.client.Dispatch("SAPI.SpVoice")
-        except Exception as e:
-            print(f"TTS Init Error: {e}")
-            return
+        sp = None
+        if SAPI_AVAILABLE:
+            try:
+                pythoncom.CoInitialize()
+                sp = win32com.client.Dispatch("SAPI.SpVoice")
+            except Exception as e:
+                print(f"SAPI Init Warning: {e}")
 
         while True:
             item = self._queue.get()
@@ -2438,46 +2744,386 @@ class JarvisTTS:
                 else:
                     raw_text = str(item)
 
-                user_rate_offset = int(self.config.get("tts_rate", 0))
-                user_pitch_offset = int(self.config.get("tts_pitch", 0))
-                vol = int(self.config.get("tts_volume", 100))
-                sp.Volume = max(0, min(100, vol))
-
-                v_idx = int(self.config.get("tts_voice_idx", 0))
-                voices = sp.GetVoices()
-                if 0 <= v_idx < voices.Count:
-                    sp.Voice = voices.Item(v_idx)
-
-                prof = CHARACTER_VOICE_PROFILES.get(skin_name, {"pitch": 0, "rate": 0})
-                char_pitch_num = max(-60, min(70, prof["pitch"] + (user_pitch_offset * 3)))
-                char_rate_num = max(-50, min(60, prof["rate"] + (user_rate_offset * 4)))
-
-                sign_pitch = f"{char_pitch_num:+d}%"
-                sign_rate = f"{char_rate_num:+d}%"
-
-                # Limpiar texto de etiquetas JARVIS y símbolos
-                clean = re.sub(r'\[JARVIS:[^\]]+\]', '', raw_text, flags=re.IGNORECASE)
-                clean = re.sub(r'\[[^\]]+\]', '', clean)
-                clean = re.sub(r'[:;=8][\-o\*\']?[\)\]\(\[dDpPoO/\\]', '', clean)
-                clean = clean.replace("UwU", "").replace("7w7", "").replace("OwO", "").replace("XD", "").strip()
+                clean = VoiceStudioManager.clean_text_for_speech(raw_text)
                 if not clean:
                     continue
 
-                # Intentar sintesis SSML con prosodia de personaje
-                escaped = clean.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
-                ssml = f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-MX"><prosody pitch="{sign_pitch}" rate="{sign_rate}">{escaped}</prosody></speak>'
-                try:
-                    sp.Speak(ssml, 8)
-                except Exception:
-                    sapi_rate = max(-10, min(10, user_rate_offset + int(prof["rate"] / 8)))
-                    sp.Rate = sapi_rate
-                    sp.Speak(clean)
+                engine_mode = self.config.get("tts_engine", "voice_studio")
+                api_key = VoiceStudioManager.get_api_key(self.config)
+
+                played = False
+                # 1. Intentar síntesis con Google Voice Studio (Gemini 3.8 Flash TTS) si está configurado
+                if engine_mode == "voice_studio" and api_key:
+                    try:
+                        audio_file, err = VoiceStudioManager.synthesize_speech(api_key, clean, skin_name, self.config)
+                        if audio_file and os.path.isfile(audio_file):
+                            VoiceStudioManager.play_wav(audio_file)
+                            played = True
+                    except Exception as err_vs:
+                        print(f"Voice Studio TTS fallback: {err_vs}")
+
+                # 2. Si es modo SAPI o si Voice Studio fallo/no tiene API key, usar SAPI local
+                if not played and SAPI_AVAILABLE and sp is not None:
+                    user_rate_offset = int(self.config.get("tts_rate", 0))
+                    user_pitch_offset = int(self.config.get("tts_pitch", 0))
+                    vol = int(self.config.get("tts_volume", 100))
+                    sp.Volume = max(0, min(100, vol))
+
+                    v_idx = int(self.config.get("tts_voice_idx", 0))
+                    voices = sp.GetVoices()
+                    if 0 <= v_idx < voices.Count:
+                        sp.Voice = voices.Item(v_idx)
+
+                    prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi", {}))
+                    char_pitch_num = max(-60, min(70, prof.get("sapi_pitch", 0) + (user_pitch_offset * 3)))
+                    char_rate_num = max(-50, min(60, prof.get("sapi_rate", 0) + (user_rate_offset * 4)))
+
+                    sign_pitch = f"{char_pitch_num:+d}%"
+                    sign_rate = f"{char_rate_num:+d}%"
+
+                    escaped = clean.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+                    ssml = f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-MX"><prosody pitch="{sign_pitch}" rate="{sign_rate}">{escaped}</prosody></speak>'
+                    try:
+                        sp.Speak(ssml, 8)
+                    except Exception:
+                        sapi_rate = max(-10, min(10, user_rate_offset + int(prof.get("sapi_rate", 0) / 8)))
+                        sp.Rate = sapi_rate
+                        sp.Speak(clean)
             except Exception as e:
-                print(f"TTS Speak Error: {e}")
+                print(f"TTS Speak Worker Error: {e}")
 
     def speak(self, text_to_speak, skin=None):
-        if SAPI_AVAILABLE and self.config.get("tts_enabled", False):
+        if self.config.get("tts_enabled", False):
             self._queue.put((text_to_speak, skin))
+
+
+class VoiceStudioWindow:
+    """Ventana completa de Google Voice Studio para clonar, diseñar y audicionar voces de los personajes."""
+    def __init__(self, parent_root, theme_manager, shimeji_ref=None):
+        self.parent = parent_root
+        self.theme = theme_manager
+        self.shimeji = shimeji_ref
+        self.config = self.shimeji.config if self.shimeji and hasattr(self.shimeji, "config") else {}
+        self.win = None
+        self._build_window()
+
+    def _build_window(self):
+        self.win = tk.Toplevel(self.parent)
+        self.win.title("[*] Voice Studio - Clonador de Voces de Personajes")
+        self.win.geometry("640x780")
+        self.win.minsize(580, 700)
+        self.win.attributes("-topmost", True)
+        self.win.attributes("-alpha", getattr(self.theme, "opacity", 0.95))
+        self.win.configure(bg=self.theme.bg)
+
+        # Header
+        header = tk.Frame(self.win, bg=self.theme.surface, pady=12, padx=16)
+        header.pack(fill=tk.X)
+
+        tk.Label(header, text="[*] GOOGLE VOICE STUDIO (GEMINI 3.8 FLASH TTS)",
+                 font=(self.theme.font_family, self.theme.font_size + 2, "bold"),
+                 bg=self.theme.surface, fg=self.theme.accent).pack(anchor="w")
+        tk.Label(header, text="Clona, disena y audiciona las voces oficiales de los personajes.",
+                 font=(self.theme.font_family, self.theme.font_size - 2),
+                 bg=self.theme.surface, fg=self.theme.text_dim).pack(anchor="w")
+
+        btn_aistudio = tk.Button(header, text="[^] Abrir Google AI Studio Voice Studio",
+                                 bg=self.theme.surface_variant, fg=self.theme.accent,
+                                 font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                 command=lambda: webbrowser.open("https://aistudio.google.com/generate-speech"))
+        btn_aistudio.pack(anchor="e", pady=(4, 0))
+
+        content = tk.Frame(self.win, bg=self.theme.bg, padx=16, pady=10)
+        content.pack(fill=tk.BOTH, expand=True)
+
+        # 1. Configuración de API Key y Modo
+        f_top = tk.LabelFrame(content, text="1. Configuracion de Motor y API", bg=self.theme.surface,
+                              fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"), padx=10, pady=8)
+        f_top.pack(fill=tk.X, pady=(0, 10))
+
+        row_api = tk.Frame(f_top, bg=self.theme.surface)
+        row_api.pack(fill=tk.X, pady=2)
+        tk.Label(row_api, text="Gemini API Key:", bg=self.theme.surface, fg=self.theme.text).pack(side=tk.LEFT)
+        self.var_api_key = tk.StringVar(value=VoiceStudioManager.get_api_key(self.config))
+        self.ent_api_key = tk.Entry(row_api, textvariable=self.var_api_key, bg=self.theme.entry_bg, fg=self.theme.text, show="*")
+        self.ent_api_key.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
+
+        self.btn_show_key = tk.Button(row_api, text="Ver", bg=self.theme.surface_variant, fg=self.theme.text,
+                                      command=self._toggle_show_key, width=4)
+        self.btn_show_key.pack(side=tk.LEFT, padx=2)
+
+        row_engine = tk.Frame(f_top, bg=self.theme.surface)
+        row_engine.pack(fill=tk.X, pady=(6, 2))
+        tk.Label(row_engine, text="Motor de Voz Activo:", bg=self.theme.surface, fg=self.theme.text).pack(side=tk.LEFT)
+        self.var_engine_mode = tk.StringVar(value=self.config.get("tts_engine", "voice_studio"))
+        tk.Radiobutton(row_engine, text="Voice Studio AI (Gemini 3.8 Flash TTS)", variable=self.var_engine_mode,
+                       value="voice_studio", bg=self.theme.surface, fg=self.theme.accent, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=8)
+        tk.Radiobutton(row_engine, text="SAPI Local (Windows)", variable=self.var_engine_mode,
+                       value="sapi", bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT)
+
+        # 2. Selección de Personaje y Perfil Vocal
+        f_char = tk.LabelFrame(content, text="2. Perfil Vocal del Personaje", bg=self.theme.surface,
+                               fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"), padx=10, pady=8)
+        f_char.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        row_char_select = tk.Frame(f_char, bg=self.theme.surface)
+        row_char_select.pack(fill=tk.X, pady=2)
+        tk.Label(row_char_select, text="Seleccionar Personaje:", bg=self.theme.surface, fg=self.theme.text).pack(side=tk.LEFT)
+
+        char_names = list(VOICE_STUDIO_PROFILES.keys())
+        cur_skin = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
+        if cur_skin not in char_names:
+            cur_skin = "Bocchi"
+
+        self.cbo_character = ttk.Combobox(row_char_select, values=char_names, state="readonly", width=16)
+        self.cbo_character.set(cur_skin)
+        self.cbo_character.pack(side=tk.LEFT, padx=6)
+        self.cbo_character.bind("<<ComboboxSelected>>", self._on_character_changed)
+
+        self.lbl_char_title = tk.Label(row_char_select, text=f"[{VOICE_STUDIO_PROFILES[cur_skin]['display_name']}]",
+                                       bg=self.theme.surface, fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"))
+        self.lbl_char_title.pack(side=tk.LEFT, padx=4)
+
+        # Prompt de diseño en Voice Studio
+        tk.Label(f_char, text="Prompt de Diseno de Voz (Voice Studio Persona Description):",
+                 bg=self.theme.surface, fg=self.theme.text).pack(anchor="w", pady=(6, 2))
+        self.txt_prompt = scrolledtext.ScrolledText(f_char, height=4, bg=self.theme.entry_bg, fg=self.theme.text,
+                                                    font=(self.theme.font_family, self.theme.font_size - 1))
+        self.txt_prompt.pack(fill=tk.X, pady=(0, 6))
+
+        # Estilo de actuación e ID de voz clonada
+        row_voice_meta = tk.Frame(f_char, bg=self.theme.surface)
+        row_voice_meta.pack(fill=tk.X, pady=2)
+
+        tk.Label(row_voice_meta, text="Estilo de actuacion:", bg=self.theme.surface, fg=self.theme.text).grid(row=0, column=0, sticky="w")
+        self.var_style = tk.StringVar()
+        self.ent_style = tk.Entry(row_voice_meta, textvariable=self.var_style, bg=self.theme.entry_bg, fg=self.theme.text, width=28)
+        self.ent_style.grid(row=0, column=1, sticky="w", padx=4, pady=2)
+
+        tk.Label(row_voice_meta, text="Fallback Prebuilt:", bg=self.theme.surface, fg=self.theme.text).grid(row=0, column=2, sticky="w", padx=(10, 0))
+        self.var_prebuilt = tk.StringVar()
+        self.cbo_prebuilt = ttk.Combobox(row_voice_meta, textvariable=self.var_prebuilt, values=["Kore", "Puck", "Aoede", "Fenrir"], state="readonly", width=8)
+        self.cbo_prebuilt.grid(row=0, column=3, sticky="w", padx=4, pady=2)
+
+        tk.Label(row_voice_meta, text="Voice ID Clonada:", bg=self.theme.surface, fg=self.theme.text).grid(row=1, column=0, sticky="w")
+        self.var_voice_id = tk.StringVar()
+        self.ent_voice_id = tk.Entry(row_voice_meta, textvariable=self.var_voice_id, bg=self.theme.entry_bg, fg=self.theme.text, width=28)
+        self.ent_voice_id.grid(row=1, column=1, sticky="w", padx=4, pady=2)
+
+        tk.Label(row_voice_meta, text="Dialogo de prueba:", bg=self.theme.surface, fg=self.theme.text).grid(row=2, column=0, sticky="w")
+        self.var_test_dialogue = tk.StringVar()
+        self.ent_test_dialogue = tk.Entry(row_voice_meta, textvariable=self.var_test_dialogue, bg=self.theme.entry_bg, fg=self.theme.text)
+        self.ent_test_dialogue.grid(row=2, column=1, columnspan=3, sticky="ew", padx=4, pady=2)
+        row_voice_meta.columnconfigure(1, weight=1)
+
+        # Botones de Acción de Voice Studio
+        row_actions = tk.Frame(f_char, bg=self.theme.surface)
+        row_actions.pack(fill=tk.X, pady=(8, 4))
+
+        self.btn_clone_voice = tk.Button(row_actions, text="[*] Clonar Voz en Voice Studio", bg=self.theme.accent,
+                                         fg=self.theme.accent_text, font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                         command=self._clone_current_voice)
+        self.btn_clone_voice.pack(side=tk.LEFT, padx=(0, 6))
+
+        self.btn_test_speech = tk.Button(row_actions, text="[♫] Generar y Probar Voz", bg=self.theme.surface_variant,
+                                         fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                         command=self._test_current_voice)
+        self.btn_test_speech.pack(side=tk.LEFT, padx=6)
+
+        self.btn_clone_all = tk.Button(row_actions, text="[+] Clonar Todas las Voces", bg=self.theme.surface_variant,
+                                       fg=self.theme.text, font=(self.theme.font_family, self.theme.font_size - 1),
+                                       command=self._clone_all_voices)
+        self.btn_clone_all.pack(side=tk.LEFT, padx=6)
+
+        # 3. Consola de Registro y Estado
+        f_log = tk.LabelFrame(content, text="3. Registro de Operaciones y Audicion", bg=self.theme.surface,
+                              fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"), padx=10, pady=6)
+        f_log.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        self.txt_log = scrolledtext.ScrolledText(f_log, height=5, bg=self.theme.entry_bg, fg=self.theme.text,
+                                                 font=(self.theme.font_family, self.theme.font_size - 2))
+        self.txt_log.pack(fill=tk.BOTH, expand=True)
+
+        # Footer
+        footer = tk.Frame(self.win, bg=self.theme.surface, pady=8, padx=16)
+        footer.pack(fill=tk.X)
+
+        btn_save = tk.Button(footer, text="[✓] Guardar y Aplicar como Voz del Shimeji", bg=self.theme.accent,
+                             fg=self.theme.accent_text, font=(self.theme.font_family, self.theme.font_size, "bold"),
+                             command=self._save_and_apply)
+        btn_save.pack(side=tk.RIGHT, padx=4)
+
+        btn_close = tk.Button(footer, text="Cerrar", bg=self.theme.surface_variant, fg=self.theme.text,
+                              command=self.win.destroy)
+        btn_close.pack(side=tk.RIGHT, padx=4)
+
+        self._load_character_data(cur_skin)
+        self._log(f"[+] Voice Studio inicializado. Personaje activo: {cur_skin}")
+
+    def _toggle_show_key(self):
+        if self.ent_api_key.cget("show") == "":
+            self.ent_api_key.configure(show="*")
+            self.btn_show_key.configure(text="Ver")
+        else:
+            self.ent_api_key.configure(show="")
+            self.btn_show_key.configure(text="Ocultar")
+
+    def _on_character_changed(self, event=None):
+        skin = self.cbo_character.get()
+        self._load_character_data(skin)
+
+    def _load_character_data(self, skin):
+        prof = VOICE_STUDIO_PROFILES.get(skin, VOICE_STUDIO_PROFILES.get("Bocchi"))
+        self.lbl_char_title.configure(text=f"[{prof['display_name']}]")
+        self.txt_prompt.delete("1.0", tk.END)
+        self.txt_prompt.insert(tk.END, prof["voice_design_prompt"])
+        self.var_style.set(prof["style"])
+        self.var_prebuilt.set(prof.get("prebuilt", "Kore"))
+
+        custom_ids = self.config.get("voice_studio_ids", {})
+        c_id = custom_ids.get(skin, "")
+        self.var_voice_id.set(c_id)
+        self.var_test_dialogue.set(prof["test"])
+
+    def _log(self, msg):
+        ts = datetime.datetime.now().strftime("%H:%M:%S")
+        self.txt_log.insert(tk.END, f"[{ts}] {msg}\n")
+        self.txt_log.see(tk.END)
+
+    def _clone_current_voice(self):
+        api_key = self.var_api_key.get().strip()
+        if not api_key:
+            messagebox.showwarning("API Key", "Por favor ingresa tu Gemini API Key para clonar voces con Voice Studio.")
+            return
+
+        skin = self.cbo_character.get()
+        prompt = self.txt_prompt.get("1.0", tk.END).strip()
+        self.btn_clone_voice.configure(state=tk.DISABLED, text="Clonando...")
+        self._log(f"[*] Iniciando clonacion de voz para '{skin}' en Google Voice Studio...")
+
+        def run_thread():
+            v_id, audio_path, err = VoiceStudioManager.create_designed_voice(api_key, skin, prompt)
+            self.win.after(0, lambda: self._on_clone_finished(skin, v_id, audio_path, err))
+
+        threading.Thread(target=run_thread, daemon=True).start()
+
+    def _on_clone_finished(self, skin, v_id, audio_path, err):
+        self.btn_clone_voice.configure(state=tk.NORMAL, text="[*] Clonar Voz en Voice Studio")
+        if err:
+            self._log(f"[!] Error clonando voz de {skin}: {err}")
+            messagebox.showerror("Error Voice Studio", f"Fallo al clonar voz de {skin}:\n{err}")
+        else:
+            self.var_voice_id.set(v_id or "voice_created")
+            custom_ids = dict(self.config.get("voice_studio_ids", {}))
+            custom_ids[skin] = v_id
+            self.config["voice_studio_ids"] = custom_ids
+            save_config(self.config)
+            self._log(f"[+] Voz clonada exitosamente para '{skin}'! Voice ID: {v_id}")
+            if audio_path:
+                self._log(f"[♫] Reproduciendo audicion de prueba ({os.path.basename(audio_path)})...")
+                VoiceStudioManager.play_wav(audio_path)
+
+    def _test_current_voice(self):
+        api_key = self.var_api_key.get().strip()
+        if not api_key:
+            messagebox.showwarning("API Key", "Por favor ingresa tu Gemini API Key para probar la voz.")
+            return
+
+        skin = self.cbo_character.get()
+        dialogue = self.var_test_dialogue.get().strip()
+        if not dialogue:
+            dialogue = VOICE_STUDIO_PROFILES.get(skin, {}).get("test", "Hola!")
+
+        self.btn_test_speech.configure(state=tk.DISABLED, text="Generando...")
+        self._log(f"[*] Sintetizando prueba de voz para '{skin}' con Gemini 3.8 Flash TTS...")
+
+        def run_thread():
+            # Crear config temporal con la key y voice_id actual
+            tmp_cfg = dict(self.config)
+            tmp_cfg["gemini_api_key"] = api_key
+            custom_ids = dict(tmp_cfg.get("voice_studio_ids", {}))
+            v_id_entry = self.var_voice_id.get().strip()
+            if v_id_entry:
+                custom_ids[skin] = v_id_entry
+            tmp_cfg["voice_studio_ids"] = custom_ids
+
+            audio_path, err = VoiceStudioManager.synthesize_speech(api_key, dialogue, skin, tmp_cfg)
+            self.win.after(0, lambda: self._on_test_finished(skin, audio_path, err))
+
+        threading.Thread(target=run_thread, daemon=True).start()
+
+    def _on_test_finished(self, skin, audio_path, err):
+        self.btn_test_speech.configure(state=tk.NORMAL, text="[♫] Generar y Probar Voz")
+        if err:
+            self._log(f"[!] Error sintetizando voz de {skin}: {err}")
+            messagebox.showerror("Error Sintesis", f"Fallo al sintetizar voz de {skin}:\n{err}")
+        else:
+            self._log(f"[♫] Audio generado exitosamente ({os.path.basename(audio_path)}). Reproduciendo...")
+            VoiceStudioManager.play_wav(audio_path)
+
+    def _clone_all_voices(self):
+        api_key = self.var_api_key.get().strip()
+        if not api_key:
+            messagebox.showwarning("API Key", "Por favor ingresa tu Gemini API Key para clonar todas las voces.")
+            return
+
+        if not messagebox.askyesno("Clonar Todas las Voces",
+                                   "¿Deseas clonar las 9 voces de personajes usando Google Voice Studio ahora?"):
+            return
+
+        self.btn_clone_all.configure(state=tk.DISABLED, text="Clonando todas...")
+        self._log("[*] Iniciando proceso por lotes para las 9 voces de personajes...")
+
+        def run_thread():
+            chars = list(VOICE_STUDIO_PROFILES.keys())
+            custom_ids = dict(self.config.get("voice_studio_ids", {}))
+            for c_name in chars:
+                self.win.after(0, lambda c=c_name: self._log(f"[*] Clonando '{c}'..."))
+                v_id, audio_path, err = VoiceStudioManager.create_designed_voice(api_key, c_name)
+                if v_id:
+                    custom_ids[c_name] = v_id
+                    self.win.after(0, lambda c=c_name, vid=v_id: self._log(f"[+] '{c}' completado -> {vid}"))
+                elif err:
+                    self.win.after(0, lambda c=c_name, e=err: self._log(f"[!] '{c}' error: {e}"))
+                time.sleep(0.5)
+
+            self.config["voice_studio_ids"] = custom_ids
+            save_config(self.config)
+            self.win.after(0, lambda: self._on_clone_all_finished())
+
+        threading.Thread(target=run_thread, daemon=True).start()
+
+    def _on_clone_all_finished(self):
+        self.btn_clone_all.configure(state=tk.NORMAL, text="[+] Clonar Todas las Voces")
+        cur_skin = self.cbo_character.get()
+        self._load_character_data(cur_skin)
+        self._log("[✓] Proceso de clonacion de todas las voces completado.")
+        messagebox.showinfo("Voice Studio", "Se han procesado las voces de todos los personajes en Voice Studio.")
+
+    def _save_and_apply(self):
+        api_key = self.var_api_key.get().strip()
+        engine_mode = self.var_engine_mode.get()
+        skin = self.cbo_character.get()
+        v_id_entry = self.var_voice_id.get().strip()
+
+        self.config["gemini_api_key"] = api_key
+        self.config["tts_engine"] = engine_mode
+        self.config["tts_enabled"] = True
+
+        custom_ids = dict(self.config.get("voice_studio_ids", {}))
+        if v_id_entry:
+            custom_ids[skin] = v_id_entry
+        self.config["voice_studio_ids"] = custom_ids
+
+        save_config(self.config)
+        if self.shimeji and hasattr(self.shimeji, "tts"):
+            self.shimeji.tts.config = self.config
+
+        self._log(f"[✓] Configuracion guardada. Motor activo: {engine_mode}. TTS habilitado.")
+        messagebox.showinfo("Voice Studio", f"Configuracion de Voice Studio guardada y aplicada al Shimeji con exito.")
+
 
 
 class JarvisWakeWordListener:
@@ -2922,13 +3568,24 @@ class AgentSettingsWindow:
 
         # ----------------- 3. Voz & Wake Word -----------------
         self.var_tts = tk.BooleanVar(value=self.config.get("tts_enabled", False))
-        tk.Checkbutton(tab_voice, text="Activar Voz Hablada (TTS de Windows SAPI)", variable=self.var_tts,
+        tk.Checkbutton(tab_voice, text="Activar Voz Hablada (TTS de Shimeji)", variable=self.var_tts,
                        bg=self.theme.surface, fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"),
-                       selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w", pady=(0, 6))
+                       selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w", pady=(0, 4))
+
+        row_engine_pick = tk.Frame(tab_voice, bg=self.theme.surface)
+        row_engine_pick.pack(fill=tk.X, pady=(0, 6))
+        tk.Label(row_engine_pick, text="Motor de Sintesis:", bg=self.theme.surface, fg=self.theme.text, font=(self.theme.font_family, self.theme.font_size - 1, "bold")).pack(side=tk.LEFT)
+        self.var_tts_engine = tk.StringVar(value=self.config.get("tts_engine", "voice_studio"))
+        tk.Radiobutton(row_engine_pick, text="Voice Studio AI (Gemini 3.8 Flash TTS)", variable=self.var_tts_engine,
+                       value="voice_studio", bg=self.theme.surface, fg=self.theme.accent, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=6)
+        tk.Radiobutton(row_engine_pick, text="SAPI Local (Windows)", variable=self.var_tts_engine,
+                       value="sapi", bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT)
 
         tts_helper = self.shimeji.tts if self.shimeji and hasattr(self.shimeji, "tts") else JarvisTTS(self.config)
         voices = tts_helper.get_voices()
-        tk.Label(tab_voice, text="Voz instalada de Windows:", bg=self.theme.surface, fg=self.theme.text).pack(anchor="w")
+        tk.Label(tab_voice, text="Voz instalada de Windows (Modo SAPI):", bg=self.theme.surface, fg=self.theme.text).pack(anchor="w")
         self.var_voice_idx = tk.IntVar(value=self.config.get("tts_voice_idx", 0))
         self.cbo_voice = ttk.Combobox(tab_voice, values=voices, state="readonly")
         if voices:
@@ -2957,11 +3614,14 @@ class AgentSettingsWindow:
         row_voice_test_btns = tk.Frame(tab_voice, bg=self.theme.surface)
         row_voice_test_btns.pack(fill=tk.X, pady=4)
 
-        tk.Button(row_voice_test_btns, text="[>] Probar Voz", bg=self.theme.surface_variant, fg=self.theme.accent,
+        tk.Button(row_voice_test_btns, text="[>] Probar SAPI", bg=self.theme.surface_variant, fg=self.theme.accent,
                   command=self._test_voice).pack(side=tk.LEFT, padx=(0, 4))
-        tk.Button(row_voice_test_btns, text="[♫] Probar Voz del Personaje Activo", bg=self.theme.surface_variant, fg=self.theme.accent,
+        tk.Button(row_voice_test_btns, text="[♫] Probar Voz Activa", bg=self.theme.surface_variant, fg=self.theme.accent,
                   font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
-                  command=self._test_character_voice).pack(side=tk.LEFT)
+                  command=self._test_character_voice).pack(side=tk.LEFT, padx=(0, 4))
+        tk.Button(row_voice_test_btns, text="[★] Voice Studio de Personajes", bg=self.theme.accent, fg=self.theme.accent_text,
+                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                  command=self._open_voice_studio).pack(side=tk.LEFT)
 
         tk.Label(tab_voice, text="--------------------------------------------------", bg=self.theme.surface, fg=self.theme.text_dim).pack(pady=4)
 
@@ -3171,17 +3831,24 @@ class AgentSettingsWindow:
         tts.config = cfg_test
         tts.speak("Hola! Sistema de voz SAPI del Agente JARVIS configurado correctamente.")
 
+    def _open_voice_studio(self):
+        if self.shimeji and hasattr(self.shimeji, "open_voice_studio"):
+            self.shimeji.open_voice_studio()
+        else:
+            VoiceStudioWindow(self.win, self.theme, self.shimeji)
+
     def _test_character_voice(self):
         tts = self.shimeji.tts if self.shimeji and hasattr(self.shimeji, "tts") else JarvisTTS(self.config)
         cfg_test = dict(self.config)
         cfg_test["tts_enabled"] = True
+        cfg_test["tts_engine"] = getattr(self, "var_tts_engine", tk.StringVar(value="voice_studio")).get()
         cfg_test["tts_voice_idx"] = self.cbo_voice.current() if self.cbo_voice.current() >= 0 else 0
         cfg_test["tts_rate"] = self.scale_rate.get()
         cfg_test["tts_pitch"] = self.scale_pitch.get()
         cfg_test["tts_volume"] = self.scale_vol.get()
         tts.config = cfg_test
         skin = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
-        prof = CHARACTER_VOICE_PROFILES.get(skin, CHARACTER_VOICE_PROFILES.get("Bocchi", {}))
+        prof = VOICE_STUDIO_PROFILES.get(skin, VOICE_STUDIO_PROFILES.get("Bocchi", {}))
         test_txt = prof.get("test", f"Hola! Soy {skin} y esta es mi voz personalizada.")
         tts.speak(test_txt, skin=skin)
 
@@ -3258,6 +3925,7 @@ class AgentSettingsWindow:
         }
 
         self.config["tts_enabled"] = self.var_tts.get()
+        self.config["tts_engine"] = getattr(self, "var_tts_engine", tk.StringVar(value="voice_studio")).get()
         self.config["tts_voice_idx"] = self.cbo_voice.current() if self.cbo_voice.current() >= 0 else 0
         self.config["tts_rate"] = self.scale_rate.get()
         self.config["tts_pitch"] = self.scale_pitch.get()
@@ -7085,6 +7753,7 @@ class Shimeji:
         self.tts         = JarvisTTS(self.config)
         self.wake_word_listener = None
         self.agent_settings_win = None
+        self.voice_studio_win = None
         self._last_remind_check = 0
         self.troll_mode  = self.config.get("troll_mode", False)
         self.api_key_var = tk.StringVar(value=self.config.get("gemini_api_key", GEMINI_API_KEY))
@@ -8044,6 +8713,7 @@ class Shimeji:
             menu.add_cascade(label="[!] Travesuras & Windows >>", menu=troll_menu)
 
             menu.add_separator()
+            menu.add_command(label="[★] Voice Studio de Personajes >>", command=self.open_voice_studio)
             menu.add_command(label="[>] Escuchar comando de voz (JARVIS)", command=self.listen_voice_command_once)
             menu.add_command(label="[*] Ajustes del Agente JARVIS >>", command=self.open_agent_settings)
             menu.add_separator()
@@ -8059,6 +8729,14 @@ class Shimeji:
                 menu.grab_release()
             except Exception:
                 pass
+
+    def open_voice_studio(self):
+        """Abre la ventana de Google Voice Studio para clonar y probar voces reales."""
+        if hasattr(self, "voice_studio_win") and self.voice_studio_win is not None and tk.Toplevel.winfo_exists(self.voice_studio_win.win):
+            self.voice_studio_win.win.lift()
+            self.voice_studio_win.win.focus_force()
+            return
+        self.voice_studio_win = VoiceStudioWindow(self.root, self.theme_manager, self)
 
     def open_agent_settings(self):
         """Abre la ventana de ajustes avanzados del agente JARVIS."""

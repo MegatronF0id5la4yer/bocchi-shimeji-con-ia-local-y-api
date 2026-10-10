@@ -72,6 +72,7 @@ public class ShimejiService extends Service {
 
     private static ShimejiService instance;
     private android.speech.tts.TextToSpeech textToSpeech;
+    private MediaPlayer ttsMediaPlayer;
     private android.speech.SpeechRecognizer wakeWordRecognizer;
     private boolean isWakeWordListening = false;
 
@@ -671,6 +672,13 @@ public class ShimejiService extends Service {
             } catch (Exception ignored) {}
             textToSpeech = null;
         }
+        if (ttsMediaPlayer != null) {
+            try {
+                ttsMediaPlayer.stop();
+                ttsMediaPlayer.release();
+            } catch (Exception ignored) {}
+            ttsMediaPlayer = null;
+        }
         stopWakeWordListener();
         if (handler != null && loopRunnable != null) {
             handler.removeCallbacks(loopRunnable);
@@ -736,13 +744,67 @@ public class ShimejiService extends Service {
         speakTts(text, skinId);
     }
 
-    public void speakTts(String text, String skinId) {
-        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+    public void speakTts(final String text, final String skinId) {
+        final SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
         if (!sp.getBoolean("tts_enabled", false)) return;
         if (text == null || text.trim().isEmpty()) return;
-        String clean = AgentToolExecutor.stripTags(text);
+        final String clean = AgentToolExecutor.stripTags(text);
         if (clean.isEmpty()) return;
 
+        boolean vsEnabled = sp.getBoolean("voice_studio_enabled", true);
+        String apiKey = sp.getString(MainActivity.KEY_GEMINI_KEY, "").trim();
+
+        if (vsEnabled && !apiKey.isEmpty()) {
+            VoiceStudioHelper.synthesizeSpeech(this, clean, skinId, new VoiceStudioHelper.VoiceStudioCallback() {
+                @Override
+                public void onSuccess(File audioFile) {
+                    playAudioFile(audioFile, clean, skinId);
+                }
+
+                @Override
+                public void onError(String error) {
+                    speakNativeTts(clean, skinId);
+                }
+            });
+        } else {
+            speakNativeTts(clean, skinId);
+        }
+    }
+
+    private void playAudioFile(File audioFile, final String fallbackText, final String fallbackSkinId) {
+        try {
+            if (ttsMediaPlayer != null) {
+                try {
+                    ttsMediaPlayer.stop();
+                    ttsMediaPlayer.release();
+                } catch (Exception ignored) {}
+                ttsMediaPlayer = null;
+            }
+            ttsMediaPlayer = new MediaPlayer();
+            ttsMediaPlayer.setDataSource(audioFile.getAbsolutePath());
+            ttsMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    try { mp.release(); } catch (Exception ignored) {}
+                    if (ttsMediaPlayer == mp) ttsMediaPlayer = null;
+                }
+            });
+            ttsMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    speakNativeTts(fallbackText, fallbackSkinId);
+                    return true;
+                }
+            });
+            ttsMediaPlayer.prepare();
+            ttsMediaPlayer.start();
+        } catch (Exception e) {
+            speakNativeTts(fallbackText, fallbackSkinId);
+        }
+    }
+
+    private void speakNativeTts(String clean, String skinId) {
+        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
         if (textToSpeech != null) {
             float baseRate = sp.getFloat("tts_rate", 1.0f);
             float basePitch = sp.getFloat("tts_pitch", 1.0f);
