@@ -28,11 +28,43 @@ public class AiEngineHelper {
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private static final String[] GEMINI_FALLBACK_MODELS = {
-        "gemini-1.5-flash",
         "gemini-2.5-flash",
         "gemini-2.0-flash",
+        "gemini-1.5-flash",
         "gemini-pro"
     };
+
+    public static String discoverBestGeminiModel(String apiKey) {
+        try {
+            String urlStr = "https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey;
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(6000);
+            conn.setReadTimeout(6000);
+            if (conn.getResponseCode() == 200) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) sb.append(line);
+                br.close();
+                JSONObject obj = new JSONObject(sb.toString());
+                JSONArray arr = obj.optJSONArray("models");
+                if (arr != null) {
+                    for (String pref : GEMINI_FALLBACK_MODELS) {
+                        for (int i = 0; i < arr.length(); i++) {
+                            JSONObject m = arr.getJSONObject(i);
+                            String name = m.optString("name", "");
+                            if (name.endsWith("/" + pref) || name.equals(pref)) {
+                                return pref;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return "gemini-2.5-flash";
+    }
 
     public static void askAi(final Context context, final String currentSkinId, final String userMessage, final AiCallback callback) {
         final SharedPreferences prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
@@ -55,7 +87,7 @@ public class AiEngineHelper {
 
         if ("gemini".equalsIgnoreCase(mode)) {
             final String apiKey = prefs.getString(MainActivity.KEY_GEMINI_KEY, "").trim();
-            final String model = prefs.getString(MainActivity.KEY_GEMINI_MODEL, "gemini-1.5-flash").trim();
+            final String model = prefs.getString(MainActivity.KEY_GEMINI_MODEL, "gemini-2.5-flash").trim();
 
             if (apiKey.isEmpty()) {
                 mainHandler.post(new Runnable() {
@@ -150,10 +182,11 @@ public class AiEngineHelper {
 
     private static void requestGemini(String apiKey, String preferredModel, String systemPrompt, String userMessage, SkinData skin, final AiCallback callback) {
         String[] modelsToTry;
-        if (preferredModel != null && !preferredModel.trim().isEmpty()) {
-            modelsToTry = new String[]{preferredModel.trim(), "gemini-1.5-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-pro"};
+        if (preferredModel != null && !preferredModel.trim().isEmpty() && !"auto".equalsIgnoreCase(preferredModel.trim())) {
+            modelsToTry = new String[]{preferredModel.trim(), "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"};
         } else {
-            modelsToTry = GEMINI_FALLBACK_MODELS;
+            String best = discoverBestGeminiModel(apiKey);
+            modelsToTry = new String[]{best, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"};
         }
 
         String lastError = null;

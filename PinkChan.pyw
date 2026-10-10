@@ -804,6 +804,119 @@ SKIN_META = {
     }
 }
 
+
+CUSTOM_SKIN_ACTIONS = {
+    "Monika": [
+        ("Glitch de Realidad", "glitch", ["stand1", "fall1", "stand1"], "¡Oops! Un error en el tejido del juego... Just Monika 💚"),
+        ("Tocar Piano (Your Reality)", "piano", ["sit1", "sit2", "sit3"], "🎶 *tocando Your Reality en el piano con suavidad* 🎶"),
+        ("Escribir Poema", "poetry", ["sit1", "snug", "sit1"], "📝 *escribiendo un soneto filosófico para ti* 📝"),
+        ("Mirar al Jugador", "look_player", ["stand1", "stand2"], "Te estoy mirando directamente a los ojos... sólo tú y yo. 💚"),
+    ],
+    "Natsuki": [
+        ("Comer Cupcake", "cupcake", ["sit1", "sit2", "snug"], "🧁 *mordiendo un cupcake recién horneado* ¡Está delicioso!"),
+        ("Leer Parfait Girls", "manga", ["sit1", "sit2", "sit1"], "📖 *leyendo Parfait Girls en el suelo* ¡El manga ES literatura!"),
+        ("Berrinche Tsundere", "pout", ["kneel1", "fall1", "kneel1"], "¡B-BAKA! ¡No me mires con esa cara de bobo! >:("),
+        ("Hornear Pastelitos", "bake", ["stand1", "stand_walk1", "sit1"], "✨ *espolvoreando azúcar glass y chispas de colores* ✨"),
+    ],
+    "Sayori": [
+        ("Galleta Gigante", "cookie", ["sit1", "sit2", "snug"], "🍪 *comiendo una galleta gigante de chocolate* ¡Ehehe, qué rica!"),
+        ("Abrazar a Mr. Cow", "cow_plush", ["sit1", "snug", "sit1"], "🐄 *abrazando con cariño a su peluche Mr. Cow* ¡Te quiero mucho!"),
+        ("Siesta bajo el Sol", "nap", ["lie1", "lie2", "snug"], "💤 *durmiendo una pequeña siesta pacífica* zzz..."),
+        ("Pedir un Abrazo", "hug", ["stand1", "stand2", "stand1"], "¡Abrázame fuerte! ¡Un abrazo siempre alegra el corazón! 💖"),
+    ],
+    "Yuri": [
+        ("Hora del Té Oolong", "tea_time", ["sit1", "sit2", "sit3"], "🍵 *saboreando un té Oolong caliente y aromático* Qué tranquilidad..."),
+        ("Leer Retrato de Markov", "horror_book", ["sit1", "sit2", "snug"], "📖 *sumergida intensamente en Retrato de Markov* Fascinante..."),
+        ("Sonrojo Intenso", "blush", ["kneel1", "snug", "kneel1"], "N-No me mires tan detenidamente... es vergonzoso... /_\\"),
+        ("Componer Poesía con Pluma", "poetry", ["sit1", "sit2", "sit1"], "✒️ *escribiendo metáforas complejas con tinta negra* ✨"),
+    ],
+    "Konata": [
+        ("Debate del Coronet", "coronet", ["sit1", "sit2", "sit1"], "🍞 ¿Por dónde se come el coronet de chocolate? ¡Por la punta obvio! :v"),
+        ("Noche de Gaming / Raid", "gaming", ["sit1", "sit2", "sit3"], "🎮 *farmeando en el MMO a 120 FPS* ¡Esta noche no duermo! 7w7"),
+        ("Pose Timotei", "timotei", ["stand1", "stand2", "stand1"], "✨ ¡Timotei, Timotei, Timoteeei! *sacudiendo la cabellera azul* ✨"),
+        ("Maratón de Anime", "anime", ["lie1", "lie2", "sit1"], "📺 *viendo 24 capítulos de corrido comiendo papitas* UwU"),
+    ],
+    "Hachi": [
+        ("Tomar Fotografía", "camera", ["stand1", "stand2", "stand1"], "📸 *¡Click!* ¡Saqué una foto muy linda del escritorio!"),
+        ("Cantar Canción", "sing", ["stand1", "stand2", "sit1"], "🎶 *Hitorigoto canta alegremente* ¡La la la~ 🎵"),
+        ("Guardia con Sasumata", "sasumata", ["stand1", "stand_walk1", "stand1"], "🛡️ *vigilando tu pantalla con el sasumata azul* ¡Todo seguro!"),
+        ("Comer Ramen Caliente", "ramen", ["sit1", "sit2", "snug"], "🍜 *sorbiendo fideos de ramen calientitos* ¡Delicioso!"),
+    ],
+    "Usagi": [
+        ("Grito ¡URA! ¡YAHA!", "urara", ["jump_1", "jump_2", "jump_3"], "¡¡URAAA!! ¡¡YAHAAAAA!! ¡¡PULULULULU!! 🐰💨"),
+        ("Báculo Mágico", "staff", ["stand1", "jump_1", "stand1"], "⭐ *blandiendo su báculo mágico con chispas de estrellas* ✨"),
+        ("Baile Salvaje", "wild_dance", ["walk1", "walk2", "walk3"], "💃 *bailando descontroladamente girando las orejas* ¡HAHAHA!"),
+        ("Salto Cósmico", "high_jump", ["jump_1", "jump_2", "fall1"], "🚀 *¡Boing! Saltando hasta la estratósfera de la pantalla* 🌟"),
+    ],
+    "Pusheen": [
+        ("Comer Dona Glaseada", "donut", ["sit1", "sit2", "snug"], "🍩 *munch munch comiendo una dona con chispas* =^._.^="),
+        ("Modo Hogaza de Pan (Loaf)", "loaf", ["snug", "sit1", "snug"], "🍞 *metiendo las patitas bajo la pancita, modo pan suave* 🐾"),
+        ("Ronroneo Afectuoso", "purr", ["snug", "sit1", "sit2"], "💖 *prrrrr... ronroneando con corazones flotantes* 💕"),
+        ("Caja de Cartón Pequeña", "box_cat", ["sit1", "snug", "sit1"], "📦 Si quepo, me siento. Esta cajita es mía. =^._.^="),
+    ],
+    "Bocchi": [
+        ("Solo de Guitarra", "guitar", ["guitar1", "guitar2", "guitar3"], "🎸 *tocando un solo virtuoso de Gibson Les Paul temblando*"),
+        ("Esconderse en Caja", "box", ["box1", "box2", "box3"], "📦 *metiéndose de golpe en la caja de mango para evitar hablar*"),
+        ("Colapso de Polvo (Blob)", "blob", ["blob1", "blob2", "blob1"], "🫠 *se desintegra en partículas de polvo y baba por ansiedad*"),
+        ("Desmayo Social", "faint", ["kneel1", "fall1", "lie1"], "😵 *se desmaya hacia atrás al recordar que tiene que hacer una llamada*"),
+    ]
+}
+
+PAIN_PHRASES = {
+    "Bocchi": [
+        "¡Aaaaah! ¡Mis costillas sociales! ¡No me azotes contra la pared! (>_<)",
+        "¡Me rompí en partículas de polvo! ¡Auxilio Jimihen! T_T",
+        "¡Ouch! ¡La gravedad es una metáfora de mi decadencia humana! ._.",
+        "¡Yamete! ¡Un golpe más y me disuelvo como baba! UwU",
+        "¡Mis 50 pesos se me cayeron del impacto! D:"
+    ],
+    "Monika": [
+        "¡Ouch! ¡Cuidado con el monitor o borraré tus archivos .chr! >_<",
+        "¡Ayyy! ¡Sentí esa colisión hasta en el código fuente de Ren\'Py! 💚",
+        "¡Ten más cuidado! No querrás que una excepción NullPointer me corrompa...",
+        "¡Oye! ¡Incluso las presidentas de club tienen colisiones sólidas! D:"
+    ],
+    "Natsuki": [
+        "¡B-BAKA! ¡¿Quieres que te pegue un puñetazo?! ¡Eso dolió! >:(",
+        "¡Oye idiota! ¡Casi aplastas mis pastelitos con ese golpe! (>_<)",
+        "¡Ayyy mi cabeza! ¡Si vuelves a lanzarme te voy a patear!",
+        "¡¿Qué te pasa estúpido?! ¡No soy una pelota de béisbol! 🧁"
+    ],
+    "Sayori": [
+        "¡Aaayyy! ¡Me pegué en la cabeza! ¡Veo estrellas y pajaritos! TwT",
+        "¡Ouuuch! ¡Necesito una galleta gigante con chispas de chocolate para sanar! (o_o)",
+        "¡Ehehe... ese aterrizaje dolió bastante... abrázame porfa! UwU",
+        "¡Mr. Cow, protégeme que este humano me está lanzando! >_<"
+    ],
+    "Yuri": [
+        "¡Ugh...! Qué impacto tan violento e inesperado... /_\\",
+        "¡Por favor sé más considerado... mi taza de té casi se derrama! T_T",
+        "Un dolor agudo que perturba mi concentración poética... qué sensación tan peculiar...",
+        "¡Aah...! Prefiero el sufrimiento lírico a los golpes contra la pantalla..."
+    ],
+    "Konata": [
+        "¡Critical hit! ¡Mi barra de HP bajó al rojo vivo! D:",
+        "¡Oye! ¡Ese lag me estampó contra la pared! ¡Lag tramposo! :v",
+        "¡Ayyy! ¡Casi rompes mi consola portátil con ese impacto! 7w7",
+        "¡Game Over inminente! ¡Exijo una poción de curación o una corneta de chocolate!"
+    ],
+    "Hachi": [
+        "¡Haaawi! ¡Eso dolió muchísimo! T_T",
+        "¡Ayyy! ¡Mi sasumata azul rebotó contra el piso! (o_o)",
+        "¡Qué golpe tan fuerte! ¡Necesito fideos calientes para recuperarme! UwU"
+    ],
+    "Usagi": [
+        "¡¡YAHAAAAA!! ¡PULULU! >:O",
+        "¡¡URAAAA!! ¡¡HA!! ¡El suelo está muy duro! XD",
+        "¡PULULULULU! ¡Reboté como resorte! 🐰"
+    ],
+    "Pusheen": [
+        "¡Miauuch! *ronroneo mareado y confundido* =^._.^=",
+        "¡Miau! ¡Las siete vidas acaban de perder una vida! 🐾",
+        "¡Prrr-ouch! ¡Mi pancita esponjosa amortiguó el golpe! 🍩"
+    ]
+}
+
 def get_preferred_browsers():
     """
     Busca estrictamente Google Chrome o Brave en carpetas de usuario y Program Files.
@@ -2996,6 +3109,24 @@ class JarvisAssistant:
                 lines.append(f"  └─ {meta.get('tagline', '')} -> Usa: /skin {s.lower()}\n")
             lines.append("Tip: También puedes decir 'pon a konata', 'usa los konasprites', 'pon a monika', etc.")
             return True, "\n".join(lines), "Aquí están las skins disponibles [*]"
+
+        # Curar y alimentar Shimeji
+        if raw.strip().lower() in ("/heal", "/curar", "/vida", "/salud", "curar", "curate", "curar shimeji", "dar comida", "alimentar"):
+            if self.shimeji:
+                self.shimeji.heal(100, "snack y golosinas")
+            return True, "[+] ¡Salud restaurada al 100%! ❤️ [HP: 100/100]", "Shimeji curado [OK]"
+
+        # Lanzar Shimeji por los aires (Fling physics)
+        if raw.strip().lower() in ("/fling", "/lanzar", "/volar", "lanzate", "vuela", "lanzar shimeji", "avientate"):
+            if self.shimeji:
+                self.shimeji.fling_upwards()
+            return True, "[+] ¡Lanzando Shimeji por los aires con física elástica! 💥", "Fling activado [OK]"
+
+        # Ejecutar acción especial del personaje
+        if raw.startswith("/accion ") or raw.startswith("/action ") or lower in ("accion especial", "haz tu accion especial", "haz una pose", "pose"):
+            if self.shimeji:
+                self.shimeji.trigger_random_custom_action()
+            return True, "[+] Ejecutando acción especial del personaje ✨", "Acción especial activada [OK]"
 
         # Soltar item / snack / comida del sprite sheet items.png
         if raw.strip().lower() in ("/item", "/items", "/snack", "/comida", "/alimento", "tirar item", "soltar item", "dame comida", "comida", "snack"):
@@ -5323,6 +5454,14 @@ class Shimeji:
         self.drag_off_x = 0
         self.drag_off_y = 0
 
+        # Sistema de Salud (HP), Reacción y Físicas divertidas
+        self.hp = 100
+        self.is_ko = False
+        self.ko_timer = 0
+        self.shake_ticks = 0
+        self.drag_points = []
+        self.press_time = 0
+
         self.win_dragger    = WindowDragger(own_hwnd_getter=lambda: self._own_hwnd())
         self.desktop_mover  = DesktopIconMover() if WIN32_AVAILABLE else None
         self.dragging_window = False
@@ -5529,6 +5668,85 @@ class Shimeji:
             self.tk_images[key] = ImageTk.PhotoImage(img)
         return self.tk_images[key]
 
+
+    def take_damage(self, amount):
+        if getattr(self, "is_ko", False):
+            return
+        old_hp = self.hp
+        self.hp = max(0, self.hp - amount)
+        self.shake_ticks = 8
+        play_popue_sound()
+
+        pain_list = PAIN_PHRASES.get(self.current_skin, [
+            "¡Ayyy! ¡Eso dolió muchísimo! (>_<)",
+            "¡Ouch! Ten más cuidado con el mouse :v",
+            "¡Critical hit! ¡Impacto severo! D:"
+        ])
+        pain_speech = random.choice(pain_list)
+        self.show_speech(f"{pain_speech} [❤️ {self.hp}/100 HP]")
+
+        if self.hp <= 0:
+            self.trigger_ko()
+
+    def heal(self, amount=100, item_name="comida y caricias"):
+        old_hp = self.hp
+        self.hp = min(100, self.hp + amount)
+        self.is_ko = False
+        play_popue_sound()
+        self.show_speech(f"¡Delicioso {item_name}! (+{self.hp - old_hp} HP) ❤️ [HP: {self.hp}/100]")
+        self.choose_next_floor_state()
+
+    def trigger_ko(self):
+        self.is_ko = True
+        self.hp = 0
+        self.vel_x = 0
+        self.vel_y = 0
+        self.set_state("ko", surface=SURFACE_FLOOR)
+        self.show_speech("⭐ ¡K.O.! *ve pajaritos volando* ⭐\n(Descansando en el suelo para revivir...)")
+        self.root.after(7500, self.recover_from_ko)
+
+    def recover_from_ko(self):
+        if not getattr(self, "is_ko", False):
+            return
+        self.is_ko = False
+        self.hp = 50
+        play_popue_sound()
+        self.show_speech("Uff... sobreviví de milagro... ;_; ❤️ [HP: 50/100]")
+        self.choose_next_floor_state()
+
+    def fling_upwards(self):
+        self.surface = SURFACE_FLOOR
+        self.vel_x = random.choice([-16, -12, 12, 16])
+        self.vel_y = -36
+        self.set_state("flung", surface=SURFACE_FLOOR)
+        play_popue_sound()
+        self.show_speech(random.choice(["¡A volaaar! :v", "¡¡Wooooosh!! 7w7", "¡Por los aires! XD"]))
+
+    def trigger_random_custom_action(self):
+        skin = getattr(self, "current_skin", "Bocchi")
+        actions = CUSTOM_SKIN_ACTIONS.get(skin, [])
+        if not actions:
+            self.set_state("standing", surface=SURFACE_FLOOR)
+            return
+        label, act_name, frame_keys, speech = random.choice(actions)
+        self.trigger_custom_action(act_name, frame_keys, speech)
+
+    def trigger_custom_action(self, act_name, frame_keys, speech):
+        valid_frames = [f for f in frame_keys if f in self.images] or STAND_FRAMES[:1]
+        self.state = f"custom_{act_name}"
+        self.surface = SURFACE_FLOOR
+        self.frames = valid_frames
+        self.frame_idx = 0
+        self.frame_timer = 0
+        self.frame_delay = 12
+        self.state_ticks = 0
+        self.state_duration = len(valid_frames) * 16 + 45
+        self.vel_x = 0
+        self.vel_y = 0
+        self.update_sprite()
+        if speech:
+            self.show_speech(speech)
+
     def set_state(self, state, surface=None):
         self.state       = state
         self.frame_idx   = 0
@@ -5539,24 +5757,31 @@ class Shimeji:
 
         speed = self.WALK_SPEED
 
+        # Detección inteligente de frames de escalada y techo
+        climb_frames = [f for f in ["climb1", "climb2", "climb"] if f in self.images] or WALK_FRAMES
+        ceiling_frames = ["climb_top"] if "climb_top" in self.images else WALK_FRAMES
+        ceiling_idle_frames = ["climb_top"] if "climb_top" in self.images else LIE_FRAMES
+
         cfg = {
             "standing":     (STAND_FRAMES,  15, 30+random.randint(10,30),    0,     0),
             "walking":      (WALK_FRAMES,   5,  120+random.randint(40,160),  random.choice([-1,1])*speed, 0),
             "walk_back":    (WALK_BACK,     8,  40+random.randint(20,50),    random.choice([-1,1])*2, 0),
             "sitting":      (SIT_FRAMES,    10, 40+random.randint(20,50),    0,     0),
             "guitar":       (GUITAR_FRAMES, 8,  50+random.randint(20,50),    0,     0),
-            "ceiling_idle": (LIE_FRAMES,    12, 50+random.randint(20,60),    0,     0),
+            "ceiling_idle": (ceiling_idle_frames, 12, 50+random.randint(20,60), 0,  0),
             "blob":         (BLOB_FRAMES,   8,  30+random.randint(10,30),    0,     0),
             "ghost":        (GHOST_FRAMES,  10, 30+random.randint(10,30),    0,     0),
             "box":          (BOX_FRAMES,    18, len(BOX_FRAMES)*14,          0,     0),
             "falling":      (FALL_FRAMES,   2,  9999,                        random.randint(-2,2), 0),
+            "flung":        (FALL_FRAMES or STAND_FRAMES, 2, 9999,           0,     0),
+            "ko":           (KNEEL_FRAMES or FALL_FRAMES, 15, 250,           0,     0),
             "kneel":        (KNEEL_FRAMES,  10, 30+random.randint(10,30),    0,     0),
             "carry":        (CARRY_FRAMES,  15, 40+random.randint(20,40),    0,     0),
             "depress":      (DEPRESS_FRAMES,15, 40+random.randint(20,40),    0,     0),
             "away":         (AWAY_FRAMES,   10, 30+random.randint(10,30),    0,     0),
-            "climb_left":   (CLIMB_FRAMES,  6,  80+random.randint(40,80),    0,     0),
-            "climb_right":  (CLIMB_FRAMES,  6,  80+random.randint(40,80),    0,     0),
-            "ceiling_walk": (WALK_FRAMES,   5,  100+random.randint(40,120),  random.choice([-1,1])*speed, 0),
+            "climb_left":   (climb_frames,  6,  80+random.randint(40,80),    0,     0),
+            "climb_right":  (climb_frames,  6,  80+random.randint(40,80),    0,     0),
+            "ceiling_walk": (ceiling_frames, 5, 100+random.randint(40,120),  random.choice([-1,1])*speed, 0),
         }
 
         frames, delay, dur, vx, vy = cfg.get(state, cfg["standing"])
@@ -5577,21 +5802,39 @@ class Shimeji:
         self.update_sprite()
 
     def choose_next_floor_state(self):
-        pool = (
-            ["walking"] * 20 +
-            ["walk_back"] * 6 +
-            ["standing"] * 2 +
-            ["sitting"] * 1 +
-            ["guitar"] * 1 +
-            ["blob"] * 1 +
-            ["ghost"] * 1 +
-            ["box"] * 1 +
-            ["kneel"] * 1 +
-            ["carry"] * 1 +
-            ["depress"] * 1 +
-            ["away"] * 1
-        )
-        self.set_state(random.choice(pool), surface=SURFACE_FLOOR)
+        if getattr(self, "is_ko", False):
+            self.set_state("ko", surface=SURFACE_FLOOR)
+            return
+
+        skin = getattr(self, "current_skin", "Bocchi")
+        if skin == "Bocchi":
+            pool = (
+                ["walking"] * 16 +
+                ["walk_back"] * 5 +
+                ["standing"] * 3 +
+                ["sitting"] * 2 +
+                ["guitar"] * 2 +
+                ["blob"] * 1 +
+                ["ghost"] * 1 +
+                ["box"] * 2 +
+                ["kneel"] * 1
+            )
+            self.set_state(random.choice(pool), surface=SURFACE_FLOOR)
+        else:
+            # Dokis, Konata, Hachi, Usagi, Pusheen: NUNCA usan guitar/box que duplicaban el clon
+            pool = (
+                ["walking"] * 18 +
+                ["walk_back"] * 5 +
+                ["standing"] * 4 +
+                ["sitting"] * 3 +
+                ["kneel"] * 1 +
+                ["custom_action"] * 3
+            )
+            choice = random.choice(pool)
+            if choice == "custom_action":
+                self.trigger_random_custom_action()
+            else:
+                self.set_state(choice, surface=SURFACE_FLOOR)
         
     def choose_next_ceiling_state(self):
         if random.random() < 0.65:
@@ -5616,14 +5859,69 @@ class Shimeji:
             self.root.after(DELAY, self.tick)
 
     def physics(self):
-        if self.state == "falling":
-            self.gravity = min(self.gravity + 1, 20)
-            self.y      += self.gravity
-            self.x      += self.vel_x
+        if getattr(self, "is_ko", False):
+            self.vel_x = 0
+            self.vel_y = 0
+            self.y = self.ground_y
+            self._apply_pos()
+            return
+
+        if self.state in ("flung", "falling"):
+            self.vel_y += 1.4  # Gravedad fluida
+            self.vel_x *= 0.985 # Resistencia del aire
+            self.x += self.vel_x
+            self.y += self.vel_y
+
+            # Rebote elástico contra pared izquierda
+            if self.x <= self.wall_lx:
+                self.x = self.wall_lx
+                impact = abs(self.vel_x)
+                if impact > 16:
+                    self.take_damage(int((impact - 14) * 2))
+                self.vel_x = -self.vel_x * 0.70
+                if impact > 10:
+                    play_popue_sound()
+
+            # Rebote elástico contra pared derecha
+            elif self.x >= self.wall_rx:
+                self.x = self.wall_rx
+                impact = abs(self.vel_x)
+                if impact > 16:
+                    self.take_damage(int((impact - 14) * 2))
+                self.vel_x = -self.vel_x * 0.70
+                if impact > 10:
+                    play_popue_sound()
+
+            # Rebote elástico contra techo
+            if self.y <= self.ceiling_y:
+                self.y = self.ceiling_y
+                impact = abs(self.vel_y)
+                if impact > 16:
+                    self.take_damage(int((impact - 14) * 2))
+                self.vel_y = -self.vel_y * 0.70
+                if impact > 10:
+                    play_popue_sound()
+
+            # Rebote elástico contra suelo
             if self.y >= self.ground_y:
                 self.y = self.ground_y
-                self.gravity = 0
-                self.choose_next_floor_state()
+                impact = abs(self.vel_y)
+                if impact > 9:
+                    if impact > 18:
+                        self.take_damage(int((impact - 16) * 2))
+                    self.vel_y = -self.vel_y * 0.60
+                    if impact > 10:
+                        play_popue_sound()
+                else:
+                    self.vel_y = 0
+                    self.vel_x *= 0.5
+                    if abs(self.vel_x) < 0.6:
+                        self.vel_x = 0
+                        if self.hp <= 0:
+                            self.trigger_ko()
+                        else:
+                            self.choose_next_floor_state()
+
             self._apply_pos()
             return
 
@@ -5731,9 +6029,15 @@ class Shimeji:
                                             "¡El techo es mio! 7w7"]))
 
     def _apply_pos(self):
+        sx = 0
+        sy = 0
+        if getattr(self, "shake_ticks", 0) > 0:
+            self.shake_ticks -= 1
+            sx = random.randint(-5, 5)
+            sy = random.randint(-5, 5)
         self.x = max(self.wall_lx, min(self.x, self.wall_rx))
         self.y = max(self.ceiling_y, min(self.y, self.ground_y))
-        self.root.geometry(f"{self.size}x{self.size}+{int(self.x)}+{int(self.y)}")
+        self.root.geometry(f"{self.size}x{self.size}+{int(self.x + sx)}+{int(self.y + sy)}")
 
     def animate(self):
         self.frame_timer += 1
@@ -5782,13 +6086,24 @@ class Shimeji:
         flip_v   = False
 
         if self.surface == SURFACE_WALL_L:
-            rotation = 270
-            flip_h   = self.vel_y > 0
+            if name.lower().startswith("climb"):
+                rotation = 0
+                flip_h   = False
+            else:
+                rotation = 270
+                flip_h   = self.vel_y > 0
         elif self.surface == SURFACE_WALL_R:
-            rotation = 90
-            flip_h   = self.vel_y < 0
+            if name.lower().startswith("climb"):
+                rotation = 0
+                flip_h   = True
+            else:
+                rotation = 90
+                flip_h   = self.vel_y < 0
         elif self.surface == SURFACE_CEILING:
-            if self.state == "ceiling_idle":
+            if name.lower() == "climb_top":
+                rotation = 0
+                flip_h   = self.flipped
+            elif self.state == "ceiling_idle":
                 rotation = 0
                 flip_h   = self.flipped
             else:
@@ -5801,15 +6116,20 @@ class Shimeji:
             self.canvas.itemconfig(self.sprite_item, image=tk_img)
 
     def on_press(self, e):
-        self._react_to_poke()
+        if getattr(self, "is_ko", False):
+            self.show_speech("⭐ ¡K.O.! *ve pajaritos volando* ⭐\n(Descansando para recuperar salud...)")
+            return
         self.dragging   = True
         self.drag_off_x = e.x
         self.drag_off_y = e.y
+        self.press_time = time.time()
+        self.drag_points = [(time.time(), e.x_root, e.y_root)]
         self.surface = SURFACE_FLOOR
         self.set_state("falling", SURFACE_FLOOR)
+        self._react_to_poke()
 
     def _react_to_poke(self):
-        reaction_frames = [GHOST_FRAMES, KNEEL_FRAMES]
+        reaction_frames = [KNEEL_FRAMES, FALL_FRAMES] if self.current_skin != "Bocchi" else [GHOST_FRAMES, KNEEL_FRAMES]
         chosen = random.choice(reaction_frames)
         available = [f for f in chosen if f in self.images]
         if available:
@@ -5820,27 +6140,68 @@ class Shimeji:
         self.show_speech(self.get_poked_speech())
 
     def on_drag(self, e):
-        if not self.dragging:
+        if not self.dragging or getattr(self, "is_ko", False):
             return
         nx = self.root.winfo_x() + e.x - self.drag_off_x
         ny = self.root.winfo_y() + e.y - self.drag_off_y
         self.x = max(0, min(nx, self.sw - self.size))
         self.y = max(0, min(ny, self.sh - 50))
         self.root.geometry(f"{self.size}x{self.size}+{int(self.x)}+{int(self.y)}")
+
+        now = time.time()
+        self.drag_points.append((now, e.x_root, e.y_root))
+        if len(self.drag_points) > 10:
+            self.drag_points.pop(0)
+
         if self.dragging_window:
             sx = self.root.winfo_rootx() + e.x
             sy = self.root.winfo_rooty() + e.y
             self.win_dragger.move_to(sx, sy)
 
     def on_release(self, e):
+        if not self.dragging or getattr(self, "is_ko", False):
+            self.dragging = False
+            return
         self.dragging = False
         if self.dragging_window:
             self.win_dragger.release()
             self.dragging_window = False
             self.show_speech("¡Tachan! (*^^*)")
+
+        # Detectar caricia cariñosa (>0.7s quieto)
+        press_duration = time.time() - getattr(self, "press_time", 0)
+        dist_drag = 0
+        if len(self.drag_points) >= 2:
+            dist_drag = abs(self.drag_points[-1][1] - self.drag_points[0][1]) + abs(self.drag_points[-1][2] - self.drag_points[0][2])
+
+        if press_duration > 0.7 and dist_drag < 18:
+            old_hp = self.hp
+            self.hp = min(100, self.hp + 10)
+            self.show_speech(f"Qué cálido... me agrada ❤️ (+{self.hp - old_hp} HP) [HP: {self.hp}/100]")
+            self.choose_next_floor_state()
+            return
+
+        # Calcular velocidad de lanzamiento (Fling)
+        vx = 0
+        vy = 0
+        if len(self.drag_points) >= 2:
+            t_now, x_now, y_now = self.drag_points[-1]
+            t_old, x_old, y_old = self.drag_points[0]
+            dt = t_now - t_old
+            if 0.01 <= dt <= 0.45:
+                vx = (x_now - x_old) / (dt * 55)
+                vy = (y_now - y_old) / (dt * 55)
+                vx = max(-45, min(45, vx))
+                vy = max(-45, min(45, vy))
+
         self.surface = SURFACE_FLOOR
-        if self.y < self.ground_y:
-            self.set_state("falling", SURFACE_FLOOR)
+        if abs(vx) > 7 or abs(vy) > 7 or self.y < self.ground_y:
+            self.vel_x = vx
+            self.vel_y = vy if vy != 0 else (random.randint(-4, -1))
+            self.set_state("flung", SURFACE_FLOOR)
+            if abs(vx) > 18 or abs(vy) > 18:
+                play_popue_sound()
+                self.show_speech(random.choice(["¡Wooooosh! :v", "¡A volaaar! 7w7", "¡Por los aires! XD"]))
         else:
             self.choose_next_floor_state()
 
@@ -5894,15 +6255,34 @@ class Shimeji:
             menu.add_command(label="[🎁] Soltar Item / Snack (Sprite Sheet)", command=self.drop_random_item)
             menu.add_separator()
 
+            # Salud y física divertida
+            hp_cur = getattr(self, "hp", 100)
+            menu.add_command(label=f"[❤️] Salud: {hp_cur}/100 HP (Curar y alimentar)", command=lambda: self.heal(100, "pastelito y té"))
+            menu.add_command(label="[💥] Lanzar hacia arriba (Prueba de Física Fling)", command=self.fling_upwards)
+
+            # Acciones especiales personalizadas por personaje
+            c_actions = CUSTOM_SKIN_ACTIONS.get(self.current_skin, [])
+            if c_actions:
+                cust_act_menu = tk.Menu(menu, tearoff=0,
+                                        bg=t.surface, fg=t.text,
+                                        activebackground=t.accent,
+                                        activeforeground=acc_fg,
+                                        font=(t.font_family, t.font_size))
+                for lbl, a_name, fr_list, sp_text in c_actions:
+                    cust_act_menu.add_command(label=f"[✨] {lbl}", command=lambda an=a_name, fl=fr_list, st=sp_text: self.trigger_custom_action(an, fl, st))
+                menu.add_cascade(label=f"[✨] Acciones Especiales de {char_name} >>", menu=cust_act_menu)
+
             poses_menu = tk.Menu(menu, tearoff=0,
                                  bg=t.surface, fg=t.text,
                                  activebackground=t.accent,
                                  activeforeground=acc_fg,
                                  font=(t.font_family, t.font_size))
-            poses_menu.add_command(label="[*] Tocar guitarra",       command=lambda: self.set_state("guitar", SURFACE_FLOOR))
-            poses_menu.add_command(label="[o] Modo blob",             command=lambda: self.set_state("blob",   SURFACE_FLOOR))
-            poses_menu.add_command(label="[~] Modo fantasma",         command=lambda: self.set_state("ghost",  SURFACE_FLOOR))
-            poses_menu.add_command(label="[#] Truco de caja",         command=lambda: self.set_state("box",    SURFACE_FLOOR))
+            if self.current_skin == "Bocchi":
+                poses_menu.add_command(label="[*] Tocar guitarra",       command=lambda: self.set_state("guitar", SURFACE_FLOOR))
+                poses_menu.add_command(label="[o] Modo blob",             command=lambda: self.set_state("blob",   SURFACE_FLOOR))
+                poses_menu.add_command(label="[~] Modo fantasma",         command=lambda: self.set_state("ghost",  SURFACE_FLOOR))
+                poses_menu.add_command(label="[#] Truco de caja",         command=lambda: self.set_state("box",    SURFACE_FLOOR))
+            poses_menu.add_command(label="[-] Sentarse / Descansar",  command=lambda: self.set_state("sitting", SURFACE_FLOOR))
             poses_menu.add_command(label="[-] Arrodillarse",          command=lambda: self.set_state("kneel",  SURFACE_FLOOR))
             poses_menu.add_command(label="[<] Caminar de espaldas",   command=lambda: self.set_state("walk_back", SURFACE_FLOOR))
             poses_menu.add_command(label="[+] Llevar funda",          command=lambda: self.set_state("carry",  SURFACE_FLOOR))

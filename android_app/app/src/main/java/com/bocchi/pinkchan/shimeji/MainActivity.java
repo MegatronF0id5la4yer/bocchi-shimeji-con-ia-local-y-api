@@ -780,7 +780,7 @@ public class MainActivity extends Activity {
                     else if (rbAiCloud != null && rbAiCloud.isChecked()) mode = "cloud";
 
                     String gemKey = etGeminiKey != null ? etGeminiKey.getText().toString().trim() : "";
-                    String gemModel = etGeminiModel != null ? etGeminiModel.getText().toString().trim() : "gemini-1.5-flash";
+                    String gemModel = etGeminiModel != null ? etGeminiModel.getText().toString().trim() : "gemini-2.5-flash";
                     String clEndpoint = etCloudEndpoint != null ? etCloudEndpoint.getText().toString().trim() : "";
                     String clModel = etCloudModel != null ? etCloudModel.getText().toString().trim() : "llama3";
                     String clKey = etCloudKey != null ? etCloudKey.getText().toString().trim() : "";
@@ -808,7 +808,7 @@ public class MainActivity extends Activity {
                     else if (rbAiCloud != null && rbAiCloud.isChecked()) mode = "cloud";
 
                     String gemKey = etGeminiKey != null ? etGeminiKey.getText().toString().trim() : "";
-                    String gemModel = etGeminiModel != null ? etGeminiModel.getText().toString().trim() : "gemini-1.5-flash";
+                    String gemModel = etGeminiModel != null ? etGeminiModel.getText().toString().trim() : "gemini-2.5-flash";
                     String clEndpoint = etCloudEndpoint != null ? etCloudEndpoint.getText().toString().trim() : "";
                     String clKey = etCloudKey != null ? etCloudKey.getText().toString().trim() : "";
 
@@ -1306,7 +1306,7 @@ public class MainActivity extends Activity {
         }
 
         if (etGeminiKey != null) etGeminiKey.setText(prefs.getString(KEY_GEMINI_KEY, ""));
-        if (etGeminiModel != null) etGeminiModel.setText(prefs.getString(KEY_GEMINI_MODEL, "gemini-1.5-flash"));
+        if (etGeminiModel != null) etGeminiModel.setText(prefs.getString(KEY_GEMINI_MODEL, "gemini-2.5-flash"));
         if (etCloudEndpoint != null) etCloudEndpoint.setText(prefs.getString(KEY_CLOUD_ENDPOINT, ""));
         if (etCloudModel != null) etCloudModel.setText(prefs.getString(KEY_CLOUD_MODEL, "llama3"));
         if (etCloudKey != null) etCloudKey.setText(prefs.getString(KEY_CLOUD_KEY, ""));
@@ -1807,7 +1807,7 @@ public class MainActivity extends Activity {
         String activeAiMode = prefs.getString(KEY_AI_MODE, "local");
         String aiEngineBadge = "Motor activo: Local Offline (Sin internet)";
         if ("gemini".equalsIgnoreCase(activeAiMode)) {
-            String mName = prefs.getString(KEY_GEMINI_MODEL, "gemini-1.5-flash");
+            String mName = prefs.getString(KEY_GEMINI_MODEL, "gemini-2.5-flash");
             aiEngineBadge = "Motor: Google Gemini API (" + mName + ")";
         } else if ("cloud".equalsIgnoreCase(activeAiMode)) {
             String cModel = prefs.getString(KEY_CLOUD_MODEL, "llama3");

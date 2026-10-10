@@ -601,5 +601,137 @@ public class SkinData {
         }
         return "Bocchi";
     }
+
+    public static String[] getPainPhrases(String skinId) {
+        if ("Bocchi".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "Aaaaah! Mis costillas sociales! No me azotes contra la pared! (>_<)",
+                "Me rompi en particulas de polvo! Auxilio Jimihen! T_T",
+                "Ouch! La gravedad es una metafora de mi decadencia humana! ._.",
+                "Yamete! Un golpe mas y me disuelvo como baba! UwU",
+                "Mis 50 pesos se me cayeron del impacto! D:"
+            };
+        } else if ("Monika".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "Ouch! Cuidado con el monitor o borrare tus archivos .chr! >_<",
+                "Ayyy! Senti esa colision hasta en el codigo fuente de Ren'Py! 💚",
+                "Ten mas cuidado! No querras que una excepcion NullPointer me corrompa...",
+                "Oye! Incluso las presidentas de club tienen colisiones solidas! D:"
+            };
+        } else if ("Natsuki".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "B-BAKA! Quieres que te pegue un punetazo?! Eso dolio! >:(",
+                "Oye idiota! Casi aplastas mis pastelitos con ese golpe! (>_<)",
+                "Ayyy mi cabeza! Si vuelves a lanzarme te voy a patear!",
+                "Que te pasa estupido?! No soy una pelota de beisbol! 🧁"
+            };
+        } else if ("Sayori".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "Aaayyy! Me pegue en la cabeza! Veo estrellas y pajaritos! TwT",
+                "Ouuuch! Necesito una galleta gigante con chispas de chocolate para sanar! (o_o)",
+                "Ehehe... ese aterrizaje dolio bastante... abrazame porfa! UwU",
+                "Mr. Cow, protegeme que este humano me esta lanzando! >_<"
+            };
+        } else if ("Yuri".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "Ugh...! Que impacto tan violento e inesperado... /_\\",
+                "Por favor se mas considerado... mi taza de te casi se derrama! T_T",
+                "Un dolor agudo que perturba mi concentracion poetica... que sensacion tan peculiar...",
+                "Aah...! Prefiero el sufrimiento lirico a los golpes contra la pantalla..."
+            };
+        } else if ("Konata".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "Critical hit! Mi barra de HP bajo al rojo vivo! D:",
+                "Oye! Ese lag me estampo contra la pared! Lag tramposo! :v",
+                "Ayyy! Casi rompes mi consola portatil con ese impacto! 7w7",
+                "Game Over inminente! Exijo una pocion de curacion o una corneta de chocolate!"
+            };
+        } else if ("Hachi".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "Haaawi! Eso dolio muchisimo! T_T",
+                "Ayyy! Mi sasumata azul reboto contra el piso! (o_o)",
+                "Que golpe tan fuerte! Necesito fideos calientes para recuperarme! UwU"
+            };
+        } else if ("Usagi".equalsIgnoreCase(skinId)) {
+            return new String[]{
+                "YAHAAAAA!! PULULU! >:O",
+                "URAAAA!! HA!! El suelo esta muy duro! XD",
+                "PULULULULU! Rebote como resorte! 🐰"
+            };
+        } else {
+            return new String[]{
+                "Miauuch! *ronroneo mareado y confundido* =^._.^=",
+                "Miau! Las siete vidas acaban de perder una vida! 🐾",
+                "Prrr-ouch! Mi pancita esponjosa amortiguo el golpe! 🍩"
+            };
+        }
+    }
+
+    public static String[][] getCustomActions(String skinId) {
+        if ("Monika".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Glitch", "glitch", "fall1", "stand1", "Oops! Un error en el tejido de la realidad... Just Monika 💚"},
+                {"Piano", "piano", "sit1", "sit2", "Tocando Your Reality en el piano con suavidad~ 🎶"},
+                {"Poema", "poem", "sit1", "sit1", "Escribiendo un verso filosofico para ti 📝"},
+                {"Mirar", "look", "stand1", "stand2", "Te estoy mirando directamente... solo tu y yo 💚"}
+            };
+        } else if ("Natsuki".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Cupcake", "cupcake", "sit1", "sit2", "Mordiendo un delicioso cupcake horneado con glaseado 🧁"},
+                {"Manga", "manga", "sit1", "sit1", "Leyendo Parfait Girls en el suelo. El manga ES literatura! 📖"},
+                {"Pout", "pout", "kneel1", "fall1", "B-BAKA! No me mires con esa cara de bobo! >:("},
+                {"Hornear", "bake", "stand1", "sit1", "Espolvoreando azucar glass y confeti dulce ✨"}
+            };
+        } else if ("Sayori".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Galleta", "cookie", "sit1", "sit2", "Comiendo una galleta gigante con chispas de chocolate! 🍪"},
+                {"Mr. Cow", "cow", "sit1", "sit1", "Abrazando con mucho carino a su peluche Mr. Cow 🐄"},
+                {"Siesta", "nap", "sit1", "sit1", "Durmiendo una siesta pacifica bajo el sol... zzz 💤"},
+                {"Abrazo", "hug", "stand1", "stand1", "Abrazame fuerte! Un abrazo alegra el corazon! 💖"}
+            };
+        } else if ("Yuri".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Te Oolong", "tea", "sit1", "sit2", "Saboreando una taza de te Oolong caliente y reconfortante 🍵"},
+                {"Markov", "book", "sit1", "sit1", "Sumergida intensamente en Retrato de Markov 📖"},
+                {"Sonrojo", "blush", "kneel1", "kneel1", "N-No me mires con tanta atencion... es vergonzoso... /_\\"},
+                {"Poesia", "poetry", "sit1", "sit1", "Escribiendo metaforas complejas con pluma y tinta ✒️"}
+            };
+        } else if ("Konata".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Coronet", "coronet", "sit1", "sit2", "Comiendo una corneta de chocolate empezando por la punta! :v 🍞"},
+                {"Gaming", "gaming", "sit1", "sit2", "Farmeando en el MMO a 120 FPS. Esta noche no duermo! 🎮"},
+                {"Timotei", "timotei", "stand1", "stand2", "Timotei, Timotei, Timoteeei! Sacudiendo la cabellera azul ✨"},
+                {"Anime", "anime", "sit1", "sit1", "Viendo una maraton completa de anime de temporada 📺"}
+            };
+        } else if ("Hachi".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Camarita", "camera", "stand1", "stand2", "Click! Sacando una hermosa fotografia del escritorio! 📸"},
+                {"Cantar", "sing", "stand1", "sit1", "Hitorigoto canta alegremente! La la la~ 🎶"},
+                {"Sasumata", "sasumata", "stand1", "stand1", "Haciendo guardia con el sasumata azul de proteccion! 🛡️"},
+                {"Ramen", "ramen", "sit1", "sit2", "Sorbiendo un tazon de ramen calientito y delicioso! 🍜"}
+            };
+        } else if ("Usagi".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Grito URA", "urara", "fall1", "stand1", "URAAA!! YAHAAAAA!! PULULULULU!! 🐰💨"},
+                {"Baculo", "staff", "stand1", "fall1", "Blandiendo su baculo magico con chispas de estrellas! ⭐"},
+                {"Danza", "dance", "stand1", "stand2", "Bailando descontroladamente y girando las orejas! 💃"},
+                {"Salto", "jump", "fall1", "stand1", "Boing! Saltando hasta la estratosfera de la pantalla! 🚀"}
+            };
+        } else if ("Pusheen".equalsIgnoreCase(skinId)) {
+            return new String[][]{
+                {"Dona", "donut", "sit1", "sit2", "Munch munch comiendo una dona con chispas! =^._.^= 🍩"},
+                {"Modo Pan", "loaf", "sit1", "sit1", "Metinedo las patitas bajo la pancita, modo hogaza suave! 🍞"},
+                {"Purr", "purr", "sit1", "sit2", "Purrrr... ronroneando con corazones flotantes! 💕"},
+                {"Cajita", "box_cat", "sit1", "sit1", "Si quepo me siento. Esta cajita de carton es mia! 📦"}
+            };
+        } else {
+            return new String[][]{
+                {"Guitarra", "guitar", "sit1", "sit2", "Tocando un solo virtuoso en su Gibson Les Paul temblando 🎸"},
+                {"Caja", "box", "sit1", "sit1", "Metinedose en la caja de mango para evitar hablar 📦"},
+                {"Polvo", "blob", "sit1", "sit1", "Se desintegra en particulas de polvo por ansiedad social 🫠"},
+                {"Desmayo", "faint", "fall1", "kneel1", "Se desmaya hacia atras al tener que hacer una llamada 😵"}
+            };
+        }
+    }
 }
 

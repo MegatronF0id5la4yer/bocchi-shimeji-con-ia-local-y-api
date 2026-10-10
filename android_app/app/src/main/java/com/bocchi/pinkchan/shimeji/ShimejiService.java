@@ -70,6 +70,7 @@ public class ShimejiService extends Service {
     private final List<ShimejiEntity> shimejiList = new ArrayList<>();
     private final Map<String, Bitmap> bitmapCache = new HashMap<>();
     private VoiceAssistantManager voiceAssistantManager;
+    private FloatingChatManager floatingChatManager;
     private int nextEntityId = 1;
     private final Random random = new Random();
 
@@ -559,11 +560,38 @@ public class ShimejiService extends Service {
         return START_STICKY;
     }
 
+    public ShimejiEntity getPrimaryShimeji() {
+        if (!shimejiList.isEmpty()) {
+            return shimejiList.get(0);
+        }
+        return null;
+    }
+
+    public void showFloatingChat() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (floatingChatManager == null) {
+                    floatingChatManager = new FloatingChatManager(ShimejiService.this);
+                }
+                floatingChatManager.show();
+            }
+        });
+    }
+
+    public void hideFloatingChat() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (floatingChatManager != null) {
+                    floatingChatManager.hide();
+                }
+            }
+        });
+    }
+
     public void openChat() {
-        Intent chatIntent = new Intent(this, MainActivity.class);
-        chatIntent.setAction(MainActivity.ACTION_OPEN_CHAT);
-        chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(chatIntent);
+        showFloatingChat();
     }
 
     @Override
@@ -572,6 +600,10 @@ public class ShimejiService extends Service {
         isRunning = false;
         if (handler != null && loopRunnable != null) {
             handler.removeCallbacks(loopRunnable);
+        }
+        if (floatingChatManager != null) {
+            floatingChatManager.destroy();
+            floatingChatManager = null;
         }
         if (voiceAssistantManager != null) {
             voiceAssistantManager.destroy();
@@ -687,11 +719,11 @@ public class ShimejiService extends Service {
                             try { windowManager.removeView(itemIv); } catch (Exception ignored) {}
 
                             if (isBomb) {
-                                entity.velY = -dpToPx(15);
-                                entity.say("AYYY UNA BOMBA! CUIDADO!", 3000);
+                                entity.velY = -dpToPx(16);
+                                entity.takeDamage(35);
                             } else {
                                 entity.state = "SIT";
-                                entity.say("Nam nam! Que rico snack!", 3000);
+                                entity.heal(30, "snack delicioso");
                             }
                             return;
                         }

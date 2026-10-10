@@ -37,6 +37,14 @@ public class ShimejiEntity {
     public int tickCount = 0;
     public boolean zeroGravity = false;
 
+    public int hp = 100;
+    public boolean isKo = false;
+    public int koTimer = 0;
+    public int shakeTicks = 0;
+    public String customFrameName1 = null;
+    public String customFrameName2 = null;
+    public String customActionDialogue = null;
+
     private boolean isDragging = false;
     private float touchStartX, touchStartY;
     private float initialPosX, initialPosY;
@@ -110,14 +118,14 @@ public class ShimejiEntity {
             }
         });
 
-        // Chat Interactivo
+        // Chat Interactivo Flotante Fuera de la App
         View btnChat = overlayView.findViewById(R.id.btn_menu_chat);
         if (btnChat != null) {
             btnChat.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     hideMenu();
-                    service.openChat();
+                    service.showFloatingChat();
                 }
             });
         }
@@ -131,15 +139,12 @@ public class ShimejiEntity {
             }
         });
 
-        // Acariciar
+        // Acariciar y Curar
         overlayView.findViewById(R.id.btn_menu_pet).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                service.triggerHaptic(50);
-                state = "STAND";
-                stateTimer = 80;
-                say("Que calido... me agrada.", 2500);
                 hideMenu();
+                heal(30, "caricias");
             }
         });
 
@@ -152,27 +157,8 @@ public class ShimejiEntity {
             }
         });
 
-        // Guitarra
-        overlayView.findViewById(R.id.btn_menu_guitar).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                state = "GUITAR";
-                stateTimer = 140;
-                say("Solo de guitarra en vivo.", 2500);
-                hideMenu();
-            }
-        });
-
-        // Caja
-        overlayView.findViewById(R.id.btn_menu_box).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                state = "BOX";
-                stateTimer = 140;
-                say("Modo caja seguro.", 2500);
-                hideMenu();
-            }
-        });
+        // Acciones Dinamicas de la Skin (botones superiores de accion)
+        updateCustomActionMenuButtons();
 
         // Jugar
         View btnPlay = overlayView.findViewById(R.id.btn_menu_play);
@@ -234,7 +220,7 @@ public class ShimejiEntity {
             });
         }
 
-        // Flotar / Caer
+        // Flotar / Gravedad
         overlayView.findViewById(R.id.btn_menu_gravity).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -265,9 +251,103 @@ public class ShimejiEntity {
         });
     }
 
+    public void updateCustomActionMenuButtons() {
+        TextView btnAct1 = overlayView.findViewById(R.id.btn_menu_guitar);
+        TextView btnAct2 = overlayView.findViewById(R.id.btn_menu_box);
+        String[][] customActs = SkinData.getCustomActions(skin.id);
+        if (btnAct1 != null && customActs.length > 0) {
+            btnAct1.setText(customActs[0][0]);
+            btnAct1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    triggerCustomAction(0);
+                }
+            });
+        }
+        if (btnAct2 != null && customActs.length > 1) {
+            btnAct2.setText(customActs[1][0]);
+            btnAct2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    hideMenu();
+                    triggerCustomAction(1);
+                }
+            });
+        }
+    }
+
+    public void takeDamage(int amount) {
+        if (amount <= 0) return;
+        hp = Math.max(0, hp - amount);
+        shakeTicks = 14;
+        service.triggerHaptic(60);
+
+        String[] cries = SkinData.getPainPhrases(skin.id);
+        String cry = (cries != null && cries.length > 0) ? cries[random.nextInt(cries.length)] : "OUCH!!";
+        say(cry + " (-" + amount + " HP, me quedan " + hp + " HP)", 3200);
+
+        if (hp <= 0 && !isKo) {
+            triggerKo();
+        }
+    }
+
+    public void heal(int amount, String source) {
+        if (amount <= 0) return;
+        if (isKo) {
+            recoverFromKo();
+        }
+        hp = Math.min(100, hp + amount);
+        service.triggerHaptic(25);
+        say("+" + amount + " HP (" + source + ")! Ahora tengo " + hp + " HP. <3", 2800);
+    }
+
+    public void triggerKo() {
+        isKo = true;
+        state = "KO";
+        koTimer = 220;
+        velX = 0;
+        velY = 0;
+        service.triggerHaptic(120);
+        say("x_x K.O.! Me quede sin energia... Acariciame o alimentame para revivir!", 4500);
+    }
+
+    public void recoverFromKo() {
+        isKo = false;
+        koTimer = 0;
+        hp = Math.max(30, hp);
+        state = "STAND";
+        stateTimer = 60;
+        service.triggerHaptic(35);
+        say("Revivi con energias renovadas! Muchas gracias! <3", 2800);
+    }
+
+    public void flingUpwards() {
+        state = "FLUNG";
+        velY = -service.dpToPx(19f);
+        velX = (random.nextBoolean() ? 1 : -1) * (service.dpToPx(10f) + random.nextFloat() * service.dpToPx(6f));
+        service.triggerHaptic(45);
+        say("WAAAAA!! A volar por los aires!", 2400);
+    }
+
+    public void triggerCustomAction(int actionIndex) {
+        String[][] actions = SkinData.getCustomActions(skin.id);
+        if (actions != null && actionIndex >= 0 && actionIndex < actions.length) {
+            String[] act = actions[actionIndex];
+            state = "CUSTOM_ACTION";
+            stateTimer = 110;
+            customFrameName1 = act[2];
+            customFrameName2 = act[3];
+            customActionDialogue = act[4];
+            say(act[4], 3200);
+            service.triggerHaptic(30);
+        }
+    }
+
     public void setSkin(SkinData newSkin) {
         if (newSkin == null) return;
         this.skin = newSkin;
+        updateCustomActionMenuButtons();
         updateSprite();
         say("Hola! Soy " + skin.name + "!", 2500);
     }
@@ -283,6 +363,11 @@ public class ShimejiEntity {
         isLongPressTriggered = true;
         service.triggerHaptic(50);
         if (layoutLongPressMenu != null) {
+            TextView tvTitle = overlayView.findViewById(R.id.tv_menu_title);
+            if (tvTitle != null) {
+                tvTitle.setText(skin.name + " (" + hp + " HP)" + (isKo ? " [K.O.]" : ""));
+            }
+            updateCustomActionMenuButtons();
             layoutLongPressMenu.setVisibility(View.VISIBLE);
             tvSpeechBubble.setVisibility(View.GONE);
             state = "STAND";
@@ -303,6 +388,10 @@ public class ShimejiEntity {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        if (isKo) {
+                            heal(30, "reanimacion");
+                            return true;
+                        }
                         isDragging = true;
                         isLongPressTriggered = false;
                         touchStartTime = System.currentTimeMillis();
@@ -382,24 +471,38 @@ public class ShimejiEntity {
                         float totalDist = (float) Math.hypot(event.getRawX() - touchStartX, event.getRawY() - touchStartY);
                         long duration = System.currentTimeMillis() - touchStartTime;
 
+                        // Caricia suave prolongada (>500ms y sin moverse mucho) -> Cura HP!
+                        if (totalDist < service.dpToPx(16) && duration >= 500) {
+                            heal(20, "caricias");
+                            return true;
+                        }
+
                         if (totalDist < service.dpToPx(12) && duration < 380) {
                             onPoke();
                         } else {
                             currentFloorY = Math.min(bottomMarginUp, Math.max(topMarginUp, posY));
 
                             long dt = System.currentTimeMillis() - lastMoveTime;
-                            if (dt > 0 && dt < 150) {
-                                velX = (event.getRawX() - lastMoveX) * 0.9f;
-                                velY = (event.getRawY() - lastMoveY) * 0.9f;
+                            if (dt > 0 && dt < 160) {
+                                float flingVx = (event.getRawX() - lastMoveX) * 1.25f;
+                                float flingVy = (event.getRawY() - lastMoveY) * 1.25f;
+                                float maxSpd = service.dpToPx(30f);
+                                velX = Math.max(-maxSpd, Math.min(maxSpd, flingVx));
+                                velY = Math.max(-maxSpd, Math.min(maxSpd, flingVy));
+
+                                if (Math.hypot(velX, velY) > service.dpToPx(8f)) {
+                                    state = "FLUNG";
+                                    service.triggerHaptic(30);
+                                } else {
+                                    state = zeroGravity ? "ROAM" : "FALL";
+                                    service.triggerHaptic(15);
+                                }
                             } else {
                                 velX = 0;
                                 velY = zeroGravity ? 0 : 2f;
+                                state = zeroGravity ? "ROAM" : "FALL";
+                                service.triggerHaptic(15);
                             }
-                            velX = Math.max(-28f, Math.min(28f, velX));
-                            velY = Math.max(-32f, Math.min(32f, velY));
-
-                            state = zeroGravity ? "ROAM" : "FALL";
-                            service.triggerHaptic(15);
                         }
                         return true;
                 }
@@ -462,6 +565,20 @@ public class ShimejiEntity {
     public void updatePhysics(int screenWidth, int screenHeight, boolean globalZeroGravity) {
         if (isDragging || overlayView == null) return;
 
+        if ("KO".equals(state) || isKo) {
+            velX = 0;
+            velY = 0;
+            koTimer--;
+            if (koTimer <= 0) {
+                recoverFromKo();
+            }
+            updateSprite();
+            params.x = (int) posX;
+            params.y = (int) posY;
+            service.getWindowManager().updateViewLayout(overlayView, params);
+            return;
+        }
+
         boolean isZeroG = zeroGravity || globalZeroGravity;
         int sizePx = service.getSizePx();
         int leftEdge = 0;
@@ -471,36 +588,69 @@ public class ShimejiEntity {
 
         tickCount++;
 
-        // 1. Caida
-        if ("FALL".equals(state)) {
-            float gravity = isZeroG ? 0.05f : 1.6f;
+        // 1. Caida y Lanzamiento con fisicas elasticas y dano
+        if ("FALL".equals(state) || "FLUNG".equals(state)) {
+            float gravity = isZeroG ? 0.05f : service.dpToPx(1.35f);
+            velX *= 0.985f;
+            velY *= 0.992f;
             velY += gravity;
             posX += velX;
             posY += velY;
 
+            // Rebote pared izquierda
             if (posX <= leftEdge) {
                 posX = leftEdge;
-                velX = -velX * 0.4f;
-                if (random.nextFloat() < 0.45f) {
+                float impactSpeed = Math.abs(velX);
+                if (impactSpeed > service.dpToPx(11f)) {
+                    takeDamage((int) (impactSpeed / service.dpToPx(2.2f)));
+                }
+                velX = -velX * 0.70f;
+                if (Math.abs(velX) < service.dpToPx(1.5f) && random.nextFloat() < 0.35f) {
                     state = "CLIMB_LEFT";
                     velY = -service.dpToPx(2.2f);
                 }
-            } else if (posX >= rightEdge) {
+            }
+            // Rebote pared derecha
+            else if (posX >= rightEdge) {
                 posX = rightEdge;
-                velX = -velX * 0.4f;
-                if (random.nextFloat() < 0.45f) {
+                float impactSpeed = Math.abs(velX);
+                if (impactSpeed > service.dpToPx(11f)) {
+                    takeDamage((int) (impactSpeed / service.dpToPx(2.2f)));
+                }
+                velX = -velX * 0.70f;
+                if (Math.abs(velX) < service.dpToPx(1.5f) && random.nextFloat() < 0.35f) {
                     state = "CLIMB_RIGHT";
                     velY = -service.dpToPx(2.2f);
                 }
             }
 
-            if (posY >= currentFloorY) {
+            // Rebote techo
+            if (posY <= topEdge) {
+                posY = topEdge;
+                float impactSpeed = Math.abs(velY);
+                if (impactSpeed > service.dpToPx(11f)) {
+                    takeDamage((int) (impactSpeed / service.dpToPx(2.2f)));
+                }
+                velY = -velY * 0.70f;
+            }
+            // Rebote piso
+            else if (posY >= currentFloorY) {
                 posY = currentFloorY;
-                velY = 0;
-                velX *= 0.5f;
-                state = "STAND";
-                stateTimer = 40 + random.nextInt(60);
-                service.triggerHaptic(10);
+                float impactSpeed = Math.abs(velY);
+                if (impactSpeed > service.dpToPx(13f)) {
+                    takeDamage((int) (impactSpeed / service.dpToPx(2.2f)));
+                }
+                if (Math.abs(velY) > service.dpToPx(3.5f)) {
+                    velY = -velY * 0.58f;
+                    velX *= 0.72f;
+                    service.triggerHaptic(12);
+                } else {
+                    velY = 0;
+                    velX = 0;
+                    state = "STAND";
+                    stateTimer = 40 + random.nextInt(60);
+                    service.triggerHaptic(10);
+                }
             }
         }
         // 2. Caminar horizontalmente en su nivel actual
@@ -661,7 +811,12 @@ public class ShimejiEntity {
                 service.triggerHaptic(15);
             }
         }
-        // 10. Estados estaticos
+        // 10. Accion personalizada de la skin
+        else if ("CUSTOM_ACTION".equals(state)) {
+            stateTimer--;
+            if (stateTimer <= 0) pickRandomState();
+        }
+        // 11. Estados estaticos
         else {
             stateTimer--;
             if (stateTimer <= 0) pickRandomState();
@@ -678,53 +833,63 @@ public class ShimejiEntity {
             }
         }
 
-        params.x = (int) posX;
-        params.y = (int) posY;
+        int shakeOffX = 0;
+        int shakeOffY = 0;
+        if (shakeTicks > 0) {
+            shakeTicks--;
+            shakeOffX = (random.nextInt(7) - 3) * service.dpToPx(1.5f);
+            shakeOffY = (random.nextInt(7) - 3) * service.dpToPx(1.5f);
+        }
+
+        params.x = (int) posX + shakeOffX;
+        params.y = (int) posY + shakeOffY;
         service.getWindowManager().updateViewLayout(overlayView, params);
 
         updateSprite();
     }
 
     private void pickRandomState() {
+        if (isKo) return;
         float r = random.nextFloat();
         if (r < 0.35f) {
             state = "WALK";
             facing = random.nextBoolean() ? 1 : -1;
             velX = facing * (service.dpToPx(1.5f) + random.nextFloat() * service.dpToPx(1.5f));
             stateTimer = 90 + random.nextInt(120);
-        } else if (r < 0.60f) {
+        } else if (r < 0.58f) {
             state = "ROAM";
             facing = random.nextBoolean() ? 1 : -1;
             velX = facing * (service.dpToPx(1.2f) + random.nextFloat() * service.dpToPx(1.5f));
             velY = (random.nextBoolean() ? 1 : -1) * (service.dpToPx(1f) + random.nextFloat() * service.dpToPx(1.5f));
             stateTimer = 80 + random.nextInt(100);
-        } else if (r < 0.75f) {
+        } else if (r < 0.74f) {
             state = "STAND";
             velX = 0;
             velY = 0;
             stateTimer = 60 + random.nextInt(90);
-        } else if (r < 0.85f) {
+        } else if (r < 0.84f) {
             state = "SIT";
             velX = 0;
             velY = 0;
             stateTimer = 80 + random.nextInt(90);
-        } else if (r < 0.92f) {
-            state = "GUITAR";
-            velX = 0;
-            velY = 0;
-            stateTimer = 110 + random.nextInt(80);
         } else {
-            state = "BOX";
-            velX = 0;
-            velY = 0;
-            stateTimer = 100 + random.nextInt(80);
+            String[][] actions = SkinData.getCustomActions(skin.id);
+            if (actions != null && actions.length > 0) {
+                int chosenAct = random.nextInt(actions.length);
+                triggerCustomAction(chosenAct);
+            } else {
+                state = "STAND";
+                stateTimer = 60;
+            }
         }
     }
 
     public void updateSprite() {
         String frameName = "stand1";
 
-        if ("FALL".equals(state) || "ROAM".equals(state)) {
+        if ("KO".equals(state) || isKo) {
+            frameName = "kneel1";
+        } else if ("FLUNG".equals(state) || "FALL".equals(state) || "ROAM".equals(state)) {
             frameName = (Math.abs(velY) > service.dpToPx(3)) ? "fall1" : "stand1";
         } else if ("JUMP".equals(state)) {
             frameName = (velY > 0) ? "fall1" : "stand3";
@@ -736,7 +901,16 @@ public class ShimejiEntity {
             String[] rollFrames = {"fall1", "sit1", "stand1"};
             int idx = (tickCount / 3) % rollFrames.length;
             frameName = rollFrames[idx];
-        } else if ("WALK".equals(state) || "CEILING".equals(state)) {
+        } else if ("CEILING".equals(state)) {
+            // Dokis usan su sprite dedicado climb_top para escalar el techo
+            if (skin.folder.matches("Monika|Sayori|Natsuki|Yuri")) {
+                frameName = "climb_top";
+            } else {
+                String[] walkFrames = {"walk1", "walk2", "walk3", "walk4", "walk5"};
+                int idx = (tickCount / 5) % walkFrames.length;
+                frameName = walkFrames[idx];
+            }
+        } else if ("WALK".equals(state)) {
             String[] walkFrames = {"walk1", "walk2", "walk3", "walk4", "walk5"};
             int idx = (tickCount / 5) % walkFrames.length;
             frameName = walkFrames[idx];
@@ -746,6 +920,14 @@ public class ShimejiEntity {
             frameName = climbFrames[idx];
         } else if ("SIT".equals(state)) {
             frameName = "sit1";
+        } else if ("CUSTOM_ACTION".equals(state)) {
+            if (customFrameName1 != null && customFrameName2 != null) {
+                frameName = ((tickCount / 10) % 2 == 0) ? customFrameName1 : customFrameName2;
+            } else if (customFrameName1 != null) {
+                frameName = customFrameName1;
+            } else {
+                frameName = "sit1";
+            }
         } else if ("GUITAR".equals(state)) {
             String[] guitarFrames = {"guitar1", "guitar2", "guitar3"};
             int idx = (tickCount / 6) % guitarFrames.length;

@@ -40,7 +40,7 @@
 		<Condition Condition="#{mascot.environment.floor.isOn(mascot.anchor) || mascot.environment.activeIE.topBorder.isOn(mascot.anchor)}">
 			<Behavior Name="StandUp" Frequency="200" Hidden="true" />
 			<Behavior Name="GetSnug" Frequency="100" />
-			<Behavior Name="PullUpClone" Frequency="50" Condition="#{mascot.totalCount &lt; 50}" />
+			<Behavior Name="PullUpClone" Frequency="0" Hidden="true" Condition="#{mascot.totalCount &lt; 50}" />
 			<Behavior Name="JumpFromBottomOfIE" Frequency="50" />
 		</Condition>
 
