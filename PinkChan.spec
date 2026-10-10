@@ -6,6 +6,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('img', 'img'),
+        ('sounds', 'sounds'),
         ('Actions.xml', '.'),
         ('Behaviors.xml', '.'),
     ],

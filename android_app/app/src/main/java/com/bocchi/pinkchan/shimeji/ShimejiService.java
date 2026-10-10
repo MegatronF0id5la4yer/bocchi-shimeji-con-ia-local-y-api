@@ -754,7 +754,7 @@ public class ShimejiService extends Service {
         boolean vsEnabled = sp.getBoolean("voice_studio_enabled", true);
         String apiKey = sp.getString(MainActivity.KEY_GEMINI_KEY, "").trim();
 
-        if (vsEnabled && !apiKey.isEmpty()) {
+        if (vsEnabled) {
             VoiceStudioHelper.synthesizeSpeech(this, clean, skinId, new VoiceStudioHelper.VoiceStudioCallback() {
                 @Override
                 public void onSuccess(File audioFile) {
@@ -763,10 +763,15 @@ public class ShimejiService extends Service {
 
                 @Override
                 public void onError(String error) {
-                    speakNativeTts(clean, skinId);
+                    if (!VoiceStudioHelper.playCharacterAsset(ShimejiService.this, skinId, "idle", ttsMediaPlayer)) {
+                        speakNativeTts(clean, skinId);
+                    }
                 }
             });
-        } else {
+            return;
+        }
+
+        if (!VoiceStudioHelper.playCharacterAsset(this, skinId, "idle", ttsMediaPlayer)) {
             speakNativeTts(clean, skinId);
         }
     }
@@ -983,6 +988,12 @@ public class ShimejiService extends Service {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void playCharacterSound(String skinId, String clipName) {
+        if (!VoiceStudioHelper.playCharacterAsset(this, skinId, clipName, null)) {
+            playPopueSound();
         }
     }
 

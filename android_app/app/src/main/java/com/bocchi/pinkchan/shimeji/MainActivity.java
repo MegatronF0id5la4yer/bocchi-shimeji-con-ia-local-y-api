@@ -3333,8 +3333,10 @@ public class MainActivity extends Activity {
 
                 @Override
                 public void onError(String error) {
-                    Toast.makeText(MainActivity.this, "Fallo Voice Studio: " + error + ". Probando local...", Toast.LENGTH_SHORT).show();
-                    speakLocalTts(prof.testDialogue, cKey, 1.0f, 1.0f);
+                    Toast.makeText(MainActivity.this, "Voice Studio: " + error + ". Probando voz original...", Toast.LENGTH_SHORT).show();
+                    if (!VoiceStudioHelper.playCharacterAsset(MainActivity.this, cKey, "idle", previewMediaPlayer)) {
+                        speakLocalTts(prof.testDialogue, cKey, 1.0f, 1.0f);
+                    }
                 }
             });
         });

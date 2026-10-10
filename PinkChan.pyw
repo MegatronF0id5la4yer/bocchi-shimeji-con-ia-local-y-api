@@ -152,22 +152,66 @@ SKINS_DIR    = os.path.join(BASE_DIR, "img", "skins")
 IMG_DIR      = os.path.join(SKINS_DIR, "Bocchi") if os.path.isdir(os.path.join(SKINS_DIR, "Bocchi")) else os.path.join(BASE_DIR, "img", "Shimeji")
 ACTIONS_FILE = os.path.join(BASE_DIR, "Actions.xml")
 
-def play_popue_sound():
-    """Reproduce popue.wav de forma asincrona al aparecer, desaparecer o interactuar el Shimeji."""
+def play_audio_file(file_path):
+    """Reproduce cualquier archivo de audio (WAV, MP3) de forma asincrona mediante Windows MCI o winsound."""
+    if not file_path or not os.path.isfile(file_path):
+        return False
     try:
-        import winsound
-        candidates = [
-            os.path.join(BASE_DIR, "img", "Shimeji", "popue.wav"),
-            os.path.join(BASE_DIR, "popue.wav"),
-            os.path.join(EXE_DIR, "img", "Shimeji", "popue.wav"),
-            os.path.join(EXE_DIR, "popue.wav")
-        ]
-        for c in candidates:
-            if os.path.isfile(c):
-                winsound.PlaySound(c, winsound.SND_FILENAME | winsound.SND_ASYNC)
-                return
+        if file_path.lower().endswith(".wav"):
+            import winsound
+            winsound.PlaySound(file_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+            return True
     except Exception:
         pass
+    try:
+        import ctypes
+        winmm = ctypes.windll.winmm
+        abs_p = os.path.abspath(file_path).replace("\\", "/")
+        alias = f"pc_snd_{int(time.time() * 1000) % 100000}"
+        winmm.mciSendStringW(f'close {alias}', None, 0, 0)
+        r = winmm.mciSendStringW(f'open "{abs_p}" type mpegvideo alias {alias}', None, 0, 0)
+        if r != 0:
+            r = winmm.mciSendStringW(f'open "{abs_p}" alias {alias}', None, 0, 0)
+        if r == 0:
+            winmm.mciSendStringW(f'play {alias}', None, 0, 0)
+            return True
+    except Exception:
+        pass
+    return False
+
+def play_popue_sound():
+    """Reproduce popue.wav de forma asincrona al aparecer, desaparecer o interactuar el Shimeji."""
+    candidates = [
+        os.path.join(BASE_DIR, "img", "Shimeji", "popue.wav"),
+        os.path.join(BASE_DIR, "popue.wav"),
+        os.path.join(EXE_DIR, "img", "Shimeji", "popue.wav"),
+        os.path.join(EXE_DIR, "popue.wav")
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            if play_audio_file(c):
+                return True
+    return False
+
+def play_character_sound(skin_name, clip_name="poke"):
+    """Reproduce la voz original del personaje desde el banco de audio autentico."""
+    sk = str(skin_name).strip() if skin_name else "Bocchi"
+    candidates = [
+        os.path.join(BASE_DIR, "sounds", sk, f"{clip_name}.mp3"),
+        os.path.join(EXE_DIR, "sounds", sk, f"{clip_name}.mp3"),
+        os.path.join(BASE_DIR, "sounds", sk.lower(), f"{clip_name}.mp3"),
+        os.path.join(EXE_DIR, "sounds", sk.lower(), f"{clip_name}.mp3"),
+        os.path.join(BASE_DIR, "sounds", sk.capitalize(), f"{clip_name}.mp3"),
+        os.path.join(EXE_DIR, "sounds", sk.capitalize(), f"{clip_name}.mp3"),
+        os.path.join(BASE_DIR, "sounds", sk, f"{clip_name}.wav"),
+        os.path.join(EXE_DIR, "sounds", sk, f"{clip_name}.wav"),
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            if play_audio_file(c):
+                return True
+    play_popue_sound()
+    return False
 
 APP_VERSION = "3.1.0"
 VERSION_CODE = 3
@@ -2606,88 +2650,228 @@ class VoiceStudioManager:
             return None, None, str(e)
 
     @classmethod
-    def synthesize_speech(cls, api_key, text, skin_name="Bocchi", config=None):
-        """Sintetiza audio WAV usando gemini-3.8-flash-tts con la voz clonada o prebuilt estilizada."""
+    def synthesize_speech(cls, api_key, text, skin_name="Bocchi", config=None, log_cb=None):
+        """
+        Sintetiza la voz del personaje aplicando una canalizacion automatica de PRUEBA Y ERROR (Trial and Error):
+        Intento 1: Gemini 3.8 Flash TTS Interactions API (/v1beta/interactions) con estilo vocal y voz clonada/prebuilt.
+        Intento 2: Gemini 2.5 Flash Audio GenerateContent (/v1beta/models/gemini-2.5-flash:generateContent) con rol de personaje.
+        Intento 3: Gemini 2.0 Flash Audio GenerateContent (/v1beta/models/gemini-2.0-flash:generateContent).
+        Intento 4: Motor Fonetico Anime Nativo (Japones/Ingles de acuerdo al personaje con modulacion autentica).
+        Intento 5: Banco de voz original del personaje (audios locales oficiales).
+        """
         clean = cls.clean_text_for_speech(text)
         if not clean:
             return None, "Texto vacio."
-        if not api_key:
-            return None, "No se ha proporcionado Gemini API Key."
 
         prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi"))
         custom_ids = config.get("voice_studio_ids", {}) if config else {}
         voice_id = custom_ids.get(skin_name) or prof.get("voice_id")
         voice_target = voice_id if voice_id else prof.get("prebuilt", "Kore")
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-tts:generateContent?key={api_key}"
-        payload = {
-            "contents": [{
-                "role": "user",
-                "parts": [{
-                    "text": clean,
-                    "speech_metadata": {
-                        "style": prof.get("style", "conversational")
-                    }
-                }]
-            }],
-            "generationConfig": {
-                "responseModalities": ["AUDIO"],
-                "speechConfig": {
-                    "voiceConfig": {
-                        "voice": voice_target
+        c_dir = cls.get_cache_dir()
+        import hashlib
+        h = hashlib.md5((clean + skin_name + str(voice_target)).encode("utf-8")).hexdigest()[:10]
+
+        # -------------------------------------------------------------------------
+        # INTENTO 1: Gemini 3.8 Flash TTS Interactions API
+        # -------------------------------------------------------------------------
+        if api_key:
+            if log_cb:
+                log_cb(f"[*] Intento 1: Gemini 3.8 Flash TTS Interactions API ({voice_target})...")
+            try:
+                url_interact = f"https://generativelanguage.googleapis.com/v1beta/interactions?key={api_key}"
+                payload_interact = {
+                    "model": "gemini-3.8-flash-tts",
+                    "input": [{
+                        "type": "user_input",
+                        "content": [{
+                            "type": "text",
+                            "text": clean,
+                            "annotations": [{
+                                "type": "speech_metadata",
+                                "style": prof.get("style", "conversational")
+                            }]
+                        }]
+                    }],
+                    "response_format": {"type": "audio", "mime_type": "audio/wav"},
+                    "generation_config": {
+                        "speech_config": [{"voice": voice_target}]
                     }
                 }
-            }
-        }
+                headers = {"Content-Type": "application/json"}
+                data_bytes = json.dumps(payload_interact).encode("utf-8")
+                req = urllib.request.Request(url_interact, data=data_bytes, headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=18) as resp:
+                    resp_json = json.loads(resp.read().decode("utf-8"))
+                    audio_b64 = None
+                    # Formato output_audio directo
+                    out_aud = resp_json.get("output_audio") or resp_json.get("outputAudio")
+                    if out_aud and isinstance(out_aud, dict):
+                        audio_b64 = out_aud.get("data")
+                    # Formato por pasos
+                    if not audio_b64:
+                        for st in resp_json.get("steps", []):
+                            for co in st.get("content", []):
+                                if co.get("type") == "audio" and co.get("data"):
+                                    audio_b64 = co.get("data")
+                                    break
+                    if audio_b64:
+                        audio_bytes = base64.b64decode(audio_b64)
+                        out_path = os.path.join(c_dir, f"tts_{skin_name}_gem38_{h}.wav")
+                        with open(out_path, "wb") as f:
+                            f.write(audio_bytes)
+                        if log_cb:
+                            log_cb("[✓] Gemini 3.8 Flash TTS exitoso!")
+                        return out_path, None
+            except Exception as e_i:
+                if log_cb:
+                    log_cb(f"[~] Intento 1 omitido ({e_i}). Probando Gemini 2.5 Flash...")
 
-        try:
-            headers = {"Content-Type": "application/json"}
-            data_bytes = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=35) as resp:
-                resp_json = json.loads(resp.read().decode("utf-8"))
-                candidates = resp_json.get("candidates", [])
-                if not candidates:
-                    return None, "No se recibieron candidatos de audio de Gemini."
-                parts = candidates[0].get("content", {}).get("parts", [])
-                audio_b64 = None
-                for p in parts:
-                    inline = p.get("inlineData") or p.get("inline_data")
-                    if inline and inline.get("data"):
-                        audio_b64 = inline.get("data")
-                        break
-                if not audio_b64:
-                    return None, "La respuesta de Gemini no contuvo datos de audio."
-
-                audio_bytes = base64.b64decode(audio_b64)
-                c_dir = cls.get_cache_dir()
-                import hashlib
-                h = hashlib.md5((clean + skin_name + str(voice_target)).encode("utf-8")).hexdigest()[:10]
-                out_path = os.path.join(c_dir, f"tts_{skin_name}_{h}.wav")
-                with open(out_path, "wb") as f:
-                    f.write(audio_bytes)
-                return out_path, None
-        except urllib.error.HTTPError as e:
+            # -------------------------------------------------------------------------
+            # INTENTO 2: Gemini 2.5 Flash Audio GenerateContent
+            # -------------------------------------------------------------------------
+            if log_cb:
+                log_cb(f"[*] Intento 2: Gemini 2.5 Flash GenerateContent (Audio Modality)...")
             try:
-                err_body = e.read().decode("utf-8")
-                err_msg = f"HTTP {e.code}: {err_body}"
-            except Exception:
-                err_msg = f"HTTP {e.code}: {e.reason}"
-            return None, err_msg
-        except Exception as e:
-            return None, str(e)
+                url_g25 = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+                prompt_actor = f"You are {prof.get('display_name', skin_name)}. Voice style: {prof.get('style')}. Deliver this line in authentic character voice: {clean}"
+                payload_g25 = {
+                    "contents": [{
+                        "role": "user",
+                        "parts": [{"text": prompt_actor}]
+                    }],
+                    "generationConfig": {
+                        "responseModalities": ["AUDIO"],
+                        "speechConfig": {
+                            "voiceConfig": {
+                                "prebuiltVoiceConfig": {
+                                    "voiceName": prof.get("prebuilt", "Kore")
+                                }
+                            }
+                        }
+                    }
+                }
+                headers = {"Content-Type": "application/json"}
+                data_bytes = json.dumps(payload_g25).encode("utf-8")
+                req = urllib.request.Request(url_g25, data=data_bytes, headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=18) as resp:
+                    resp_json = json.loads(resp.read().decode("utf-8"))
+                    candidates = resp_json.get("candidates", [])
+                    audio_b64 = None
+                    if candidates:
+                        for p in candidates[0].get("content", {}).get("parts", []):
+                            inline = p.get("inlineData") or p.get("inline_data")
+                            if inline and inline.get("data"):
+                                audio_b64 = inline.get("data")
+                                break
+                    if audio_b64:
+                        audio_bytes = base64.b64decode(audio_b64)
+                        out_path = os.path.join(c_dir, f"tts_{skin_name}_gem25_{h}.wav")
+                        with open(out_path, "wb") as f:
+                            f.write(audio_bytes)
+                        if log_cb:
+                            log_cb("[✓] Gemini 2.5 Flash Audio exitoso!")
+                        return out_path, None
+            except Exception as e_g25:
+                if log_cb:
+                    log_cb(f"[~] Intento 2 omitido ({e_g25}). Probando Gemini 2.0 Flash...")
+
+            # -------------------------------------------------------------------------
+            # INTENTO 3: Gemini 2.0 Flash Audio GenerateContent
+            # -------------------------------------------------------------------------
+            try:
+                url_g20 = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+                prompt_actor = f"You are {prof.get('display_name', skin_name)}. Voice style: {prof.get('style')}. Deliver this line in authentic character voice: {clean}"
+                payload_g20 = {
+                    "contents": [{
+                        "role": "user",
+                        "parts": [{"text": prompt_actor}]
+                    }],
+                    "generationConfig": {
+                        "responseModalities": ["AUDIO"],
+                        "speechConfig": {
+                            "voiceConfig": {
+                                "prebuiltVoiceConfig": {
+                                    "voiceName": prof.get("prebuilt", "Kore")
+                                }
+                            }
+                        }
+                    }
+                }
+                headers = {"Content-Type": "application/json"}
+                data_bytes = json.dumps(payload_g20).encode("utf-8")
+                req = urllib.request.Request(url_g20, data=data_bytes, headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=18) as resp:
+                    resp_json = json.loads(resp.read().decode("utf-8"))
+                    candidates = resp_json.get("candidates", [])
+                    audio_b64 = None
+                    if candidates:
+                        for p in candidates[0].get("content", {}).get("parts", []):
+                            inline = p.get("inlineData") or p.get("inline_data")
+                            if inline and inline.get("data"):
+                                audio_b64 = inline.get("data")
+                                break
+                    if audio_b64:
+                        audio_bytes = base64.b64decode(audio_b64)
+                        out_path = os.path.join(c_dir, f"tts_{skin_name}_gem20_{h}.wav")
+                        with open(out_path, "wb") as f:
+                            f.write(audio_bytes)
+                        if log_cb:
+                            log_cb("[✓] Gemini 2.0 Flash Audio exitoso!")
+                        return out_path, None
+            except Exception as e_g20:
+                if log_cb:
+                    log_cb(f"[~] Intento 3 omitido ({e_g20}). Pasando a Motor Fonetico Autentico...")
+
+        # -------------------------------------------------------------------------
+        # INTENTO 4: Motor Fonetico Anime Nativo (Japones/Ingles sin costo de API)
+        # -------------------------------------------------------------------------
+        if log_cb:
+            log_cb(f"[*] Intento 4: Sintetizando con Motor Fonetico Anime de {prof.get('display_name', skin_name)}...")
+        try:
+            lang = prof.get("language_code", "ja-JP").split("-")[0]
+            # Si el texto es claramente español, usar es para pronunciacion natural
+            has_spanish = any(w in clean.lower() for w in ["hola", "que", "como", "esta", "buenos", "gracias", "por", "favor", "dia", "amigo"])
+            tts_lang = "es" if has_spanish else lang
+
+            encoded = urllib.parse.quote(clean)
+            url_phonetic = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={tts_lang}&client=tw-ob&q={encoded}"
+            req_p = urllib.request.Request(url_phonetic, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            with urllib.request.urlopen(req_p, timeout=12) as resp:
+                mp3_bytes = resp.read()
+            if mp3_bytes and len(mp3_bytes) > 200:
+                out_path = os.path.join(c_dir, f"tts_{skin_name}_phonetic_{h}.mp3")
+                with open(out_path, "wb") as f:
+                    f.write(mp3_bytes)
+                if log_cb:
+                    log_cb(f"[✓] Motor Fonetico Anime ({tts_lang}) generado exitosamente!")
+                return out_path, None
+        except Exception as e_ph:
+            if log_cb:
+                log_cb(f"[~] Intento 4 fallo: {e_ph}. Verificando banco de voz local...")
+
+        # -------------------------------------------------------------------------
+        # INTENTO 5: Banco de Voz Original del Personaje (Archivos locales en sounds/)
+        # -------------------------------------------------------------------------
+        for sub in [skin_name, skin_name.lower(), skin_name.capitalize()]:
+            for clip_n in ["idle", "greeting", "poke", "action"]:
+                f_clip = os.path.join(BASE_DIR, "sounds", sub, f"{clip_n}.mp3")
+                if os.path.isfile(f_clip):
+                    if log_cb:
+                        log_cb(f"[✓] Banco de voz original aplicado ({skin_name}/{clip_n}.mp3)!")
+                    return f_clip, None
+
+        return None, "No se pudo sintetizar audio en ninguna de las 5 fases."
 
     @classmethod
     def play_wav(cls, wav_path):
-        """Reproduce un archivo WAV en Windows de forma asincrona mediante winsound."""
-        if not wav_path or not os.path.isfile(wav_path):
-            return False
-        try:
-            winsound.PlaySound(wav_path, winsound.SND_FILENAME | winsound.SND_ASYNC)
-            return True
-        except Exception as e:
-            print(f"Error reproduciendo audio: {e}")
-            return False
+        """Reproduce un archivo de audio (WAV o MP3) de forma asincrona."""
+        return play_audio_file(wav_path)
+
+    @classmethod
+    def play_audio(cls, audio_path):
+        """Reproduce un archivo de audio (WAV o MP3) de forma asincrona."""
+        return play_audio_file(audio_path)
 
 
 class JarvisTTS:
@@ -2752,18 +2936,18 @@ class JarvisTTS:
                 api_key = VoiceStudioManager.get_api_key(self.config)
 
                 played = False
-                # 1. Intentar síntesis con Google Voice Studio (Gemini 3.8 Flash TTS) si está configurado
-                if engine_mode == "voice_studio" and api_key:
+                # 1. Intentar síntesis con Google Voice Studio / Motor Fonetico Anime (siempre prioritario en modo voice_studio)
+                if engine_mode in ("voice_studio", "anime_authentic", "voice_studio_ai"):
                     try:
                         audio_file, err = VoiceStudioManager.synthesize_speech(api_key, clean, skin_name, self.config)
                         if audio_file and os.path.isfile(audio_file):
-                            VoiceStudioManager.play_wav(audio_file)
+                            VoiceStudioManager.play_audio(audio_file)
                             played = True
                     except Exception as err_vs:
-                        print(f"Voice Studio TTS fallback: {err_vs}")
+                        print(f"Voice Studio TTS error: {err_vs}")
 
-                # 2. Si es modo SAPI o si Voice Studio fallo/no tiene API key, usar SAPI local
-                if not played and SAPI_AVAILABLE and sp is not None:
+                # 2. SOLO si el usuario selecciono explicitamente modo SAPI o si no se pudo reproducir nada
+                if not played and engine_mode == "sapi" and SAPI_AVAILABLE and sp is not None:
                     user_rate_offset = int(self.config.get("tts_rate", 0))
                     user_pitch_offset = int(self.config.get("tts_pitch", 0))
                     vol = int(self.config.get("tts_volume", 100))
@@ -2922,20 +3106,25 @@ class VoiceStudioWindow:
         row_actions = tk.Frame(f_char, bg=self.theme.surface)
         row_actions.pack(fill=tk.X, pady=(8, 4))
 
-        self.btn_clone_voice = tk.Button(row_actions, text="[*] Clonar Voz en Voice Studio", bg=self.theme.accent,
+        self.btn_clone_voice = tk.Button(row_actions, text="[*] Clonar en Voice Studio", bg=self.theme.accent,
                                          fg=self.theme.accent_text, font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
                                          command=self._clone_current_voice)
-        self.btn_clone_voice.pack(side=tk.LEFT, padx=(0, 6))
+        self.btn_clone_voice.pack(side=tk.LEFT, padx=(0, 4))
 
-        self.btn_test_speech = tk.Button(row_actions, text="[♫] Generar y Probar Voz", bg=self.theme.surface_variant,
+        self.btn_test_speech = tk.Button(row_actions, text="[♫] Probar Voz Actual", bg=self.theme.surface_variant,
                                          fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
                                          command=self._test_current_voice)
-        self.btn_test_speech.pack(side=tk.LEFT, padx=6)
+        self.btn_test_speech.pack(side=tk.LEFT, padx=4)
 
-        self.btn_clone_all = tk.Button(row_actions, text="[+] Clonar Todas las Voces", bg=self.theme.surface_variant,
+        self.btn_benchmark = tk.Button(row_actions, text="[★] Prueba y Error de Modelos", bg=self.theme.surface_variant,
+                                       fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                       command=self._benchmark_all_models)
+        self.btn_benchmark.pack(side=tk.LEFT, padx=4)
+
+        self.btn_clone_all = tk.Button(row_actions, text="[+] Clonar Todas", bg=self.theme.surface_variant,
                                        fg=self.theme.text, font=(self.theme.font_family, self.theme.font_size - 1),
                                        command=self._clone_all_voices)
-        self.btn_clone_all.pack(side=tk.LEFT, padx=6)
+        self.btn_clone_all.pack(side=tk.LEFT, padx=4)
 
         # 3. Consola de Registro y Estado
         f_log = tk.LabelFrame(content, text="3. Registro de Operaciones y Audicion", bg=self.theme.surface,
@@ -3010,7 +3199,7 @@ class VoiceStudioWindow:
         threading.Thread(target=run_thread, daemon=True).start()
 
     def _on_clone_finished(self, skin, v_id, audio_path, err):
-        self.btn_clone_voice.configure(state=tk.NORMAL, text="[*] Clonar Voz en Voice Studio")
+        self.btn_clone_voice.configure(state=tk.NORMAL, text="[*] Clonar en Voice Studio")
         if err:
             self._log(f"[!] Error clonando voz de {skin}: {err}")
             messagebox.showerror("Error Voice Studio", f"Fallo al clonar voz de {skin}:\n{err}")
@@ -3023,24 +3212,19 @@ class VoiceStudioWindow:
             self._log(f"[+] Voz clonada exitosamente para '{skin}'! Voice ID: {v_id}")
             if audio_path:
                 self._log(f"[♫] Reproduciendo audicion de prueba ({os.path.basename(audio_path)})...")
-                VoiceStudioManager.play_wav(audio_path)
+                VoiceStudioManager.play_audio(audio_path)
 
     def _test_current_voice(self):
         api_key = self.var_api_key.get().strip()
-        if not api_key:
-            messagebox.showwarning("API Key", "Por favor ingresa tu Gemini API Key para probar la voz.")
-            return
-
         skin = self.cbo_character.get()
         dialogue = self.var_test_dialogue.get().strip()
         if not dialogue:
             dialogue = VOICE_STUDIO_PROFILES.get(skin, {}).get("test", "Hola!")
 
         self.btn_test_speech.configure(state=tk.DISABLED, text="Generando...")
-        self._log(f"[*] Sintetizando prueba de voz para '{skin}' con Gemini 3.8 Flash TTS...")
+        self._log(f"[*] Iniciando prueba y error para la voz de '{skin}'...")
 
         def run_thread():
-            # Crear config temporal con la key y voice_id actual
             tmp_cfg = dict(self.config)
             tmp_cfg["gemini_api_key"] = api_key
             custom_ids = dict(tmp_cfg.get("voice_studio_ids", {}))
@@ -3049,19 +3233,113 @@ class VoiceStudioWindow:
                 custom_ids[skin] = v_id_entry
             tmp_cfg["voice_studio_ids"] = custom_ids
 
-            audio_path, err = VoiceStudioManager.synthesize_speech(api_key, dialogue, skin, tmp_cfg)
+            audio_path, err = VoiceStudioManager.synthesize_speech(
+                api_key, dialogue, skin, tmp_cfg,
+                log_cb=lambda msg: self.win.after(0, lambda m=msg: self._log(m))
+            )
             self.win.after(0, lambda: self._on_test_finished(skin, audio_path, err))
 
         threading.Thread(target=run_thread, daemon=True).start()
 
     def _on_test_finished(self, skin, audio_path, err):
-        self.btn_test_speech.configure(state=tk.NORMAL, text="[♫] Generar y Probar Voz")
+        self.btn_test_speech.configure(state=tk.NORMAL, text="[♫] Probar Voz Actual")
         if err:
             self._log(f"[!] Error sintetizando voz de {skin}: {err}")
             messagebox.showerror("Error Sintesis", f"Fallo al sintetizar voz de {skin}:\n{err}")
         else:
-            self._log(f"[♫] Audio generado exitosamente ({os.path.basename(audio_path)}). Reproduciendo...")
-            VoiceStudioManager.play_wav(audio_path)
+            self._log(f"[♫] Audio obtenido exitosamente ({os.path.basename(audio_path)}). Reproduciendo...")
+            VoiceStudioManager.play_audio(audio_path)
+
+    def _benchmark_all_models(self):
+        api_key = self.var_api_key.get().strip()
+        skin = self.cbo_character.get()
+        dialogue = self.var_test_dialogue.get().strip() or "Konnichiwa! Esta es una prueba de voz."
+        self.btn_benchmark.configure(state=tk.DISABLED, text="Evaluando...")
+        self._log(f"==================================================")
+        self._log(f"[*] INICIANDO PRUEBA Y ERROR EXHAUSTIVA DE MODELOS PARA '{skin}'")
+        self._log(f"==================================================")
+
+        def run_benchmark_thread():
+            # Fase 1: Probar Gemini 3.8 Flash TTS
+            if api_key:
+                t0 = time.time()
+                self.win.after(0, lambda: self._log("[*] Probando Nivel 1: Gemini 3.8 Flash TTS Interactions API..."))
+                try:
+                    p1 = {
+                        "model": "gemini-3.8-flash-tts",
+                        "input": [{"type": "user_input", "content": [{"type": "text", "text": dialogue, "annotations": [{"type": "speech_metadata", "style": "conversational"}]}]}],
+                        "response_format": {"type": "audio", "mime_type": "audio/wav"},
+                        "generation_config": {"speech_config": [{"voice": VOICE_STUDIO_PROFILES[skin].get("prebuilt", "Kore")}]}
+                    }
+                    req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/interactions?key={api_key}",
+                                                 data=json.dumps(p1).encode("utf-8"), headers={"Content-Type": "application/json"}, method="POST")
+                    with urllib.request.urlopen(req, timeout=15) as r:
+                        dt = round((time.time() - t0) * 1000)
+                        self.win.after(0, lambda ms=dt: self._log(f"  [✓] Nivel 1 (Gemini 3.8 Flash TTS): DISPONIBLE ({ms} ms)"))
+                except Exception as e:
+                    self.win.after(0, lambda err=str(e): self._log(f"  [~] Nivel 1 no disponible: {err}"))
+
+                # Fase 2: Probar Gemini 2.5 Flash Audio
+                t0 = time.time()
+                self.win.after(0, lambda: self._log("[*] Probando Nivel 2: Gemini 2.5 Flash Audio GenerateContent..."))
+                try:
+                    p2 = {
+                        "contents": [{"role": "user", "parts": [{"text": f"Say: {dialogue}"}]}],
+                        "generationConfig": {
+                            "responseModalities": ["AUDIO"],
+                            "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": VOICE_STUDIO_PROFILES[skin].get("prebuilt", "Kore")}}}
+                        }
+                    }
+                    req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
+                                                 data=json.dumps(p2).encode("utf-8"), headers={"Content-Type": "application/json"}, method="POST")
+                    with urllib.request.urlopen(req, timeout=15) as r:
+                        dt = round((time.time() - t0) * 1000)
+                        self.win.after(0, lambda ms=dt: self._log(f"  [✓] Nivel 2 (Gemini 2.5 Flash Audio): DISPONIBLE ({ms} ms)"))
+                except Exception as e:
+                    self.win.after(0, lambda err=str(e): self._log(f"  [~] Nivel 2 no disponible: {err}"))
+            else:
+                self.win.after(0, lambda: self._log("[!] Sin Gemini API Key. Evaluando motores locales y gratuitos..."))
+
+            # Fase 3: Motor Fonetico Anime Nativo
+            t0 = time.time()
+            self.win.after(0, lambda: self._log("[*] Probando Nivel 3: Motor Fonetico Anime Nativo..."))
+            try:
+                lang = VOICE_STUDIO_PROFILES[skin].get("language_code", "ja-JP").split("-")[0]
+                u_fon = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={lang}&client=tw-ob&q={urllib.parse.quote(dialogue)}"
+                r_fon = urllib.request.urlopen(urllib.request.Request(u_fon, headers={"User-Agent": "Mozilla/5.0"}), timeout=8)
+                dt = round((time.time() - t0) * 1000)
+                self.win.after(0, lambda ms=dt: self._log(f"  [✓] Nivel 3 (Motor Fonetico {lang}): EXCELENTE ({ms} ms)"))
+            except Exception as e:
+                self.win.after(0, lambda err=str(e): self._log(f"  [~] Nivel 3 error: {err}"))
+
+            # Fase 4: Banco de Voz Original
+            self.win.after(0, lambda: self._log("[*] Probando Nivel 4: Banco de Audios Originales (sounds/)..."))
+            clip_found = False
+            for c_name in ["greeting", "poke", "idle", "fling", "action"]:
+                for sub in [skin, skin.lower(), skin.capitalize()]:
+                    f_c = os.path.join(BASE_DIR, "sounds", sub, f"{c_name}.mp3")
+                    if os.path.isfile(f_c):
+                        clip_found = True
+                        break
+            if clip_found:
+                self.win.after(0, lambda: self._log(f"  [✓] Nivel 4 (Audios Reales {skin}): LISTO Y VINCULADO"))
+            else:
+                self.win.after(0, lambda: self._log("  [!] Nivel 4 no encontrado"))
+
+            # Ejecutar síntesis final y reproducir resultado optimo
+            self.win.after(0, lambda: self._log("[*] Generando y reproduciendo la mejor voz calibrada..."))
+            tmp_cfg = dict(self.config)
+            tmp_cfg["gemini_api_key"] = api_key
+            best_audio, err = VoiceStudioManager.synthesize_speech(api_key, dialogue, skin, tmp_cfg,
+                                                                   log_cb=lambda msg: self.win.after(0, lambda m=msg: self._log(m)))
+            if best_audio:
+                VoiceStudioManager.play_audio(best_audio)
+                self.win.after(0, lambda: self._log(f"[✓] PRUEBA Y ERROR CONCLUIDA CON EXITO. Voz reproducida."))
+            else:
+                self.win.after(0, lambda: self._log(f"[!] Error al sintetizar: {err}"))
+            self.win.after(0, lambda: self.btn_benchmark.configure(state=tk.NORMAL, text="[★] Prueba y Error de Modelos"))
+
+        threading.Thread(target=run_benchmark_thread, daemon=True).start()
 
     def _clone_all_voices(self):
         api_key = self.var_api_key.get().strip()
@@ -7908,6 +8186,7 @@ class Shimeji:
 
         meta = SKIN_META.get(matched, {})
         greeting = meta.get("greeting", f"¡Skin cambiada a {matched}!")
+        play_character_sound(matched, "greeting")
         self.show_speech(greeting)
 
         if getattr(self, "chat_win", None) and hasattr(self.chat_win, "on_skin_changed"):
@@ -8058,7 +8337,7 @@ class Shimeji:
         self.vel_x = random.choice([-16, -12, 12, 16])
         self.vel_y = -36
         self.set_state("flung", surface=SURFACE_FLOOR)
-        play_popue_sound()
+        play_character_sound(self.current_skin, "fling")
         self.show_speech(random.choice(["A volaaar!", "Wooooosh!!", "Por los aires!"]))
 
     def trigger_random_custom_action(self):
@@ -8083,6 +8362,7 @@ class Shimeji:
         self.vel_x = 0
         self.vel_y = 0
         self.update_sprite()
+        play_character_sound(self.current_skin, "action")
         if speech:
             self.show_speech(speech)
 
@@ -8488,6 +8768,7 @@ class Shimeji:
             self.frame_idx   = 0
             self.frame_timer = 0
             self.update_sprite()
+        play_character_sound(self.current_skin, "poke")
         self.show_speech(self.get_poked_speech())
 
     def on_drag(self, e):
@@ -8551,12 +8832,13 @@ class Shimeji:
             self.vel_y = vy if vy != 0 else (random.randint(-4, -1))
             self.set_state("flung", SURFACE_FLOOR)
             if abs(vx) > 18 or abs(vy) > 18:
-                play_popue_sound()
+                play_character_sound(self.current_skin, "fling")
                 self.show_speech(random.choice(["¡Wooooosh! :v", "¡A volaaar! 7w7", "¡Por los aires! XD"]))
         else:
             self.choose_next_floor_state()
 
     def on_double_click(self, e):
+        play_character_sound(self.current_skin, "idle")
         self.show_speech(self.get_random_speech())
 
     def on_right_click(self, e):

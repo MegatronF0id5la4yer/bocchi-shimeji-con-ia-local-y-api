@@ -574,6 +574,8 @@ public class ShimejiEntity {
         state = "STAND";
         stateTimer = 50;
 
+        service.playCharacterSound(skin != null ? skin.id : "bocchi", "poke");
+
         String[] poked = skin.poked;
         if (poked.length > 0) {
             say(poked[random.nextInt(poked.length)], 2500);
