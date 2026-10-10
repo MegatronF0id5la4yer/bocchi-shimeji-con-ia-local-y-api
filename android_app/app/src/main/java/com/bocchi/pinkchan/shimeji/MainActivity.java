@@ -3246,13 +3246,29 @@ public class MainActivity extends Activity {
         });
         root.addView(cbEnableVs);
 
+        TextView tvDubLbl = new TextView(this);
+        tvDubLbl.setText("Idioma de Doblaje:");
+        tvDubLbl.setTextSize(13);
+        tvDubLbl.setTextColor(Color.WHITE);
+        tvDubLbl.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvDubLbl.setPadding(0, dpToPx(8), 0, dpToPx(4));
+        root.addView(tvDubLbl);
+
+        LinearLayout dubRow = new LinearLayout(this);
+        dubRow.setOrientation(LinearLayout.HORIZONTAL);
+        dubRow.setPadding(0, 0, 0, dpToPx(8));
+
+        final String[] dubCodes = {"es", "en", "original"};
+        final String[] dubNames = {"Dub Español", "Dub English", "Voz Original"};
+        final Button[] dubButtons = new Button[3];
+        final String[] currentDub = {prefs.getString("voice_dub_lang", "es")};
+
         TextView tvCharLbl = new TextView(this);
         tvCharLbl.setText("Selecciona un Personaje:");
         tvCharLbl.setTextSize(13);
         tvCharLbl.setTextColor(Color.WHITE);
         tvCharLbl.setTypeface(null, android.graphics.Typeface.BOLD);
         tvCharLbl.setPadding(0, dpToPx(8), 0, dpToPx(4));
-        root.addView(tvCharLbl);
 
         final String[] charKeys = {"Konata", "Bocchi", "Monika", "Natsuki", "Sayori", "Yuri", "Hachi", "Usagi", "Pusheen"};
         final int[] selectedCharIdx = {0};
@@ -3273,14 +3289,43 @@ public class MainActivity extends Activity {
         final Runnable updateCharDisplay = () -> {
             String cKey = charKeys[selectedCharIdx[0]];
             VoiceStudioHelper.VoiceProfile prof = VoiceStudioHelper.getProfile(cKey);
+            String dub = currentDub[0];
+            String tag = "es".equalsIgnoreCase(dub) ? "Doblaje Español (Latino)" : ("en".equalsIgnoreCase(dub) ? "Dub English" : "Voz Original");
             StringBuilder sb = new StringBuilder();
-            sb.append("Personaje: ").append(prof.name).append("\n\n");
-            sb.append("Estilo: ").append(prof.style).append("\n");
+            sb.append("Personaje: ").append(prof.name).append(" [").append(tag).append("]\n\n");
+            sb.append("Estilo: ").append(prof.getStyleForLang(dub)).append("\n");
             sb.append("Fallback: ").append(prof.prebuilt).append("\n\n");
-            sb.append("Voice Design Prompt:\n\"").append(prof.prompt).append("\"\n\n");
-            sb.append("Frase de prueba:\n\"").append(prof.testDialogue).append("\"");
+            sb.append("Voice Design Prompt:\n\"").append(prof.getPromptForLang(dub)).append("\"\n\n");
+            sb.append("Frase de prueba:\n\"").append(prof.getDialogueForLang(dub)).append("\"");
             tvCharDetail.setText(sb.toString());
         };
+
+        for (int d = 0; d < dubCodes.length; d++) {
+            final int dIdx = d;
+            Button bDub = new Button(this);
+            bDub.setText(dubNames[d]);
+            bDub.setTextSize(11);
+            boolean isSel = dubCodes[d].equalsIgnoreCase(currentDub[0]);
+            bDub.setBackgroundResource(isSel ? R.drawable.btn_accent : R.drawable.chip_tag_bg);
+            bDub.setTextColor(Color.WHITE);
+            LinearLayout.LayoutParams dLp = new LinearLayout.LayoutParams(0, dpToPx(36), 1.0f);
+            if (d < 2) dLp.rightMargin = dpToPx(4);
+            bDub.setLayoutParams(dLp);
+            dubButtons[d] = bDub;
+
+            bDub.setOnClickListener(v -> {
+                currentDub[0] = dubCodes[dIdx];
+                prefs.edit().putString("voice_dub_lang", currentDub[0]).apply();
+                for (int j = 0; j < dubButtons.length; j++) {
+                    dubButtons[j].setBackgroundResource(j == dIdx ? R.drawable.btn_accent : R.drawable.chip_tag_bg);
+                }
+                updateCharDisplay.run();
+                Toast.makeText(MainActivity.this, "Doblaje: " + dubNames[dIdx], Toast.LENGTH_SHORT).show();
+            });
+            dubRow.addView(bDub);
+        }
+        root.addView(dubRow);
+        root.addView(tvCharLbl);
 
         for (int i = 0; i < charKeys.length; i++) {
             final int idx = i;
@@ -3312,8 +3357,9 @@ public class MainActivity extends Activity {
         btnTestSpeech.setOnClickListener(v -> {
             String cKey = charKeys[selectedCharIdx[0]];
             VoiceStudioHelper.VoiceProfile prof = VoiceStudioHelper.getProfile(cKey);
-            Toast.makeText(MainActivity.this, "Sintetizando voz de " + cKey + "...", Toast.LENGTH_SHORT).show();
-            VoiceStudioHelper.synthesizeSpeech(MainActivity.this, prof.testDialogue, cKey, new VoiceStudioHelper.VoiceStudioCallback() {
+            String testText = prof.getDialogueForLang(currentDub[0]);
+            Toast.makeText(MainActivity.this, "Sintetizando voz de " + cKey + " (" + currentDub[0].toUpperCase() + ")...", Toast.LENGTH_SHORT).show();
+            VoiceStudioHelper.synthesizeSpeech(MainActivity.this, testText, cKey, new VoiceStudioHelper.VoiceStudioCallback() {
                 @Override
                 public void onSuccess(File audioFile) {
                     try {
@@ -3325,7 +3371,7 @@ public class MainActivity extends Activity {
                         previewMediaPlayer.setDataSource(audioFile.getAbsolutePath());
                         previewMediaPlayer.prepare();
                         previewMediaPlayer.start();
-                        Toast.makeText(MainActivity.this, "Reproduciendo voz de " + cKey + " [Gemini 3.8 Flash TTS]", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Reproduciendo voz de " + cKey + " [" + currentDub[0].toUpperCase() + "]", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Toast.makeText(MainActivity.this, "Error reproduciendo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -3333,9 +3379,9 @@ public class MainActivity extends Activity {
 
                 @Override
                 public void onError(String error) {
-                    Toast.makeText(MainActivity.this, "Voice Studio: " + error + ". Probando voz original...", Toast.LENGTH_SHORT).show();
-                    if (!VoiceStudioHelper.playCharacterAsset(MainActivity.this, cKey, "idle", previewMediaPlayer)) {
-                        speakLocalTts(prof.testDialogue, cKey, 1.0f, 1.0f);
+                    Toast.makeText(MainActivity.this, "Voice Studio: " + error + ". Probando audio local...", Toast.LENGTH_SHORT).show();
+                    if (!VoiceStudioHelper.playCharacterAsset(MainActivity.this, cKey, "idle", currentDub[0], previewMediaPlayer)) {
+                        speakLocalTts(testText, cKey, 1.0f, 1.0f);
                     }
                 }
             });

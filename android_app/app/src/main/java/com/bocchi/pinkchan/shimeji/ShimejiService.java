@@ -992,7 +992,9 @@ public class ShimejiService extends Service {
     }
 
     public void playCharacterSound(String skinId, String clipName) {
-        if (!VoiceStudioHelper.playCharacterAsset(this, skinId, clipName, null)) {
+        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        String dubLang = sp.getString("voice_dub_lang", "es");
+        if (!VoiceStudioHelper.playCharacterAsset(this, skinId, clipName, dubLang, null)) {
             playPopueSound();
         }
     }

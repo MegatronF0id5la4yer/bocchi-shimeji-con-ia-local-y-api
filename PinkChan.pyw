@@ -193,19 +193,28 @@ def play_popue_sound():
                 return True
     return False
 
-def play_character_sound(skin_name, clip_name="poke"):
-    """Reproduce la voz original del personaje desde el banco de audio autentico."""
+def play_character_sound(skin_name, clip_name="poke", dub_lang=None):
+    """Reproduce la voz del personaje (Original, Dub Español o Dub English) desde el banco de audio autentico."""
     sk = str(skin_name).strip() if skin_name else "Bocchi"
-    candidates = [
-        os.path.join(BASE_DIR, "sounds", sk, f"{clip_name}.mp3"),
-        os.path.join(EXE_DIR, "sounds", sk, f"{clip_name}.mp3"),
-        os.path.join(BASE_DIR, "sounds", sk.lower(), f"{clip_name}.mp3"),
-        os.path.join(EXE_DIR, "sounds", sk.lower(), f"{clip_name}.mp3"),
-        os.path.join(BASE_DIR, "sounds", sk.capitalize(), f"{clip_name}.mp3"),
-        os.path.join(EXE_DIR, "sounds", sk.capitalize(), f"{clip_name}.mp3"),
-        os.path.join(BASE_DIR, "sounds", sk, f"{clip_name}.wav"),
-        os.path.join(EXE_DIR, "sounds", sk, f"{clip_name}.wav"),
-    ]
+    cfg = load_config()
+    lang = dub_lang or cfg.get("voice_dub_language", "es")  # "es", "en", "original"
+    
+    file_names = []
+    if lang == "es":
+        file_names = [f"{clip_name}_es.mp3", f"{clip_name}.mp3", f"{clip_name}_en.mp3"]
+    elif lang == "en":
+        file_names = [f"{clip_name}_en.mp3", f"{clip_name}.mp3", f"{clip_name}_es.mp3"]
+    else:  # "original"
+        file_names = [f"{clip_name}.mp3", f"{clip_name}_es.mp3", f"{clip_name}_en.mp3"]
+
+    candidates = []
+    for fn in file_names:
+        for folder_case in [sk, sk.lower(), sk.capitalize()]:
+            candidates.append(os.path.join(BASE_DIR, "sounds", folder_case, fn))
+            candidates.append(os.path.join(EXE_DIR, "sounds", folder_case, fn))
+    candidates.append(os.path.join(BASE_DIR, "sounds", sk, f"{clip_name}.wav"))
+    candidates.append(os.path.join(EXE_DIR, "sounds", sk, f"{clip_name}.wav"))
+    
     for c in candidates:
         if os.path.isfile(c):
             if play_audio_file(c):
@@ -2431,7 +2440,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "E-eto... hola... soy Bocchi-chan... gusto en conocerte... por favor cuidame...",
         "sapi_pitch": -12,
-        "sapi_rate": -15
+        "sapi_rate": -15,
+        "dub_es": {
+            "style": "timida, tartamudeando nerviosa, susurros timidos en doblaje latino",
+            "prompt": "Actriz de doblaje latino para Bocchi: voz timida, dulce, temblorosa, con tartamudeos nerviosos adorables de chica de preparatoria.",
+            "test": "E-eto... h-hola... soy Bocchi... por favor no me mires tan fijamente...",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "shy, stammering, nervous cute anxious high-school girl in English anime dub",
+            "prompt": "English anime dub voice actress for Bocchi: soft, breathy, nervous stammering, sweet socially anxious high school girl.",
+            "test": "U-um... hello... I'm Bocchi... please don't look at me too much...",
+            "lang": "en"
+        },
+        "original": {
+            "style": "shy, trembling, quiet whispers with hesitant anxious stutters",
+            "prompt": "Authentic Japanese anime seiyuu voice for Bocchi: soft, trembling, timid cute whispers.",
+            "test": "E-eto... Bocchi desu... yoroshiku onegaishimasu...",
+            "lang": "ja"
+        }
     },
     "Konata": {
         "display_name": "Konata Izumi",
@@ -2446,7 +2473,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "Timotei, Timotei! Otaku power al maximo, esta noche hay maraton de anime y videojuegos!",
         "sapi_pitch": 35,
-        "sapi_rate": 25
+        "sapi_rate": 25,
+        "dub_es": {
+            "style": "energetica, picara, bromista, tono otaku gamer en doblaje latino",
+            "prompt": "Actriz de doblaje latino para Konata Izumi de Lucky Star: voz aguda, energica, divertida, otaku con comentarios rapidos y picaros.",
+            "test": "Hola, que onda! Listo para un maraton de anime y videojuegos toda la noche?",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "energetic, witty, playful, sarcastic otaku anime girl in English dub",
+            "prompt": "English dub voice actress for Konata Izumi: iconic witty, deadpan and lively anime otaku gamer girl.",
+            "test": "Yo! Ready for an all-night anime and gaming marathon?",
+            "lang": "en"
+        },
+        "original": {
+            "style": "energetic, teasing, deadpan yet playful anime otaku in Japanese",
+            "prompt": "Authentic Japanese voice of Konata Izumi: playful, high-pitched, enthusiastic otaku seiyuu.",
+            "test": "Timotei, Timotei! Otaku power zenkai de iku yo!",
+            "lang": "ja"
+        }
     },
     "Monika": {
         "display_name": "Monika",
@@ -2461,7 +2506,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "Hola mi amor! Cada dia es un hermoso dia en nuestro club. Eres lo mas importante para mi.",
         "sapi_pitch": 6,
-        "sapi_rate": 0
+        "sapi_rate": 0,
+        "dub_es": {
+            "style": "calida, inteligente, dulce, elegante, carismatica en doblaje latino",
+            "prompt": "Actriz de doblaje latino para Monika de DDLC: voz calida, melodiosa, madura, inteligente y tierna con devocion romantica.",
+            "test": "Hola mi amor! Cada dia es hermoso en nuestro club. Eres lo mas importante para mi. Solo Monika.",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "warm, intelligent, soothing, elegant, romantic devotion in English",
+            "prompt": "Official English voice for Monika from Doki Doki Literature Club: soothing, mature, caring, poetic.",
+            "test": "Hi there! I am so glad you are here with me in our Literature Club. Just Monika.",
+            "lang": "en"
+        },
+        "original": {
+            "style": "warm, intelligent, soothing, elegant",
+            "prompt": "Original Monika from DDLC: warm, melodious, intimate school literature club leader.",
+            "test": "Every day, I imagine a future where I can be with you. Just Monika.",
+            "lang": "en"
+        }
     },
     "Natsuki": {
         "display_name": "Natsuki",
@@ -2476,7 +2539,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "B-Baka! No es como si estuviera esperando a que me hablaras ni nada por el estilo... pero gracias.",
         "sapi_pitch": 42,
-        "sapi_rate": 20
+        "sapi_rate": 20,
+        "dub_es": {
+            "style": "tsundere energica, voz aguda, desafiante y tierna en doblaje latino",
+            "prompt": "Actriz de doblaje latino para Natsuki de DDLC: voz tsundere aguda, caprichosa, picante y tierna con orgullo juvenil.",
+            "test": "Oye! No es como si me alegrara de verte ni nada de eso... b-baka! Pero toma un pastelito.",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "feisty, snappy, high-pitched tsundere with defensive cuteness in English",
+            "prompt": "English dub voice for Natsuki from DDLC: sharp, spirited, cute tsundere teenage girl.",
+            "test": "Hey! It's not like I wanted to see you or anything... b-baka! But here is a cupcake.",
+            "lang": "en"
+        },
+        "original": {
+            "style": "feisty, snappy tsundere",
+            "prompt": "Original Natsuki: cute, sharp-tongued tsundere baking girl.",
+            "test": "B-Baka! Why are you staring at me like that? Manga is literature!",
+            "lang": "en"
+        }
     },
     "Sayori": {
         "display_name": "Sayori",
@@ -2491,7 +2572,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "Yay! Buenos dias! Todo brilla tanto hoy, vamos a comer galletitas juntos!",
         "sapi_pitch": 24,
-        "sapi_rate": 10
+        "sapi_rate": 10,
+        "dub_es": {
+            "style": "alegre, tierna, infantil, entusiasta en doblaje latino",
+            "prompt": "Actriz de doblaje latino para Sayori de DDLC: voz alegre, infantil, dulce, melodiosa y llena de sol y optimismo.",
+            "test": "Yay! Buenos dias! El sol brilla hermoso hoy, vamos a comer galletitas juntos!",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "cheerful, bubbly, bright, sunny optimism in English",
+            "prompt": "English voice for Sayori from DDLC: sweet, cheerful, sunny and innocent high school friend.",
+            "test": "Yay! Good morning! The sun is shining and everything is bright, let's get cookies!",
+            "lang": "en"
+        },
+        "original": {
+            "style": "cheerful, bubbly, bright",
+            "prompt": "Original Sayori: sweet, enthusiastic, warm bubbly friend.",
+            "test": "Good morning! Having fun with you is the best thing ever!",
+            "lang": "en"
+        }
     },
     "Yuri": {
         "display_name": "Yuri",
@@ -2506,7 +2605,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "Un buen libro de misterio y una taza de te caliente calman el alma... Es un placer compartir este momento contigo.",
         "sapi_pitch": -18,
-        "sapi_rate": -12
+        "sapi_rate": -12,
+        "dub_es": {
+            "style": "voz suave, elegante, profunda, poetica y timida en doblaje latino",
+            "prompt": "Actriz de doblaje latino para Yuri de DDLC: voz suave, elegante, intelectual, profunda, pausada y con gracia poetica.",
+            "test": "Buenos dias... Una taza de te caliente y un buen libro calman el alma... Es un placer estar contigo.",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "soft-spoken, deep, poetic, elegant and introspective in English",
+            "prompt": "English voice for Yuri from DDLC: gentle, breathy, introspective, articulate and elegant young woman.",
+            "test": "Good day... A warm cup of jasmine tea and a good book brings true peace to the soul.",
+            "lang": "en"
+        },
+        "original": {
+            "style": "soft-spoken, deep, poetic, elegant",
+            "prompt": "Original Yuri: quiet, contemplative, delicate and deeply poetic.",
+            "test": "Lost in the pages of this book... The atmosphere is wonderfully tranquil.",
+            "lang": "en"
+        }
     },
     "Hachi": {
         "display_name": "Hachi (Hachiware)",
@@ -2521,7 +2638,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "Araragi-san! Me mordi la lengua por accidente! Pero estoy bien, que alegria verte hoy!",
         "sapi_pitch": 30,
-        "sapi_rate": 15
+        "sapi_rate": 15,
+        "dub_es": {
+            "style": "mascota inocente, voz infantil aguda, tierna y entusiasta en doblaje latino",
+            "prompt": "Actriz de doblaje latino para Hachiware de Chiikawa: voz muy tierna, infantil, positiva, curiosa y amistosa.",
+            "test": "Hola! Soy Hachiware! Que gran alegria verte hoy! De alguna manera todo saldra bien!",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "innocent, childish, bright mascot voice in English dub",
+            "prompt": "English dub voice for Hachiware: bright, squeaky, friendly, pure-hearted cute creature.",
+            "test": "Hi there! I'm Hachiware! It is so wonderful to see you today! Keep smiling!",
+            "lang": "en"
+        },
+        "original": {
+            "style": "innocent childish Japanese mascot",
+            "prompt": "Authentic Japanese voice for Hachiware: cute, innocent, energetic cat mascot.",
+            "test": "Nanto ka nare! Hachiware da yo! Kyou mo issho ni ganbarou!",
+            "lang": "ja"
+        }
     },
     "Usagi": {
         "display_name": "Usagi",
@@ -2536,7 +2671,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "Ura! Yahaha! Energia magica al limite! Nadie puede detenerme hoy!",
         "sapi_pitch": 48,
-        "sapi_rate": 30
+        "sapi_rate": 30,
+        "dub_es": {
+            "style": "conejo hiperactivo, caos divertido, energia magica en doblaje latino",
+            "prompt": "Voz de doblaje latino para Usagi de Chiikawa: gritos comicos veloces, hiperactividad, excentrico y lleno de energia magica.",
+            "test": "Yahaaa! Urrr-aaa! Energia de conejo magica al maximo! Nadie puede detenerme!",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "hyperactive, eccentric, hilarious bursts in English dub",
+            "prompt": "English dub voice for Usagi: fast, chaotic, fearless energetic bunny screaming with joy.",
+            "test": "Yaha! Urrr-a! Maximum rocket rabbit power engaged! Let's go!",
+            "lang": "en"
+        },
+        "original": {
+            "style": "hyperactive chaotic high-pitched cries in Japanese",
+            "prompt": "Authentic Japanese Usagi from Chiikawa: iconic screams Ura, Yaha, Pululu.",
+            "test": "Urrr-a! Yaha! Pululululu! Yahaha!",
+            "lang": "ja"
+        }
     },
     "Pusheen": {
         "display_name": "Pusheen",
@@ -2551,7 +2704,25 @@ VOICE_STUDIO_PROFILES = {
         ),
         "test": "Miau... hora de comer bocadillos y dormir una siesta calientita en tu regazo.",
         "sapi_pitch": 18,
-        "sapi_rate": -8
+        "sapi_rate": -8,
+        "dub_es": {
+            "style": "gatita dulce, maullidos tiernos y susurros adorables en doblaje latino",
+            "prompt": "Voz de doblaje latino para la gatita Pusheen: susurros de bebe gatito, ronroneos suaves, mimos y amor por los bocadillos.",
+            "test": "Miau! Hola amiguito, hora de mimos y comidita rica calientita en tu regazo!",
+            "lang": "es"
+        },
+        "dub_en": {
+            "style": "ultra-soft, sleepy kitten whispers and cozy murmurs in English",
+            "prompt": "English voice for Pusheen the cat: cozy baby kitten whispers, soft purrs and snack love.",
+            "test": "Meow! Hello friend, time for sweet cuddles, cozy catnaps and yummy snacks!",
+            "lang": "en"
+        },
+        "original": {
+            "style": "adorable kitten purrs and gentle murmurs",
+            "prompt": "Original Pusheen: soft cat purring, cozy gentle murmurs and sweet kitten sounds.",
+            "test": "Miau... prrr... purrrr... sleepy cozy kitten nap time.",
+            "lang": "en"
+        }
     },
 }
 
@@ -2650,34 +2821,39 @@ class VoiceStudioManager:
             return None, None, str(e)
 
     @classmethod
-    def synthesize_speech(cls, api_key, text, skin_name="Bocchi", config=None, log_cb=None):
+    def synthesize_speech(cls, api_key, text, skin_name="Bocchi", config=None, log_cb=None, dub_lang=None):
         """
         Sintetiza la voz del personaje aplicando una canalizacion automatica de PRUEBA Y ERROR (Trial and Error):
-        Intento 1: Gemini 3.8 Flash TTS Interactions API (/v1beta/interactions) con estilo vocal y voz clonada/prebuilt.
-        Intento 2: Gemini 2.5 Flash Audio GenerateContent (/v1beta/models/gemini-2.5-flash:generateContent) con rol de personaje.
+        Intento 1: Gemini 3.8 Flash TTS Interactions API (/v1beta/interactions) con estilo vocal y doblaje seleccionado.
+        Intento 2: Gemini 2.5 Flash Audio GenerateContent (/v1beta/models/gemini-2.5-flash:generateContent) con rol de doblaje.
         Intento 3: Gemini 2.0 Flash Audio GenerateContent (/v1beta/models/gemini-2.0-flash:generateContent).
-        Intento 4: Motor Fonetico Anime Nativo (Japones/Ingles de acuerdo al personaje con modulacion autentica).
-        Intento 5: Banco de voz original del personaje (audios locales oficiales).
+        Intento 4: Motor Fonetico Nativo (Español Latino / English / Japones segun el doblaje seleccionado).
+        Intento 5: Banco de voz del personaje (Archivos locales en sounds/ para el doblaje seleccionado).
         """
         clean = cls.clean_text_for_speech(text)
         if not clean:
             return None, "Texto vacio."
 
+        dub = dub_lang or (config.get("voice_dub_language", "es") if config else "es")
         prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi"))
+        dub_info = prof.get(f"dub_{dub}", prof.get("original", prof))
+
         custom_ids = config.get("voice_studio_ids", {}) if config else {}
         voice_id = custom_ids.get(skin_name) or prof.get("voice_id")
         voice_target = voice_id if voice_id else prof.get("prebuilt", "Kore")
 
         c_dir = cls.get_cache_dir()
         import hashlib
-        h = hashlib.md5((clean + skin_name + str(voice_target)).encode("utf-8")).hexdigest()[:10]
+        h = hashlib.md5((clean + skin_name + str(voice_target) + str(dub)).encode("utf-8")).hexdigest()[:10]
+
+        dub_label = "Doblaje Español (Latino)" if dub == "es" else ("English Dub" if dub == "en" else "Voz Original")
 
         # -------------------------------------------------------------------------
         # INTENTO 1: Gemini 3.8 Flash TTS Interactions API
         # -------------------------------------------------------------------------
         if api_key:
             if log_cb:
-                log_cb(f"[*] Intento 1: Gemini 3.8 Flash TTS Interactions API ({voice_target})...")
+                log_cb(f"[*] Intento 1: Gemini 3.8 Flash TTS ({voice_target} - {dub_label})...")
             try:
                 url_interact = f"https://generativelanguage.googleapis.com/v1beta/interactions?key={api_key}"
                 payload_interact = {
@@ -2689,7 +2865,7 @@ class VoiceStudioManager:
                             "text": clean,
                             "annotations": [{
                                 "type": "speech_metadata",
-                                "style": prof.get("style", "conversational")
+                                "style": dub_info.get("style", prof.get("style", "conversational"))
                             }]
                         }]
                     }],
@@ -2704,11 +2880,9 @@ class VoiceStudioManager:
                 with urllib.request.urlopen(req, timeout=18) as resp:
                     resp_json = json.loads(resp.read().decode("utf-8"))
                     audio_b64 = None
-                    # Formato output_audio directo
                     out_aud = resp_json.get("output_audio") or resp_json.get("outputAudio")
                     if out_aud and isinstance(out_aud, dict):
                         audio_b64 = out_aud.get("data")
-                    # Formato por pasos
                     if not audio_b64:
                         for st in resp_json.get("steps", []):
                             for co in st.get("content", []):
@@ -2717,11 +2891,11 @@ class VoiceStudioManager:
                                     break
                     if audio_b64:
                         audio_bytes = base64.b64decode(audio_b64)
-                        out_path = os.path.join(c_dir, f"tts_{skin_name}_gem38_{h}.wav")
+                        out_path = os.path.join(c_dir, f"tts_{skin_name}_{dub}_gem38_{h}.wav")
                         with open(out_path, "wb") as f:
                             f.write(audio_bytes)
                         if log_cb:
-                            log_cb("[✓] Gemini 3.8 Flash TTS exitoso!")
+                            log_cb(f"[✓] Gemini 3.8 Flash TTS exitoso ({dub_label})!")
                         return out_path, None
             except Exception as e_i:
                 if log_cb:
@@ -2731,10 +2905,10 @@ class VoiceStudioManager:
             # INTENTO 2: Gemini 2.5 Flash Audio GenerateContent
             # -------------------------------------------------------------------------
             if log_cb:
-                log_cb(f"[*] Intento 2: Gemini 2.5 Flash GenerateContent (Audio Modality)...")
+                log_cb(f"[*] Intento 2: Gemini 2.5 Flash GenerateContent (Audio Modality - {dub_label})...")
             try:
                 url_g25 = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-                prompt_actor = f"You are {prof.get('display_name', skin_name)}. Voice style: {prof.get('style')}. Deliver this line in authentic character voice: {clean}"
+                prompt_actor = f"You are {prof.get('display_name', skin_name)}. Style: {dub_info.get('style')}. {dub_info.get('prompt')}. Deliver this line in authentic character acting: {clean}"
                 payload_g25 = {
                     "contents": [{
                         "role": "user",
@@ -2766,11 +2940,11 @@ class VoiceStudioManager:
                                 break
                     if audio_b64:
                         audio_bytes = base64.b64decode(audio_b64)
-                        out_path = os.path.join(c_dir, f"tts_{skin_name}_gem25_{h}.wav")
+                        out_path = os.path.join(c_dir, f"tts_{skin_name}_{dub}_gem25_{h}.wav")
                         with open(out_path, "wb") as f:
                             f.write(audio_bytes)
                         if log_cb:
-                            log_cb("[✓] Gemini 2.5 Flash Audio exitoso!")
+                            log_cb(f"[✓] Gemini 2.5 Flash Audio exitoso ({dub_label})!")
                         return out_path, None
             except Exception as e_g25:
                 if log_cb:
@@ -2781,7 +2955,7 @@ class VoiceStudioManager:
             # -------------------------------------------------------------------------
             try:
                 url_g20 = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-                prompt_actor = f"You are {prof.get('display_name', skin_name)}. Voice style: {prof.get('style')}. Deliver this line in authentic character voice: {clean}"
+                prompt_actor = f"You are {prof.get('display_name', skin_name)}. Style: {dub_info.get('style')}. {dub_info.get('prompt')}. Deliver line in character voice: {clean}"
                 payload_g20 = {
                     "contents": [{
                         "role": "user",
@@ -2813,53 +2987,53 @@ class VoiceStudioManager:
                                 break
                     if audio_b64:
                         audio_bytes = base64.b64decode(audio_b64)
-                        out_path = os.path.join(c_dir, f"tts_{skin_name}_gem20_{h}.wav")
+                        out_path = os.path.join(c_dir, f"tts_{skin_name}_{dub}_gem20_{h}.wav")
                         with open(out_path, "wb") as f:
                             f.write(audio_bytes)
                         if log_cb:
-                            log_cb("[✓] Gemini 2.0 Flash Audio exitoso!")
+                            log_cb(f"[✓] Gemini 2.0 Flash Audio exitoso ({dub_label})!")
                         return out_path, None
             except Exception as e_g20:
                 if log_cb:
                     log_cb(f"[~] Intento 3 omitido ({e_g20}). Pasando a Motor Fonetico Autentico...")
 
         # -------------------------------------------------------------------------
-        # INTENTO 4: Motor Fonetico Anime Nativo (Japones/Ingles sin costo de API)
+        # INTENTO 4: Motor Fonetico Nativo (Español / Ingles / Japones segun doblaje)
         # -------------------------------------------------------------------------
         if log_cb:
-            log_cb(f"[*] Intento 4: Sintetizando con Motor Fonetico Anime de {prof.get('display_name', skin_name)}...")
+            log_cb(f"[*] Intento 4: Sintetizando con Motor Fonetico ({dub_label})...")
         try:
-            lang = prof.get("language_code", "ja-JP").split("-")[0]
-            # Si el texto es claramente español, usar es para pronunciacion natural
-            has_spanish = any(w in clean.lower() for w in ["hola", "que", "como", "esta", "buenos", "gracias", "por", "favor", "dia", "amigo"])
-            tts_lang = "es" if has_spanish else lang
-
+            tts_lang = dub_info.get("lang", "es" if dub == "es" else ("en" if dub == "en" else "ja"))
             encoded = urllib.parse.quote(clean)
             url_phonetic = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={tts_lang}&client=tw-ob&q={encoded}"
             req_p = urllib.request.Request(url_phonetic, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
             with urllib.request.urlopen(req_p, timeout=12) as resp:
                 mp3_bytes = resp.read()
             if mp3_bytes and len(mp3_bytes) > 200:
-                out_path = os.path.join(c_dir, f"tts_{skin_name}_phonetic_{h}.mp3")
+                out_path = os.path.join(c_dir, f"tts_{skin_name}_{dub}_phonetic_{h}.mp3")
                 with open(out_path, "wb") as f:
                     f.write(mp3_bytes)
                 if log_cb:
-                    log_cb(f"[✓] Motor Fonetico Anime ({tts_lang}) generado exitosamente!")
+                    log_cb(f"[✓] Motor Fonetico ({tts_lang} - {dub_label}) generado exitosamente!")
                 return out_path, None
         except Exception as e_ph:
             if log_cb:
                 log_cb(f"[~] Intento 4 fallo: {e_ph}. Verificando banco de voz local...")
 
         # -------------------------------------------------------------------------
-        # INTENTO 5: Banco de Voz Original del Personaje (Archivos locales en sounds/)
+        # INTENTO 5: Banco de Voz del Personaje (Archivos locales en sounds/ para dub)
         # -------------------------------------------------------------------------
+        clip_suffixes = [f"_{dub}", ""] if dub in ("es", "en") else ["", "_es", "_en"]
         for sub in [skin_name, skin_name.lower(), skin_name.capitalize()]:
-            for clip_n in ["idle", "greeting", "poke", "action"]:
-                f_clip = os.path.join(BASE_DIR, "sounds", sub, f"{clip_n}.mp3")
-                if os.path.isfile(f_clip):
-                    if log_cb:
-                        log_cb(f"[✓] Banco de voz original aplicado ({skin_name}/{clip_n}.mp3)!")
-                    return f_clip, None
+            for clip_n in ["idle", "greeting", "poke", "action", "fling"]:
+                for sfx in clip_suffixes:
+                    f_clip = os.path.join(BASE_DIR, "sounds", sub, f"{clip_n}{sfx}.mp3")
+                    if os.path.isfile(f_clip):
+                        if log_cb:
+                            log_cb(f"[✓] Banco de voz aplicado ({skin_name}/{clip_n}{sfx}.mp3)!")
+                        return f_clip, None
+
+        return None, "No se pudo sintetizar audio en ninguna de las 5 fases."
 
         return None, "No se pudo sintetizar audio en ninguna de las 5 fases."
 
@@ -2939,7 +3113,8 @@ class JarvisTTS:
                 # 1. Intentar síntesis con Google Voice Studio / Motor Fonetico Anime (siempre prioritario en modo voice_studio)
                 if engine_mode in ("voice_studio", "anime_authentic", "voice_studio_ai"):
                     try:
-                        audio_file, err = VoiceStudioManager.synthesize_speech(api_key, clean, skin_name, self.config)
+                        dub_lang = self.config.get("voice_dub_language", "es")
+                        audio_file, err = VoiceStudioManager.synthesize_speech(api_key, clean, skin_name, self.config, dub_lang=dub_lang)
                         if audio_file and os.path.isfile(audio_file):
                             VoiceStudioManager.play_audio(audio_file)
                             played = True
@@ -3070,6 +3245,20 @@ class VoiceStudioWindow:
                                        bg=self.theme.surface, fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"))
         self.lbl_char_title.pack(side=tk.LEFT, padx=4)
 
+        row_dub = tk.Frame(f_char, bg=self.theme.surface)
+        row_dub.pack(fill=tk.X, pady=(4, 6))
+        tk.Label(row_dub, text="Doblaje / Idioma:", bg=self.theme.surface, fg=self.theme.text, font=(self.theme.font_family, self.theme.font_size, "bold")).pack(side=tk.LEFT)
+        self.var_dub_lang = tk.StringVar(value=self.config.get("voice_dub_language", "es"))
+        tk.Radiobutton(row_dub, text="Dub Español (Latino)", variable=self.var_dub_lang, value="es",
+                       command=self._on_dub_changed, bg=self.theme.surface, fg=self.theme.accent, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=6)
+        tk.Radiobutton(row_dub, text="Dub English", variable=self.var_dub_lang, value="en",
+                       command=self._on_dub_changed, bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=6)
+        tk.Radiobutton(row_dub, text="Voz Original", variable=self.var_dub_lang, value="original",
+                       command=self._on_dub_changed, bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=6)
+
         # Prompt de diseño en Voice Studio
         tk.Label(f_char, text="Prompt de Diseno de Voz (Voice Studio Persona Description):",
                  bg=self.theme.surface, fg=self.theme.text).pack(anchor="w", pady=(6, 2))
@@ -3163,18 +3352,29 @@ class VoiceStudioWindow:
         skin = self.cbo_character.get()
         self._load_character_data(skin)
 
+    def _on_dub_changed(self):
+        skin = self.cbo_character.get()
+        self.config["voice_dub_language"] = self.var_dub_lang.get()
+        save_config(self.config)
+        self._load_character_data(skin)
+        self._log(f"[*] Doblaje seleccionado: {self.var_dub_lang.get().upper()}")
+
     def _load_character_data(self, skin):
         prof = VOICE_STUDIO_PROFILES.get(skin, VOICE_STUDIO_PROFILES.get("Bocchi"))
-        self.lbl_char_title.configure(text=f"[{prof['display_name']}]")
+        dub = self.var_dub_lang.get() if hasattr(self, "var_dub_lang") else self.config.get("voice_dub_language", "es")
+        dub_info = prof.get(f"dub_{dub}", prof.get("original", prof))
+
+        dub_tag = "ES-DUB" if dub == "es" else ("EN-DUB" if dub == "en" else "ORIGINAL")
+        self.lbl_char_title.configure(text=f"[{prof['display_name']} - {dub_tag}]")
         self.txt_prompt.delete("1.0", tk.END)
-        self.txt_prompt.insert(tk.END, prof["voice_design_prompt"])
-        self.var_style.set(prof["style"])
+        self.txt_prompt.insert(tk.END, dub_info.get("prompt", prof["voice_design_prompt"]))
+        self.var_style.set(dub_info.get("style", prof["style"]))
         self.var_prebuilt.set(prof.get("prebuilt", "Kore"))
 
         custom_ids = self.config.get("voice_studio_ids", {})
         c_id = custom_ids.get(skin, "")
         self.var_voice_id.set(c_id)
-        self.var_test_dialogue.set(prof["test"])
+        self.var_test_dialogue.set(dub_info.get("test", prof["test"]))
 
     def _log(self, msg):
         ts = datetime.datetime.now().strftime("%H:%M:%S")
@@ -3217,16 +3417,18 @@ class VoiceStudioWindow:
     def _test_current_voice(self):
         api_key = self.var_api_key.get().strip()
         skin = self.cbo_character.get()
+        dub = self.var_dub_lang.get()
         dialogue = self.var_test_dialogue.get().strip()
         if not dialogue:
             dialogue = VOICE_STUDIO_PROFILES.get(skin, {}).get("test", "Hola!")
 
         self.btn_test_speech.configure(state=tk.DISABLED, text="Generando...")
-        self._log(f"[*] Iniciando prueba y error para la voz de '{skin}'...")
+        self._log(f"[*] Iniciando prueba y error para la voz de '{skin}' ({dub.upper()})...")
 
         def run_thread():
             tmp_cfg = dict(self.config)
             tmp_cfg["gemini_api_key"] = api_key
+            tmp_cfg["voice_dub_language"] = dub
             custom_ids = dict(tmp_cfg.get("voice_studio_ids", {}))
             v_id_entry = self.var_voice_id.get().strip()
             if v_id_entry:
@@ -3235,7 +3437,8 @@ class VoiceStudioWindow:
 
             audio_path, err = VoiceStudioManager.synthesize_speech(
                 api_key, dialogue, skin, tmp_cfg,
-                log_cb=lambda msg: self.win.after(0, lambda m=msg: self._log(m))
+                log_cb=lambda msg: self.win.after(0, lambda m=msg: self._log(m)),
+                dub_lang=dub
             )
             self.win.after(0, lambda: self._on_test_finished(skin, audio_path, err))
 
@@ -3253,10 +3456,11 @@ class VoiceStudioWindow:
     def _benchmark_all_models(self):
         api_key = self.var_api_key.get().strip()
         skin = self.cbo_character.get()
+        dub = self.var_dub_lang.get()
         dialogue = self.var_test_dialogue.get().strip() or "Konnichiwa! Esta es una prueba de voz."
         self.btn_benchmark.configure(state=tk.DISABLED, text="Evaluando...")
         self._log(f"==================================================")
-        self._log(f"[*] INICIANDO PRUEBA Y ERROR EXHAUSTIVA DE MODELOS PARA '{skin}'")
+        self._log(f"[*] INICIANDO PRUEBA Y ERROR EXHAUSTIVA DE MODELOS PARA '{skin}' ({dub.upper()})")
         self._log(f"==================================================")
 
         def run_benchmark_thread():
@@ -3284,7 +3488,7 @@ class VoiceStudioWindow:
                 self.win.after(0, lambda: self._log("[*] Probando Nivel 2: Gemini 2.5 Flash Audio GenerateContent..."))
                 try:
                     p2 = {
-                        "contents": [{"role": "user", "parts": [{"text": f"Say: {dialogue}"}]}],
+                        "contents": [{"role": "user", "parts": [{"text": f"Say in character voice: {dialogue}"}]}],
                         "generationConfig": {
                             "responseModalities": ["AUDIO"],
                             "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": VOICE_STUDIO_PROFILES[skin].get("prebuilt", "Kore")}}}
@@ -3300,29 +3504,33 @@ class VoiceStudioWindow:
             else:
                 self.win.after(0, lambda: self._log("[!] Sin Gemini API Key. Evaluando motores locales y gratuitos..."))
 
-            # Fase 3: Motor Fonetico Anime Nativo
+            # Fase 3: Motor Fonetico Nativo
             t0 = time.time()
-            self.win.after(0, lambda: self._log("[*] Probando Nivel 3: Motor Fonetico Anime Nativo..."))
+            self.win.after(0, lambda: self._log("[*] Probando Nivel 3: Motor Fonetico Nativo..."))
             try:
-                lang = VOICE_STUDIO_PROFILES[skin].get("language_code", "ja-JP").split("-")[0]
+                prof = VOICE_STUDIO_PROFILES.get(skin, {})
+                dub_info = prof.get(f"dub_{dub}", prof.get("original", prof))
+                lang = dub_info.get("lang", "es" if dub == "es" else ("en" if dub == "en" else "ja"))
                 u_fon = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={lang}&client=tw-ob&q={urllib.parse.quote(dialogue)}"
                 r_fon = urllib.request.urlopen(urllib.request.Request(u_fon, headers={"User-Agent": "Mozilla/5.0"}), timeout=8)
                 dt = round((time.time() - t0) * 1000)
-                self.win.after(0, lambda ms=dt: self._log(f"  [✓] Nivel 3 (Motor Fonetico {lang}): EXCELENTE ({ms} ms)"))
+                self.win.after(0, lambda ms=dt, l=lang: self._log(f"  [✓] Nivel 3 (Motor Fonetico {l}): EXCELENTE ({ms} ms)"))
             except Exception as e:
                 self.win.after(0, lambda err=str(e): self._log(f"  [~] Nivel 3 error: {err}"))
 
-            # Fase 4: Banco de Voz Original
-            self.win.after(0, lambda: self._log("[*] Probando Nivel 4: Banco de Audios Originales (sounds/)..."))
+            # Fase 4: Banco de Audios de Personaje
+            self.win.after(0, lambda: self._log("[*] Probando Nivel 4: Banco de Audios Locales (sounds/)..."))
             clip_found = False
+            suffixes = [f"_{dub}", ""] if dub in ("es", "en") else ["", "_es", "_en"]
             for c_name in ["greeting", "poke", "idle", "fling", "action"]:
                 for sub in [skin, skin.lower(), skin.capitalize()]:
-                    f_c = os.path.join(BASE_DIR, "sounds", sub, f"{c_name}.mp3")
-                    if os.path.isfile(f_c):
-                        clip_found = True
-                        break
+                    for sfx in suffixes:
+                        f_c = os.path.join(BASE_DIR, "sounds", sub, f"{c_name}{sfx}.mp3")
+                        if os.path.isfile(f_c):
+                            clip_found = True
+                            break
             if clip_found:
-                self.win.after(0, lambda: self._log(f"  [✓] Nivel 4 (Audios Reales {skin}): LISTO Y VINCULADO"))
+                self.win.after(0, lambda: self._log(f"  [✓] Nivel 4 (Audios Reales {skin} - {dub.upper()}): LISTO Y VINCULADO"))
             else:
                 self.win.after(0, lambda: self._log("  [!] Nivel 4 no encontrado"))
 
@@ -3330,8 +3538,10 @@ class VoiceStudioWindow:
             self.win.after(0, lambda: self._log("[*] Generando y reproduciendo la mejor voz calibrada..."))
             tmp_cfg = dict(self.config)
             tmp_cfg["gemini_api_key"] = api_key
+            tmp_cfg["voice_dub_language"] = dub
             best_audio, err = VoiceStudioManager.synthesize_speech(api_key, dialogue, skin, tmp_cfg,
-                                                                   log_cb=lambda msg: self.win.after(0, lambda m=msg: self._log(m)))
+                                                                   log_cb=lambda msg: self.win.after(0, lambda m=msg: self._log(m)),
+                                                                   dub_lang=dub)
             if best_audio:
                 VoiceStudioManager.play_audio(best_audio)
                 self.win.after(0, lambda: self._log(f"[✓] PRUEBA Y ERROR CONCLUIDA CON EXITO. Voz reproducida."))
@@ -3384,10 +3594,12 @@ class VoiceStudioWindow:
         api_key = self.var_api_key.get().strip()
         engine_mode = self.var_engine_mode.get()
         skin = self.cbo_character.get()
+        dub = self.var_dub_lang.get()
         v_id_entry = self.var_voice_id.get().strip()
 
         self.config["gemini_api_key"] = api_key
         self.config["tts_engine"] = engine_mode
+        self.config["voice_dub_language"] = dub
         self.config["tts_enabled"] = True
 
         custom_ids = dict(self.config.get("voice_studio_ids", {}))
@@ -3399,7 +3611,7 @@ class VoiceStudioWindow:
         if self.shimeji and hasattr(self.shimeji, "tts"):
             self.shimeji.tts.config = self.config
 
-        self._log(f"[✓] Configuracion guardada. Motor activo: {engine_mode}. TTS habilitado.")
+        self._log(f"[✓] Configuracion guardada. Motor activo: {engine_mode}. Doblaje: {dub.upper()}. TTS habilitado.")
         messagebox.showinfo("Voice Studio", f"Configuracion de Voice Studio guardada y aplicada al Shimeji con exito.")
 
 
