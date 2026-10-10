@@ -23,6 +23,8 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -95,6 +97,7 @@ public class ShimejiService extends Service {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
+        SkinData.loadCustomSkins(this);
         SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
         String savedSkin = sp.getString(MainActivity.KEY_SKIN, "Konata");
         currentSkin = SkinData.get(savedSkin);
@@ -463,9 +466,36 @@ public class ShimejiService extends Service {
             return bitmapCache.get(cacheKey);
         }
 
+        InputStream is = null;
         try {
-            String assetPath = "skins/" + skinFolder + "/" + frameName + ".png";
-            InputStream is = getAssets().open(assetPath);
+            try {
+                String assetPath = "skins/" + skinFolder + "/" + frameName + ".png";
+                is = getAssets().open(assetPath);
+            } catch (Exception ignored) {}
+
+            if (is == null) {
+                File customDir = new File(getFilesDir(), "custom_skins/" + skinFolder);
+                if (customDir.exists()) {
+                    File imgFile = new File(customDir, frameName + ".png");
+                    if (!imgFile.exists() && "stand1".equals(frameName)) {
+                        File alt1 = new File(customDir, "shime1.png");
+                        File alt2 = new File(customDir, "1.png");
+                        if (alt1.exists()) imgFile = alt1;
+                        else if (alt2.exists()) imgFile = alt2;
+                    }
+                    if (imgFile.exists()) {
+                        is = new FileInputStream(imgFile);
+                    }
+                }
+            }
+
+            if (is == null) {
+                if (!"stand1".equals(frameName)) {
+                    return loadSkinBitmap(skinFolder, "stand1", dir);
+                }
+                return null;
+            }
+
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
             opts.inDither = true;

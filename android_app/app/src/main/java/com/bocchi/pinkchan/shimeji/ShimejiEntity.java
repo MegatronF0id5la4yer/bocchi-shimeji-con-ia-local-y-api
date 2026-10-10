@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.Random;
 
 public class ShimejiEntity {
@@ -42,6 +43,7 @@ public class ShimejiEntity {
     public int hp = 100;
     public boolean isKo = false;
     public int koTimer = 0;
+    public int cprCount = 0;
     public int shakeTicks = 0;
     public String customFrameName1 = null;
     public String customFrameName2 = null;
@@ -308,15 +310,69 @@ public class ShimejiEntity {
         isKo = true;
         state = "KO";
         koTimer = 220;
-        velX = 0;
-        velY = 0;
+        cprCount = 0;
+        velY = -service.dpToPx(12f);
+        velX = (random.nextBoolean() ? 1 : -1) * service.dpToPx(5f);
         service.triggerHaptic(120);
-        say("x_x K.O.! Me quede sin energia... Acariciame o alimentame para revivir!", 4500);
+
+        service.dropRandomItem();
+        logDeathDiary();
+
+        say("[K.O.] Me quede sin vida... Solte botin!\nToca repetidamente para RCP (0/3) o espera a revivir!", 5000);
+    }
+
+    public void cprPress() {
+        if (!isKo) return;
+        cprCount++;
+        service.triggerHaptic(45);
+        if (cprCount >= 3) {
+            cprRevive();
+        } else {
+            say("[RCP] (" + cprCount + "/3) *bombeando pecho*\nSigue tocando rapido!", 1800);
+        }
+    }
+
+    public void cprRevive() {
+        isKo = false;
+        koTimer = 0;
+        cprCount = 0;
+        hp = 75;
+        state = "STAND";
+        stateTimer = 60;
+        service.triggerHaptic(85);
+        say("DESFIBRILADOR EXITOSO! (+75 HP) [★]\nGracias por salvarme la vida!", 3200);
+    }
+
+    private void logDeathDiary() {
+        try {
+            File jdir = new File(service.getFilesDir(), "JarvisFiles");
+            if (!jdir.exists()) jdir.mkdirs();
+            File dpath = new File(jdir, "diario_de_defuncion.txt");
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+            String nowStr = sdf.format(new java.util.Date());
+            String[] quotes = new String[]{
+                "Fue un honor acompanarte en Android... alimenta al proximo Shimeji.",
+                "Los toques y las caidas fueron implacables hoy...",
+                "Vi pasar todos mis frames ante mis ojos...",
+                "Dile a Monika que guarde un respaldo de mis recuerdos...",
+                "Volvere pronto, o cuando me des RCP..."
+            };
+            String quote = quotes[random.nextInt(quotes.length)];
+            String entry = "[" + nowStr + "] DEFUNCION DE " + skin.name.toUpperCase() + "\n" +
+                "Causa: Agotamiento total de HP por impacto o caida.\n" +
+                "Ultimas palabras: \"" + quote + "\"\n" +
+                "Estado: Botin arrojado. Reanimacion RCP disponible.\n" +
+                "--------------------------------------------------\n";
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(dpath, true);
+            fos.write(entry.getBytes("UTF-8"));
+            fos.close();
+        } catch (Exception ignored) {}
     }
 
     public void recoverFromKo() {
         isKo = false;
         koTimer = 0;
+        cprCount = 0;
         hp = Math.max(30, hp);
         state = "STAND";
         stateTimer = 60;
@@ -391,7 +447,7 @@ public class ShimejiEntity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         if (isKo) {
-                            heal(30, "reanimacion");
+                            cprPress();
                             return true;
                         }
                         isDragging = true;

@@ -1377,6 +1377,18 @@
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- Button: Import Custom Skin (.zip) -->
+                <Button
+                    android:id="@+id/btn_import_skin_zip"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:background="@drawable/chip_action_bg"
+                    android:text="[★] Importar Skin Shimeji (.zip)"
+                    android:textColor="@color/accent_lavender_light"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp" />
+
                 <!-- Large Prominent Button: Add Categories -->
                 <Button
                     android:id="@+id/btn_add_categories"
@@ -2095,6 +2107,40 @@
                             android:textColor="@color/text_primary"
                             android:textSize="12sp"
                             android:inputType="textPassword" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tokens Maximos Generados (256 - 8192):"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:layout_marginBottom="4dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="10dp">
+
+                        <SeekBar
+                            android:id="@+id/sb_ai_max_tokens"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:max="8192"
+                            android:progress="4096" />
+
+                        <TextView
+                            android:id="@+id/tv_ai_max_tokens_val"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4096"
+                            android:textColor="@color/accent_lavender_light"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:layout_marginLeft="8dp" />
                     </LinearLayout>
 
                     <!-- Botones de accion IA -->
@@ -2936,6 +2982,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:layout_marginBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/btn_load_prebuilt_macros"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="[★] Cargar Macros Pre-Built"
+                        android:textColor="@color/accent_lavender_light"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
                         android:layout_marginBottom="8dp" />
 
                     <Button

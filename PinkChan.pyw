@@ -20,6 +20,7 @@ import subprocess
 import webbrowser
 import re
 import shutil
+import zipfile
 import fnmatch
 import urllib.parse
 import urllib.request
@@ -240,6 +241,23 @@ def _download_update(exe_url, version_name, shimeji_ref=None):
 
 SKIN_NAMES = ["Bocchi", "Konata", "Monika", "Natsuki", "Sayori", "Yuri", "Hachi", "Usagi", "Pusheen"]
 
+def get_available_skins():
+    """Retorna lista de todas las skins disponibles, incluyendo skins importadas."""
+    skins = list(SKIN_NAMES)
+    for b in [EXE_DIR, BASE_DIR]:
+        sdir = os.path.join(b, "img", "skins")
+        if os.path.isdir(sdir):
+            for entry in os.listdir(sdir):
+                full = os.path.join(sdir, entry)
+                if os.path.isdir(full) and entry not in skins:
+                    try:
+                        files = os.listdir(full)
+                        if any(f.lower().startswith("shime") or f.lower().endswith(".png") for f in files):
+                            skins.append(entry)
+                    except Exception:
+                        pass
+    return skins
+
 def get_skin_dir(skin_name):
     """Obtiene la ruta absoluta del directorio de la skin."""
     target = skin_name.strip()
@@ -253,6 +271,62 @@ def get_skin_dir(skin_name):
             if os.path.isdir(cand):
                 return cand
     return None
+
+DEFAULT_PREBUILT_MACROS = {
+    "modo estudio": {
+        "trigger": "modo estudio",
+        "description": "Baja el volumen, reproduce lofi hip hop y crea recordatorio pomodoro",
+        "steps": [
+            "[JARVIS: VOLUME 25]",
+            "WAIT 1",
+            "[JARVIS: SEARCH_YT \"lofi hip hop radio live\"]",
+            "WAIT 1",
+            "[JARVIS: REMIND 25m \"Pomodoro: descanso de 5 min\"]"
+        ]
+    },
+    "modo gamer": {
+        "trigger": "modo gamer",
+        "description": "Ajusta volumen al 80% y abre Discord y Steam",
+        "steps": [
+            "[JARVIS: VOLUME 80]",
+            "WAIT 1",
+            "[JARVIS: OPEN \"discord\"]",
+            "WAIT 1",
+            "[JARVIS: OPEN \"steam\"]"
+        ]
+    },
+    "buenas noches": {
+        "trigger": "buenas noches",
+        "description": "Baja volumen y brillo, programa alarma y bloquea el equipo",
+        "steps": [
+            "[JARVIS: VOLUME 10]",
+            "WAIT 1",
+            "[JARVIS: BRIGHTNESS 20]",
+            "WAIT 1",
+            "[JARVIS: REMIND 480m \"Buenos dias! Hora de levantarse\"]",
+            "WAIT 1",
+            "[JARVIS: LOCK]"
+        ]
+    },
+    "diagnostico": {
+        "trigger": "diagnostico",
+        "description": "Lista archivos creados en JarvisFiles y recordatorios pendientes",
+        "steps": [
+            "[JARVIS: LIST \"JarvisFiles\"]",
+            "WAIT 1",
+            "[JARVIS: LIST_REMINDERS]"
+        ]
+    },
+    "silencio total": {
+        "trigger": "silencio total",
+        "description": "Silencia todo el audio y toma una captura de pantalla",
+        "steps": [
+            "[JARVIS: VOLUME mute]",
+            "WAIT 1",
+            "[JARVIS: SCREENSHOT]"
+        ]
+    }
+}
 
 SKIN_META = {
     "Bocchi": {
@@ -818,6 +892,23 @@ SKIN_META = {
     }
 }
 
+def get_skin_meta(skin_name):
+    """Obtiene metadatos del personaje, soportando skins personalizadas e importadas."""
+    if skin_name in SKIN_META:
+        return SKIN_META[skin_name]
+    return {
+        "display": f"{skin_name} (Importada)",
+        "char_name": skin_name,
+        "tagline": "Skin Personalizada Importada",
+        "greeting": f"¡Hola! Soy {skin_name}, un Shimeji importado.",
+        "speeches": [
+            f"¡Me alegra estar en tu escritorio!",
+            f"Explorando la pantalla como {skin_name}...",
+            "¡Puedo escalar paredes y caminar por tus ventanas!"
+        ],
+        "system_prompt": f"Eres {skin_name}, un divertido personaje Shimeji que pasea por la pantalla del usuario. Responde de forma alegre y ayuda como asistente virtual."
+    }
+
 
 CUSTOM_SKIN_ACTIONS = {
     "Monika": [
@@ -1266,10 +1357,101 @@ class ThemeManager:
         "Trebuchet MS", "Verdana", "Tahoma", "Century Gothic"
     ]
 
+    THEME_PRESETS = {
+        "lavender": {
+            "name": "Lavender Dark",
+            "bg": "#140f26",
+            "surface": "#1c1635",
+            "surface_var": "#261e47",
+            "border": "#3d335c",
+            "text": "#ede9fe",
+            "text_dim": "#a78bfa",
+            "accent": "#8b5cf6"
+        },
+        "cyberpunk": {
+            "name": "Cyberpunk Neon",
+            "bg": "#090a15",
+            "surface": "#121528",
+            "surface_var": "#1a1f3c",
+            "border": "#2a3461",
+            "text": "#f43f5e",
+            "text_dim": "#a5b4fc",
+            "accent": "#06b6d4"
+        },
+        "sakura": {
+            "name": "Sakura Pastel",
+            "bg": "#2b1420",
+            "surface": "#3b1c2d",
+            "surface_var": "#4a243a",
+            "border": "#6b3353",
+            "text": "#fce7f3",
+            "text_dim": "#f472b6",
+            "accent": "#fb7185"
+        },
+        "matrix": {
+            "name": "Matrix Terminal",
+            "bg": "#0b120c",
+            "surface": "#121f14",
+            "surface_var": "#1a2c1d",
+            "border": "#27472c",
+            "text": "#86efac",
+            "text_dim": "#4ade80",
+            "accent": "#22c55e"
+        },
+        "midnight": {
+            "name": "Midnight Blue",
+            "bg": "#0b1120",
+            "surface": "#131d33",
+            "surface_var": "#1e2c4a",
+            "border": "#2e426b",
+            "text": "#e0f2fe",
+            "text_dim": "#7dd3fc",
+            "accent": "#38bdf8"
+        },
+        "noir": {
+            "name": "Monochrome Noir",
+            "bg": "#18181b",
+            "surface": "#27272a",
+            "surface_var": "#3f3f46",
+            "border": "#52525b",
+            "text": "#fafafa",
+            "text_dim": "#a1a1aa",
+            "accent": "#e4e4e7"
+        },
+        "amber": {
+            "name": "Sunset Amber",
+            "bg": "#1c1208",
+            "surface": "#2b1b0c",
+            "surface_var": "#3d2712",
+            "border": "#5c3b1b",
+            "text": "#fef3c7",
+            "text_dim": "#fcd34d",
+            "accent": "#f59e0b"
+        }
+    }
+
     def __init__(self, config_dict=None):
         self.config = config_dict if config_dict is not None else {}
         self.listeners = []
         self.reload()
+
+    def apply_preset(self, preset_key, notify=True):
+        if preset_key not in self.THEME_PRESETS:
+            return
+        p = self.THEME_PRESETS[preset_key]
+        self.config["theme_mode"] = "custom"
+        self.config["theme_preset"] = preset_key
+        self.config["custom_bg"] = p["bg"]
+        self.config["custom_surface"] = p["surface"]
+        self.config["custom_surface_var"] = p["surface_var"]
+        self.config["custom_border"] = p["border"]
+        self.config["custom_text"] = p["text"]
+        self.config["custom_text_dim"] = p["text_dim"]
+        self.config["custom_accent"] = p["accent"]
+        self.reload()
+        save_config(self.config)
+        if notify:
+            self.notify_listeners()
 
     def get_system_accent(self):
         if sys.platform == "win32" and winreg:
@@ -1562,6 +1744,16 @@ class AppearanceWindow:
                                          font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
                                          bd=0, relief=tk.FLAT, padx=8, pady=3, cursor="hand2")
         self.btn_pick_accent.pack(side=tk.RIGHT)
+
+        # Presets rápidos
+        tk.Label(self.sec2, text="Paletas predefinidas:", font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(anchor="w", pady=(6, 2))
+        preset_row = tk.Frame(self.sec2, bg=self.theme.surface)
+        preset_row.pack(fill=tk.X, pady=(0, 4))
+        for pk, pv in ThemeManager.THEME_PRESETS.items():
+            tk.Button(preset_row, text=pv["name"][:7], bg=pv["surface"], fg=pv["accent"],
+                      font=(self.theme.font_family, 7, "bold"), bd=0, relief=tk.FLAT, padx=4, pady=2,
+                      command=lambda k=pk: self.theme.apply_preset(k)).pack(side=tk.LEFT, padx=1)
 
         # Extra custom color buttons (visible when mode == custom)
         self.custom_colors_frame = tk.Frame(self.sec2, bg=self.theme.surface)
@@ -2346,6 +2538,259 @@ class JarvisWakeWordListener:
             self.running = False
 
 
+class SpriteImporterWindow:
+    """Ventana interactiva para importar skins de Shimeji (.zip o carpeta con sprites)."""
+    def __init__(self, parent_root, theme_manager, shimeji_ref=None):
+        self.parent = parent_root
+        self.theme = theme_manager
+        self.shimeji = shimeji_ref
+        self.win = None
+        self.source_path = None
+        self.is_zip = False
+        self.frames_found = []
+        self.preview_tk = None
+        self._build_window()
+
+    def _build_window(self):
+        self.win = tk.Toplevel(self.parent)
+        self.win.title("[IMPORTADOR] Importar Skin de Shimeji")
+        self.win.geometry("520x600")
+        self.win.minsize(480, 520)
+        self.win.configure(bg=self.theme.surface)
+        self.win.attributes("-topmost", True)
+
+        header = tk.Frame(self.win, bg=self.theme.surface_variant, pady=10, padx=14)
+        header.pack(fill=tk.X)
+        tk.Label(header, text="[*] Importador de Skins Shimeji",
+                 font=(self.theme.font_family, self.theme.font_size + 2, "bold"),
+                 bg=self.theme.surface_variant, fg=self.theme.accent).pack(anchor="w")
+        tk.Label(header, text="Importa archivos .zip o carpetas con frames shime1.png... o 1.png...",
+                 font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                 bg=self.theme.surface_variant, fg=self.theme.text_dim).pack(anchor="w")
+
+        content = tk.Frame(self.win, bg=self.theme.surface, padx=14, pady=12)
+        content.pack(fill=tk.BOTH, expand=True)
+
+        tk.Label(content, text="Seleccionar archivo .zip o carpeta con sprites:",
+                 font=(self.theme.font_family, self.theme.font_size, "bold"),
+                 bg=self.theme.surface, fg=self.theme.text).pack(anchor="w", pady=(0, 6))
+
+        row_sel = tk.Frame(content, bg=self.theme.surface)
+        row_sel.pack(fill=tk.X, pady=(0, 10))
+
+        tk.Button(row_sel, text="[+] Elegir archivo .ZIP...",
+                  bg=self.theme.surface_variant, fg=self.theme.text,
+                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                  command=self._pick_zip, padx=10, pady=5).pack(side=tk.LEFT, padx=(0, 8))
+        tk.Button(row_sel, text="[+] Elegir Carpeta...",
+                  bg=self.theme.surface_variant, fg=self.theme.text,
+                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                  command=self._pick_folder, padx=10, pady=5).pack(side=tk.LEFT)
+
+        self.lbl_path = tk.Label(content, text="Ningun archivo seleccionado",
+                                 font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                                 bg=self.theme.surface, fg=self.theme.text_dim, anchor="w")
+        self.lbl_path.pack(fill=tk.X, pady=(0, 8))
+
+        tk.Label(content, text="Nombre para la nueva Skin / Personaje:",
+                 font=(self.theme.font_family, self.theme.font_size, "bold"),
+                 bg=self.theme.surface, fg=self.theme.text).pack(anchor="w", pady=(4, 2))
+        self.var_skin_name = tk.StringVar(value="")
+        self.e_skin_name = tk.Entry(content, textvariable=self.var_skin_name,
+                                    bg=self.theme.entry_bg, fg=self.theme.text,
+                                    insertbackground=self.theme.accent,
+                                    font=(self.theme.font_family, self.theme.font_size))
+        self.e_skin_name.pack(fill=tk.X, pady=(0, 10))
+
+        self.prev_card = tk.Frame(content, bg=self.theme.surface_variant,
+                                  highlightbackground=self.theme.border, highlightthickness=1, pady=12, padx=12)
+        self.prev_card.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        self.lbl_preview_canvas = tk.Label(self.prev_card, text="(Sin vista previa cargada)",
+                                           bg=self.theme.surface_variant, fg=self.theme.text_dim,
+                                           font=(self.theme.font_family, self.theme.font_size))
+        self.lbl_preview_canvas.pack(pady=10)
+
+        self.lbl_info = tk.Label(self.prev_card, text="Frames detectados: 0",
+                                 bg=self.theme.surface_variant, fg=self.theme.text,
+                                 font=(self.theme.font_family, self.theme.font_size - 1, "bold"))
+        self.lbl_info.pack()
+
+        row_actions = tk.Frame(self.win, bg=self.theme.surface_variant, pady=10, padx=14)
+        row_actions.pack(fill=tk.X, side=tk.BOTTOM)
+
+        self.btn_import = tk.Button(row_actions, text="[★] Importar e Instalar Skin",
+                                    bg=self.theme.accent, fg=self.theme.accent_text,
+                                    font=(self.theme.font_family, self.theme.font_size, "bold"),
+                                    padx=14, pady=5, state=tk.DISABLED, command=self._do_import)
+        self.btn_import.pack(side=tk.RIGHT, padx=(8, 0))
+
+        tk.Button(row_actions, text="Cancelar", bg=self.theme.surface, fg=self.theme.text,
+                  command=self.win.destroy, padx=10, pady=5).pack(side=tk.RIGHT)
+
+    def _pick_zip(self):
+        f = filedialog.askopenfilename(
+            title="Seleccionar archivo ZIP con sprites de Shimeji",
+            filetypes=[("Archivos ZIP", "*.zip"), ("Todos los archivos", "*.*")]
+        )
+        if f:
+            self.source_path = f
+            self.is_zip = True
+            base_name = os.path.splitext(os.path.basename(f))[0]
+            clean_name = re.sub(r"[^a-zA-Z0-9_\-]", "", base_name.replace(" ", "_")).capitalize()
+            self.var_skin_name.set(clean_name or "CustomSkin")
+            self.lbl_path.configure(text=f"ZIP: {os.path.basename(f)}")
+            self._inspect_zip(f)
+
+    def _pick_folder(self):
+        d = filedialog.askdirectory(title="Seleccionar carpeta que contiene los frames de Shimeji")
+        if d:
+            self.source_path = d
+            self.is_zip = False
+            base_name = os.path.basename(os.path.normpath(d))
+            clean_name = re.sub(r"[^a-zA-Z0-9_\-]", "", base_name.replace(" ", "_")).capitalize()
+            self.var_skin_name.set(clean_name or "CustomSkin")
+            self.lbl_path.configure(text=f"Carpeta: {os.path.basename(d)}")
+            self._inspect_folder(d)
+
+    def _inspect_zip(self, zpath):
+        try:
+            with zipfile.ZipFile(zpath, "r") as zf:
+                names = zf.namelist()
+                png_names = [n for n in names if n.lower().endswith(".png") and not os.path.basename(n).startswith(".")]
+                self.frames_found = png_names
+                self.lbl_info.configure(text=f"Frames detectados: {len(png_names)} archivos PNG")
+                if not png_names:
+                    messagebox.showwarning("Sin sprites", "No se encontraron archivos .png dentro del archivo .zip.")
+                    self.btn_import.configure(state=tk.DISABLED)
+                    return
+                cand = None
+                for n in png_names:
+                    bn = os.path.basename(n).lower()
+                    if bn in ("shime1.png", "1.png"):
+                        cand = n
+                        break
+                if not cand:
+                    cand = png_names[0]
+                data = zf.read(cand)
+                import io
+                im = Image.open(io.BytesIO(data)).convert("RGBA")
+                im.thumbnail((128, 128))
+                self.preview_tk = ImageTk.PhotoImage(im)
+                self.lbl_preview_canvas.configure(image=self.preview_tk, text="")
+                self.btn_import.configure(state=tk.NORMAL)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo leer el archivo ZIP:\n{e}")
+            self.btn_import.configure(state=tk.DISABLED)
+
+    def _inspect_folder(self, fpath):
+        try:
+            png_files = []
+            for root, _, files in os.walk(fpath):
+                for f in files:
+                    if f.lower().endswith(".png") and not f.startswith("."):
+                        png_files.append(os.path.join(root, f))
+            self.frames_found = png_files
+            self.lbl_info.configure(text=f"Frames detectados: {len(png_files)} archivos PNG")
+            if not png_files:
+                messagebox.showwarning("Sin sprites", "No se encontraron archivos .png en la carpeta seleccionada.")
+                self.btn_import.configure(state=tk.DISABLED)
+                return
+            cand = None
+            for p in png_files:
+                bn = os.path.basename(p).lower()
+                if bn in ("shime1.png", "1.png"):
+                    cand = p
+                    break
+            if not cand:
+                cand = png_files[0]
+            im = Image.open(cand).convert("RGBA")
+            im.thumbnail((128, 128))
+            self.preview_tk = ImageTk.PhotoImage(im)
+            self.lbl_preview_canvas.configure(image=self.preview_tk, text="")
+            self.btn_import.configure(state=tk.NORMAL)
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo leer la carpeta:\n{e}")
+            self.btn_import.configure(state=tk.DISABLED)
+
+    def _do_import(self):
+        s_name = self.var_skin_name.get().strip()
+        if not s_name:
+            messagebox.showwarning("Atencion", "Por favor ingresa un nombre para la skin.")
+            return
+        clean_name = re.sub(r"[^a-zA-Z0-9_\-]", "", s_name.replace(" ", "_")).capitalize()
+        if not clean_name:
+            clean_name = "SkinImportada"
+
+        target_dirs = []
+        for b in [BASE_DIR, EXE_DIR]:
+            td = os.path.join(b, "img", "skins", clean_name)
+            target_dirs.append(td)
+            try:
+                os.makedirs(td, exist_ok=True)
+            except Exception:
+                pass
+
+        count = 0
+        try:
+            if self.is_zip and self.source_path:
+                with zipfile.ZipFile(self.source_path, "r") as zf:
+                    for entry in self.frames_found:
+                        data = zf.read(entry)
+                        fname = os.path.basename(entry)
+                        if not fname:
+                            continue
+                        m_num = re.match(r"^(\d+)\.png$", fname, re.IGNORECASE)
+                        names_to_save = [fname]
+                        if m_num:
+                            names_to_save.append(f"shime{m_num.group(1)}.png")
+                        for td in target_dirs:
+                            for n in names_to_save:
+                                with open(os.path.join(td, n), "wb") as out_f:
+                                    out_f.write(data)
+                        count += 1
+            elif self.source_path:
+                for src_file in self.frames_found:
+                    fname = os.path.basename(src_file)
+                    m_num = re.match(r"^(\d+)\.png$", fname, re.IGNORECASE)
+                    names_to_save = [fname]
+                    if m_num:
+                        names_to_save.append(f"shime{m_num.group(1)}.png")
+                    for td in target_dirs:
+                        for n in names_to_save:
+                            shutil.copy2(src_file, os.path.join(td, n))
+                    count += 1
+
+            if self.is_zip and self.source_path:
+                with zipfile.ZipFile(self.source_path, "r") as zf:
+                    for n in zf.namelist():
+                        if os.path.basename(n).lower() == "actions.xml":
+                            for td in target_dirs:
+                                with open(os.path.join(td, "actions.xml"), "wb") as out_f:
+                                    out_f.write(zf.read(n))
+            elif self.source_path and os.path.isdir(self.source_path):
+                act_xml = os.path.join(self.source_path, "actions.xml")
+                if os.path.isfile(act_xml):
+                    for td in target_dirs:
+                        shutil.copy2(act_xml, os.path.join(td, "actions.xml"))
+
+            if clean_name not in SKIN_NAMES:
+                SKIN_NAMES.append(clean_name)
+
+            messagebox.showinfo("Importacion Exitosa",
+                                f"Skin '{clean_name}' importada correctamente!\n"
+                                f"Se instalaron {count} frames en la biblioteca de skins.")
+
+            if self.shimeji:
+                ans = messagebox.askyesno("Activar Skin", f"Deseas activar la skin '{clean_name}' ahora?")
+                if ans:
+                    self.shimeji.set_skin(clean_name)
+
+            self.win.destroy()
+        except Exception as e:
+            messagebox.showerror("Error al importar", f"Ocurrio un error durante la importacion:\n{e}")
+
+
 class AgentSettingsWindow:
     """Ventana independiente de ajustes profundos del Agente JARVIS."""
     def __init__(self, parent_root, theme_manager, shimeji_ref=None):
@@ -2392,12 +2837,14 @@ class AgentSettingsWindow:
         tab_voice = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
         tab_shimeji = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
         tab_macros = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
+        tab_themes = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
 
         nb.add(tab_agent, text="Agente & IA")
         nb.add(tab_perms, text="Permisos")
         nb.add(tab_voice, text="Voz & Wake Word")
         nb.add(tab_shimeji, text="Shimeji & Ventanas")
         nb.add(tab_macros, text="Macros")
+        nb.add(tab_themes, text="Temas & Estilos")
 
         # ----------------- 1. Agente & IA -----------------
         tk.Label(tab_agent, text="Nombre del Asistente:", bg=self.theme.surface, fg=self.theme.text,
@@ -2575,10 +3022,61 @@ class AgentSettingsWindow:
 
         tk.Button(row_macro_btns, text="[+] Crear Macro", bg=self.theme.surface_variant, fg=self.theme.text,
                   command=self._add_macro_dialog).pack(side=tk.LEFT, padx=(0, 4))
+        tk.Button(row_macro_btns, text="[★] Cargar Macros Pre-Built", bg=self.theme.surface_variant, fg=self.theme.accent,
+                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                  command=self._load_prebuilt_macros).pack(side=tk.LEFT, padx=4)
         tk.Button(row_macro_btns, text="[-] Eliminar", bg=self.theme.surface_variant, fg=self.theme.danger,
                   command=self._delete_macro).pack(side=tk.LEFT, padx=4)
         tk.Button(row_macro_btns, text="[>] Ejecutar", bg=self.theme.accent, fg=self.theme.accent_text,
                   command=self._run_selected_macro).pack(side=tk.RIGHT)
+
+        # ----------------- 6. Temas & Estilos -----------------
+        tk.Label(tab_themes, text="Paletas y Temas Predefinidos:", bg=self.theme.surface, fg=self.theme.accent,
+                 font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(0, 4))
+        tk.Label(tab_themes, text="Selecciona un preset para aplicarlo a todas las ventanas:",
+                 bg=self.theme.surface, fg=self.theme.text_dim, font=(self.theme.font_family, max(8, self.theme.font_size - 2))).pack(anchor="w", pady=(0, 8))
+
+        presets_frame = tk.Frame(tab_themes, bg=self.theme.surface)
+        presets_frame.pack(fill=tk.X, pady=(0, 10))
+
+        col = 0
+        rw = 0
+        for pk, pv in ThemeManager.THEME_PRESETS.items():
+            btn_p = tk.Button(presets_frame, text=pv["name"], bg=pv["surface"], fg=pv["accent"],
+                              font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                              relief=tk.FLAT, bd=1, padx=6, pady=4,
+                              command=lambda k=pk: self._select_preset(k))
+            btn_p.grid(row=rw, column=col, padx=4, pady=4, sticky="ew")
+            col += 1
+            if col >= 3:
+                col = 0
+                rw += 1
+        for c in range(3):
+            presets_frame.columnconfigure(c, weight=1)
+
+        tk.Label(tab_themes, text="Ajustes de Opacidad y Transparencia:", bg=self.theme.surface, fg=self.theme.text,
+                 font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(8, 4))
+
+        opac_box = tk.Frame(tab_themes, bg=self.theme.surface)
+        opac_box.pack(fill=tk.X, pady=(0, 8))
+
+        tk.Label(opac_box, text="Opacidad de Ventanas (%):", bg=self.theme.surface, fg=self.theme.text).grid(row=0, column=0, sticky="w", pady=2)
+        self.scale_theme_opac = tk.Scale(opac_box, from_=40, to=100, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text,
+                                         highlightthickness=0, command=self._on_theme_opac_change)
+        self.scale_theme_opac.set(int(self.theme.opacity * 100))
+        self.scale_theme_opac.grid(row=0, column=1, sticky="ew", padx=8)
+
+        tk.Label(opac_box, text="Opacidad de Burbuja (%):", bg=self.theme.surface, fg=self.theme.text).grid(row=1, column=0, sticky="w", pady=2)
+        self.scale_theme_bub = tk.Scale(opac_box, from_=10, to=100, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text,
+                                        highlightthickness=0, command=self._on_theme_bub_change)
+        self.scale_theme_bub.set(int(getattr(self.theme, "bubble_opacity", 0.95) * 100))
+        self.scale_theme_bub.grid(row=1, column=1, sticky="ew", padx=8)
+        opac_box.columnconfigure(1, weight=1)
+
+        tk.Button(tab_themes, text="[+] Abrir Personalizador Avanzado de Colores >>",
+                  bg=self.theme.surface_variant, fg=self.theme.accent,
+                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                  command=self._open_advanced_appearance).pack(anchor="w", pady=(8, 0))
 
         # ----------------- Botón Guardar -----------------
         bottom_bar = tk.Frame(self.win, bg=self.theme.surface_variant, pady=8, padx=12)
@@ -2588,6 +3086,31 @@ class AgentSettingsWindow:
                   command=self._save_all).pack(side=tk.RIGHT)
         tk.Button(bottom_bar, text="Cerrar", bg=self.theme.surface, fg=self.theme.text,
                   command=self.win.destroy).pack(side=tk.LEFT)
+
+    def _select_preset(self, pkey):
+        self.theme.apply_preset(pkey)
+        messagebox.showinfo("Tema", f"Se aplicó el tema '{ThemeManager.THEME_PRESETS[pkey]['name']}' correctamente.")
+
+    def _on_theme_opac_change(self, val):
+        self.theme.set_opacity(int(val) / 100.0)
+        if self.win and tk.Toplevel.winfo_exists(self.win):
+            self.win.attributes("-alpha", self.theme.opacity)
+
+    def _on_theme_bub_change(self, val):
+        self.theme.set_bubble_opacity(int(val) / 100.0)
+
+    def _open_advanced_appearance(self):
+        if self.shimeji:
+            self.shimeji.open_appearance()
+
+    def _load_prebuilt_macros(self):
+        macros = dict(self.config.get("macros", {}))
+        for k, v in DEFAULT_PREBUILT_MACROS.items():
+            macros[k] = v
+        self.config["macros"] = macros
+        save_config(self.config)
+        self._refresh_macros_list(macros)
+        messagebox.showinfo("Macros", "Se cargaron los 5 macros predeterminados correctamente.")
 
     def _refresh_macros_list(self, m_dict):
         self.macro_list.delete(0, tk.END)
@@ -4898,11 +5421,13 @@ class ChatWindow:
                     activeforeground=getattr(self.theme, "accent_text", "#ffffff"),
                     font=(self.theme.font_family, self.theme.font_size))
         cur = getattr(self.shimeji, "current_skin", "Bocchi") if self.shimeji else "Bocchi"
-        for s in SKIN_NAMES:
-            meta = SKIN_META.get(s, {})
+        for s in get_available_skins():
+            meta = get_skin_meta(s)
             disp = meta.get("display", s)
             chk = " [✓]" if s == cur else ""
             m.add_command(label=f"{disp}{chk}", command=lambda sk=s: self._select_skin(sk))
+        m.add_separator()
+        m.add_command(label="[+] Importar Skin (.zip / carpeta)...", command=self.open_sprite_importer)
         try:
             m.tk_popup(self.win.winfo_pointerx(), self.win.winfo_pointery())
         except Exception:
@@ -4912,6 +5437,12 @@ class ChatWindow:
                 m.grab_release()
             except Exception:
                 pass
+
+    def open_sprite_importer(self):
+        if self.shimeji:
+            self.shimeji.open_sprite_importer()
+        else:
+            SpriteImporterWindow(self.win, self.theme, self.shimeji)
 
     def _select_skin(self, skin_name):
         if self.shimeji:
@@ -6703,19 +7234,82 @@ class Shimeji:
         self.show_speech(f"¡Delicioso {item_name}! (+{self.hp - old_hp} HP)  [HP: {self.hp}/100]")
         self.choose_next_floor_state()
 
+    def log_death_diary(self):
+        try:
+            jdir = os.path.join(BASE_DIR, "JarvisFiles")
+            os.makedirs(jdir, exist_ok=True)
+            dpath = os.path.join(jdir, "diario_de_defuncion.txt")
+            skin = getattr(self, "current_skin", "Bocchi")
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            quotes = [
+                "Fue un honor servir en tu escritorio... no olvides alimentar al proximo Shimeji.",
+                "Las leyes de la gravedad y los clics fueron implacables hoy...",
+                "Vi pasar toda mi vida en sprites ante mis ojos...",
+                "Dile a Monika que guarde una copia de respaldo de mis recuerdos...",
+                "Regresare en unos segundos, o cuando presiones RCP..."
+            ]
+            quote = random.choice(quotes)
+            entry = (
+                f"[{now_str}] DEFUNCION DE {skin.upper()}\n"
+                f"Causa: Agotamiento total de HP por daño severo de impacto.\n"
+                f"Ultimas palabras: \"{quote}\"\n"
+                f"Estado: Botin arrojado al suelo. Procedimiento de reanimacion RCP disponible.\n"
+                + ("-" * 60) + "\n"
+            )
+            with open(dpath, "a", encoding="utf-8") as f:
+                f.write(entry)
+        except Exception:
+            pass
+
     def trigger_ko(self):
         self.is_ko = True
         self.hp = 0
-        self.vel_x = 0
-        self.vel_y = 0
-        self.set_state("ko", surface=SURFACE_FLOOR)
-        self.show_speech("K.O.! *ve pajaritos volando*\n(Descansando en el suelo para revivir...)")
+        self.cpr_count = 0
+        play_popue_sound()
+        self.log_death_diary()
+        
+        # Soltar botin al suelo
+        self.root.after(350, self.drop_random_item)
+
+        # Efecto de fisica ragdoll
+        self.surface = SURFACE_FLOOR
+        self.vel_x = random.choice([-6, 6])
+        self.vel_y = -14
+        
+        # Si tiene frames de fantasma, alternar brevemente
+        if "ghost1" in self.images:
+            self.set_state("ghost", surface=SURFACE_FLOOR)
+        else:
+            self.set_state("ko", surface=SURFACE_FLOOR)
+
+        self.show_speech("[K.O.] *cae derrotado*\n¡Solto botin! Clickea para RCP (0/3)\nO revivira en 7 segundos...")
         self.root.after(7500, self.recover_from_ko)
+
+    def cpr_press(self):
+        if not getattr(self, "is_ko", False):
+            return
+        self.cpr_count = getattr(self, "cpr_count", 0) + 1
+        play_popue_sound()
+        if self.cpr_count >= 3:
+            self.cpr_revive()
+        else:
+            self.show_speech(f"¡RCP EN PROCESO! [{self.cpr_count}/3] *compresion toracica*\n¡Presiona mas rapido!")
+
+    def cpr_revive(self):
+        if not getattr(self, "is_ko", False):
+            return
+        self.is_ko = False
+        self.cpr_count = 0
+        self.hp = 75
+        play_popue_sound()
+        self.show_speech("¡¡DESFIBRILADOR EXITOSO!! (+75 HP) [★]\n¡Gracias por salvarme la vida!")
+        self.choose_next_floor_state()
 
     def recover_from_ko(self):
         if not getattr(self, "is_ko", False):
             return
         self.is_ko = False
+        self.cpr_count = 0
         self.hp = 50
         play_popue_sound()
         self.show_speech("Uff... sobrevivi de milagro... ;_; [HP: 50/100]")
@@ -7129,7 +7723,7 @@ class Shimeji:
 
     def on_press(self, e):
         if getattr(self, "is_ko", False):
-            self.show_speech(" ¡K.O.! *ve pajaritos volando* \n(Descansando para recuperar salud...)")
+            self.cpr_press()
             return
         self.dragging   = True
         self.drag_off_x = e.x
@@ -7251,11 +7845,13 @@ class Shimeji:
                                 activebackground=t.accent,
                                 activeforeground=acc_fg,
                                 font=(t.font_family, t.font_size))
-            for s in SKIN_NAMES:
-                meta = SKIN_META.get(s, {})
+            for s in get_available_skins():
+                meta = get_skin_meta(s)
                 disp = meta.get("display", s)
                 chk = " [✓]" if s == self.current_skin else ""
                 skin_menu.add_command(label=f"{disp}{chk}", command=lambda sk=s: self.set_skin(sk))
+            skin_menu.add_separator()
+            skin_menu.add_command(label="[+] Importar Skin (.zip / carpeta)...", command=self.open_sprite_importer)
             menu.add_cascade(label="[+] Elegir Skin / Personaje >>", menu=skin_menu)
 
             troll_toggle_lbl = "[!] MODO TROLL: [ON] (Desactivar)" if self.troll_mode else "[o] MODO TROLL: [OFF] (Activar)"
@@ -8211,6 +8807,9 @@ class Shimeji:
             self.appearance_win.win.lift()
             return
         self.appearance_win = AppearanceWindow(self.root, self.theme_manager, self)
+
+    def open_sprite_importer(self):
+        SpriteImporterWindow(self.root, self.theme_manager, self)
 
     def show_speech(self, text):
         try:

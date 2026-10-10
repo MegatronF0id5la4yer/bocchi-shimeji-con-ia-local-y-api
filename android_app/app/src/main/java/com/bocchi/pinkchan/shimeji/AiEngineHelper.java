@@ -317,6 +317,7 @@ public class AiEngineHelper {
         SharedPreferences prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
         int maxSteps = prefs.getInt("agent_max_steps", 6);
         int timeoutSec = prefs.getInt("agent_timeout_sec", 60);
+        int maxTokens = prefs.getInt("ai_max_tokens", 4096);
 
         String[] modelsToTry;
         if (preferredModel != null && !preferredModel.trim().isEmpty() && !"auto".equalsIgnoreCase(preferredModel.trim())) {
@@ -358,7 +359,7 @@ public class AiEngineHelper {
 
                     JSONObject genConfig = new JSONObject();
                     genConfig.put("temperature", 0.8);
-                    genConfig.put("maxOutputTokens", 4096);
+                    genConfig.put("maxOutputTokens", maxTokens);
                     root.put("generationConfig", genConfig);
 
                     OutputStream os = conn.getOutputStream();
@@ -458,6 +459,7 @@ public class AiEngineHelper {
         SharedPreferences prefs = context.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
         int maxSteps = prefs.getInt("agent_max_steps", 6);
         int timeoutSec = prefs.getInt("agent_timeout_sec", 60);
+        int maxTokens = prefs.getInt("ai_max_tokens", 4096);
 
         try {
             String baseUrl = endpoint.endsWith("/") ? endpoint.substring(0, endpoint.length() - 1) : endpoint;
@@ -496,7 +498,7 @@ public class AiEngineHelper {
                 JSONObject root = new JSONObject();
                 root.put("model", model);
                 root.put("messages", messages);
-                root.put("max_tokens", 4096);
+                root.put("max_tokens", maxTokens);
                 root.put("temperature", 0.8);
 
                 OutputStream os = conn.getOutputStream();

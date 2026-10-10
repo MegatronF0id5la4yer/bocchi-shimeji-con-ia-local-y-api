@@ -38,7 +38,14 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.database.Cursor;
+import android.provider.OpenableColumns;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -48,6 +55,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -55,6 +64,7 @@ public class MainActivity extends Activity {
 
     private static final int REQUEST_OVERLAY_PERMISSION = 2001;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 2002;
+    private static final int REQUEST_PICK_SKIN_ZIP = 2048;
 
     public static final String PREFS_NAME = "pinkchan_shimeji_prefs";
     public static final String KEY_SKIN = "selected_skin";
@@ -132,6 +142,10 @@ public class MainActivity extends Activity {
     private EditText etCloudEndpoint, etCloudModel, etCloudKey;
     private Button btnTestAi, btnSaveAi;
     private TextView tvAiStatus;
+    private SeekBar sbAiMaxTokens;
+    private TextView tvAiMaxTokensVal;
+    private Button btnImportSkinZip;
+    private Button btnLoadPrebuiltMacros;
 
     // Prefabricated Command Slots Views
     private TextView badgeSlotsCount, tvEmptySlots;
@@ -323,8 +337,12 @@ public class MainActivity extends Activity {
         btnJarvisTestTts = findViewById(R.id.btn_jarvis_test_tts);
         btnJarvisPushToTalk = findViewById(R.id.btn_jarvis_push_to_talk);
         btnAddJarvisMacro = findViewById(R.id.btn_add_jarvis_macro);
+        btnLoadPrebuiltMacros = findViewById(R.id.btn_load_prebuilt_macros);
         btnSaveJarvisAll = findViewById(R.id.btn_save_jarvis_all);
         layoutMacrosContainer = findViewById(R.id.layout_macros_container);
+        btnImportSkinZip = findViewById(R.id.btn_import_skin_zip);
+        sbAiMaxTokens = findViewById(R.id.sb_ai_max_tokens);
+        tvAiMaxTokensVal = findViewById(R.id.tv_ai_max_tokens_val);
     }
 
     private void setupTabs() {
@@ -558,6 +576,18 @@ public class MainActivity extends Activity {
                 Toast.makeText(MainActivity.this, "Nueva categoria personalizada anadida", Toast.LENGTH_SHORT).show();
             }
         });
+
+        if (btnImportSkinZip != null) {
+            btnImportSkinZip.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("*/*");
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    startActivityForResult(Intent.createChooser(intent, "Seleccionar archivo ZIP de Skin"), REQUEST_PICK_SKIN_ZIP);
+                }
+            });
+        }
     }
 
     private void setupInspectorScreen() {
@@ -874,6 +904,22 @@ public class MainActivity extends Activity {
                         }
                     });
                 }
+            });
+        }
+
+        if (sbAiMaxTokens != null && tvAiMaxTokensVal != null) {
+            int curTokens = prefs.getInt("ai_max_tokens", 4096);
+            sbAiMaxTokens.setProgress(curTokens);
+            tvAiMaxTokensVal.setText(String.valueOf(curTokens));
+            sbAiMaxTokens.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    int val = Math.max(256, progress);
+                    tvAiMaxTokensVal.setText(String.valueOf(val));
+                    prefs.edit().putInt("ai_max_tokens", val).apply();
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
             });
         }
     }
@@ -1307,6 +1353,14 @@ public class MainActivity extends Activity {
 
         // Macros
         refreshMacrosUI();
+        if (btnLoadPrebuiltMacros != null) {
+            btnLoadPrebuiltMacros.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    loadPrebuiltMacros();
+                }
+            });
+        }
         if (btnAddJarvisMacro != null) {
             btnAddJarvisMacro.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -1955,6 +2009,9 @@ public class MainActivity extends Activity {
             if (checkOverlayPermission()) {
                 Toast.makeText(this, "Permiso concedido. Ya puedes usar los Shimejis", Toast.LENGTH_SHORT).show();
             }
+        }
+        if (requestCode == REQUEST_PICK_SKIN_ZIP && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            importSkinFromZip(data.getData());
         }
     }
 
@@ -2976,6 +3033,216 @@ public class MainActivity extends Activity {
         });
         builder.setNegativeButton("Mas tarde", null);
         builder.show();
+    }
+
+    private void loadPrebuiltMacros() {
+        try {
+            String cur = prefs.getString(AgentToolExecutor.PREF_MACROS, "{}");
+            JSONObject o = new JSONObject(cur);
+
+            // 1. modo estudio
+            JSONArray mEstudio = new JSONArray();
+            mEstudio.put("[JARVIS: VOLUME 25]");
+            mEstudio.put("WAIT 1");
+            mEstudio.put("[JARVIS: SEARCH_YT \"lofi hip hop radio live\"]");
+            mEstudio.put("WAIT 1");
+            mEstudio.put("[JARVIS: REMIND 25m \"Pomodoro: descanso de 5 min\"]");
+            o.put("modo estudio", mEstudio);
+
+            // 2. modo gamer
+            JSONArray mGamer = new JSONArray();
+            mGamer.put("[JARVIS: VOLUME 80]");
+            mGamer.put("WAIT 1");
+            mGamer.put("[JARVIS: BRIGHTNESS 100]");
+            mGamer.put("WAIT 1");
+            mGamer.put("[JARVIS: OPEN \"discord\"]");
+            o.put("modo gamer", mGamer);
+
+            // 3. buenas noches
+            JSONArray mNoches = new JSONArray();
+            mNoches.put("[JARVIS: VOLUME 10]");
+            mNoches.put("WAIT 1");
+            mNoches.put("[JARVIS: BRIGHTNESS 15]");
+            mNoches.put("WAIT 1");
+            mNoches.put("[JARVIS: REMIND 480m \"Buenos dias! Hora de levantarse\"]");
+            mNoches.put("WAIT 1");
+            mNoches.put("[JARVIS: LOCK]");
+            o.put("buenas noches", mNoches);
+
+            // 4. diagnostico
+            JSONArray mDiag = new JSONArray();
+            mDiag.put("[JARVIS: LIST \"Shijima\"]");
+            mDiag.put("WAIT 1");
+            mDiag.put("[JARVIS: BATTERY]");
+            o.put("diagnostico", mDiag);
+
+            // 5. silencio total
+            JSONArray mSilencio = new JSONArray();
+            mSilencio.put("[JARVIS: VOLUME 0]");
+            mSilencio.put("WAIT 1");
+            mSilencio.put("[JARVIS: SCREENSHOT]");
+            o.put("silencio total", mSilencio);
+
+            prefs.edit().putString(AgentToolExecutor.PREF_MACROS, o.toString()).apply();
+            refreshMacrosUI();
+            Toast.makeText(this, "Se cargaron 5 macros predeterminadas con exito", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error al cargar macros: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void importSkinFromZip(final Uri uri) {
+        if (uri == null) return;
+        Toast.makeText(this, "Procesando e importando archivo ZIP...", Toast.LENGTH_SHORT).show();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String baseName = "CustomSkin";
+                    Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                    if (cursor != null) {
+                        try {
+                            if (cursor.moveToFirst()) {
+                                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                                if (nameIndex >= 0) {
+                                    String displayName = cursor.getString(nameIndex);
+                                    if (displayName != null && !displayName.isEmpty()) {
+                                        baseName = displayName;
+                                    }
+                                }
+                            }
+                        } finally {
+                            cursor.close();
+                        }
+                    }
+
+                    if (baseName.toLowerCase().endsWith(".zip")) {
+                        baseName = baseName.substring(0, baseName.length() - 4);
+                    }
+                    String cleanName = baseName.replaceAll("[^a-zA-Z0-9_\\-]", "_");
+                    if (cleanName.isEmpty()) cleanName = "SkinImportada";
+                    cleanName = Character.toUpperCase(cleanName.charAt(0)) + (cleanName.length() > 1 ? cleanName.substring(1) : "");
+
+                    File customDir = SkinData.getCustomSkinsDir(MainActivity.this);
+                    File skinDir = new File(customDir, cleanName);
+                    if (!skinDir.exists()) {
+                        skinDir.mkdirs();
+                    }
+
+                    InputStream is = getContentResolver().openInputStream(uri);
+                    if (is == null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "No se pudo abrir el archivo ZIP seleccionado", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        return;
+                    }
+
+                    ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
+                    ZipEntry entry;
+                    byte[] buffer = new byte[8192];
+                    int frameCount = 0;
+
+                    while ((entry = zis.getNextEntry()) != null) {
+                        if (entry.isDirectory()) {
+                            zis.closeEntry();
+                            continue;
+                        }
+
+                        String rawName = new File(entry.getName()).getName();
+                        if (rawName == null || rawName.isEmpty()) {
+                            zis.closeEntry();
+                            continue;
+                        }
+
+                        String lower = rawName.toLowerCase();
+                        if (lower.endsWith(".png") || lower.endsWith(".xml")) {
+                            File outFile = new File(skinDir, rawName);
+                            FileOutputStream fos = new FileOutputStream(outFile);
+                            int len;
+                            while ((len = zis.read(buffer)) > 0) {
+                                fos.write(buffer, 0, len);
+                            }
+                            fos.close();
+
+                            // Normalizacion: si es 1.png -> tambien guardar como shime1.png
+                            if (lower.matches("^\\d+\\.png$")) {
+                                String numPart = lower.replace(".png", "");
+                                File shimeAlias = new File(skinDir, "shime" + numPart + ".png");
+                                if (!shimeAlias.exists()) {
+                                    copyFile(outFile, shimeAlias);
+                                }
+                            } else if (lower.matches("^shime\\d+\\.png$")) {
+                                String numPart = lower.replace("shime", "").replace(".png", "");
+                                File simpleAlias = new File(skinDir, numPart + ".png");
+                                if (!simpleAlias.exists()) {
+                                    copyFile(outFile, simpleAlias);
+                                }
+                            }
+
+                            if (lower.endsWith(".png")) {
+                                frameCount++;
+                            }
+                        }
+                        zis.closeEntry();
+                    }
+                    zis.close();
+                    is.close();
+
+                    final int totalFrames = frameCount;
+                    final String finalSkinName = cleanName;
+
+                    SkinData.registerCustomSkin(MainActivity.this, finalSkinName);
+                    SkinData.loadCustomSkins(MainActivity.this);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (totalFrames > 0) {
+                                AlertDialog.Builder b = new AlertDialog.Builder(MainActivity.this);
+                                b.setTitle("Skin Importada: " + finalSkinName);
+                                b.setMessage("Se extrajeron " + totalFrames + " frames de sprites correctamente.\n¿Deseas activar esta skin ahora en pantalla?");
+                                b.setPositiveButton("Activar Ahora", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface d, int w) {
+                                        spawnOrSelectSkin(finalSkinName);
+                                    }
+                                });
+                                b.setNegativeButton("Mas tarde", null);
+                                b.show();
+                            } else {
+                                Toast.makeText(MainActivity.this, "El ZIP no contenia imagenes .png validas", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+
+                } catch (final Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Error importando skin: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private static void copyFile(File src, File dst) {
+        try {
+            FileInputStream in = new FileInputStream(src);
+            FileOutputStream out = new FileOutputStream(dst);
+            byte[] buf = new byte[4096];
+            int len;
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            in.close();
+            out.close();
+        } catch (Exception ignored) {}
     }
 
     private static class AppItem {

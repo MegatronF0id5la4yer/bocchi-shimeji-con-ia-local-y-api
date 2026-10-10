@@ -1,5 +1,7 @@
 package com.bocchi.pinkchan.shimeji;
 
+import android.content.Context;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -732,6 +734,54 @@ public class SkinData {
                 {"Desmayo", "faint", "fall1", "kneel1", "Se desmaya hacia atras al tener que hacer una llamada "}
             };
         }
+    }
+
+    public static File getCustomSkinsDir(Context context) {
+        File dir = new File(context.getFilesDir(), "custom_skins");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        return dir;
+    }
+
+    public static synchronized void loadCustomSkins(Context context) {
+        if (context == null) return;
+        getAll();
+        File dir = getCustomSkinsDir(context);
+        File[] subdirs = dir.listFiles();
+        if (subdirs != null) {
+            for (File sub : subdirs) {
+                if (sub.isDirectory()) {
+                    String name = sub.getName();
+                    if (!registry.containsKey(name)) {
+                        registry.put(name, new SkinData(
+                            name,
+                            name,
+                            name,
+                            new String[]{"Hola! Soy " + name + ", tu skin personalizada."},
+                            new String[]{"Oye! Me hiciste cosquillas!", "Cuidado con la pantalla!"},
+                            "Skin personalizada importada",
+                            "Eres " + name + ", un Shimeji companero virtual divertido."
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    public static synchronized void registerCustomSkin(Context context, String skinName) {
+        if (skinName == null || skinName.trim().isEmpty()) return;
+        String clean = skinName.trim();
+        getAll();
+        registry.put(clean, new SkinData(
+            clean,
+            clean,
+            clean,
+            new String[]{"Hola! Soy " + clean + ", tu skin personalizada."},
+            new String[]{"Oye! Me hiciste cosquillas!", "Cuidado con la pantalla!"},
+            "Skin personalizada importada",
+            "Eres " + clean + ", un Shimeji companero virtual divertido."
+        ));
     }
 }
 
