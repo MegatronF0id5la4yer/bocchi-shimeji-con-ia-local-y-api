@@ -15,7 +15,8 @@ a = Analysis(
         'PIL.Image', 'PIL.ImageTk', 'PIL.ImageSequence',
         'tkinter', 'tkinter.filedialog', 'tkinter.colorchooser',
         'tkinter.messagebox', 'tkinter.ttk', 'tkinter.font', 'tkinter.scrolledtext',
-        'winshell', 'fnmatch', 'urllib.parse'
+        'winshell', 'fnmatch', 'urllib.parse',
+        'win32com', 'win32com.client', 'pythoncom', 'PIL.ImageGrab', 'winsound', 'queue'
     ],
     hookspath=[],
     hooksconfig={},

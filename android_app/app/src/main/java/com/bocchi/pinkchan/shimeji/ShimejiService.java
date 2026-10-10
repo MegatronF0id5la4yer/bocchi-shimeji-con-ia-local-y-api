@@ -67,6 +67,19 @@ public class ShimejiService extends Service {
     private boolean zeroGravity = false;
     private SkinData currentSkin;
 
+    private static ShimejiService instance;
+    private android.speech.tts.TextToSpeech textToSpeech;
+    private android.speech.SpeechRecognizer wakeWordRecognizer;
+    private boolean isWakeWordListening = false;
+
+    public static ShimejiService getInstance() {
+        return instance;
+    }
+
+    public FloatingChatManager getFloatingChatManager() {
+        return floatingChatManager;
+    }
+
     private final List<ShimejiEntity> shimejiList = new ArrayList<>();
     private final Map<String, Bitmap> bitmapCache = new HashMap<>();
     private VoiceAssistantManager voiceAssistantManager;
@@ -77,6 +90,7 @@ public class ShimejiService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        instance = this;
         isRunning = true;
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -90,8 +104,19 @@ public class ShimejiService extends Service {
 
         updateScreenDimensions();
         createNotificationChannel();
-        startForeground(NOTIFICATION_ID, buildNotification());
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(NOTIFICATION_ID, buildNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE |
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+        } else if (Build.VERSION.SDK_INT >= 29) {
+            startForeground(NOTIFICATION_ID, buildNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification());
+        }
 
+        initTts();
+        syncWakeWordState();
         setupVoiceAssistant();
 
         // Spawn inicial del primer Shimeji centrado
@@ -598,6 +623,16 @@ public class ShimejiService extends Service {
     public void onDestroy() {
         playPopueSound();
         isRunning = false;
+        if (instance == this) {
+            instance = null;
+        }
+        if (textToSpeech != null) {
+            try {
+                textToSpeech.shutdown();
+            } catch (Exception ignored) {}
+            textToSpeech = null;
+        }
+        stopWakeWordListener();
         if (handler != null && loopRunnable != null) {
             handler.removeCallbacks(loopRunnable);
         }
@@ -614,6 +649,174 @@ public class ShimejiService extends Service {
         shimejiList.clear();
         bitmapCache.clear();
         super.onDestroy();
+    }
+
+    public void initTts() {
+        if (textToSpeech == null) {
+            textToSpeech = new android.speech.tts.TextToSpeech(getApplicationContext(), new android.speech.tts.TextToSpeech.OnInitListener() {
+                @Override
+                public void onInit(int status) {
+                    if (status == android.speech.tts.TextToSpeech.SUCCESS && textToSpeech != null) {
+                        applyTtsSettings();
+                    }
+                }
+            });
+        }
+    }
+
+    public void applyTtsSettings() {
+        if (textToSpeech == null) return;
+        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        float rate = sp.getFloat("tts_rate", 1.0f);
+        float pitch = sp.getFloat("tts_pitch", 1.0f);
+        textToSpeech.setSpeechRate(rate);
+        textToSpeech.setPitch(pitch);
+        textToSpeech.setLanguage(new java.util.Locale("es", "ES"));
+    }
+
+    public void syncTtsSettings() {
+        applyTtsSettings();
+    }
+
+    public Handler getHandler() {
+        return handler;
+    }
+
+    public void switchSkin(String skinId) {
+        SkinData skin = SkinData.get(skinId);
+        if (skin != null) {
+            currentSkin = skin;
+            if (!shimejiList.isEmpty()) {
+                shimejiList.get(0).setSkin(skin);
+            }
+        }
+    }
+
+    public void speakTts(String text) {
+        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        if (!sp.getBoolean("tts_enabled", false)) return;
+        if (text == null || text.trim().isEmpty()) return;
+        String clean = AgentToolExecutor.stripTags(text);
+        if (textToSpeech != null) {
+            textToSpeech.speak(clean, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "shimeji_tts");
+        } else {
+            initTts();
+        }
+    }
+
+    public void syncWakeWordState() {
+        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        boolean enabled = sp.getBoolean("wake_word_enabled", false);
+        if (enabled) {
+            startWakeWordListener();
+        } else {
+            stopWakeWordListener();
+        }
+    }
+
+    public void startWakeWordListener() {
+        if (isWakeWordListening) return;
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!android.speech.SpeechRecognizer.isRecognitionAvailable(ShimejiService.this)) return;
+                try {
+                    if (wakeWordRecognizer == null) {
+                        wakeWordRecognizer = android.speech.SpeechRecognizer.createSpeechRecognizer(ShimejiService.this);
+                    }
+                    isWakeWordListening = true;
+                    android.content.Intent intent = new android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    intent.putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "es-ES");
+                    intent.putExtra(android.speech.RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+                    intent.putExtra("android.speech.extra.PREFER_OFFLINE", true);
+
+                    wakeWordRecognizer.setRecognitionListener(new android.speech.RecognitionListener() {
+                        @Override public void onReadyForSpeech(android.os.Bundle params) {}
+                        @Override public void onBeginningOfSpeech() {}
+                        @Override public void onRmsChanged(float rmsdB) {}
+                        @Override public void onBufferReceived(byte[] buffer) {}
+                        @Override public void onEndOfSpeech() {}
+                        @Override
+                        public void onError(int error) {
+                            if (isWakeWordListening) {
+                                handler.postDelayed(new Runnable() {
+                                    @Override public void run() {
+                                        if (isWakeWordListening) startWakeWordListener();
+                                    }
+                                }, 1500);
+                            }
+                        }
+                        @Override
+                        public void onResults(android.os.Bundle results) {
+                            if (results != null) {
+                                ArrayList<String> matches = results.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
+                                if (matches != null && !matches.isEmpty()) {
+                                    handleWakeWordSpoken(matches.get(0));
+                                }
+                            }
+                            if (isWakeWordListening) {
+                                handler.postDelayed(new Runnable() {
+                                    @Override public void run() {
+                                        if (isWakeWordListening) startWakeWordListener();
+                                    }
+                                }, 1000);
+                            }
+                        }
+                        @Override public void onPartialResults(android.os.Bundle partialResults) {}
+                        @Override public void onEvent(int eventType, android.os.Bundle params) {}
+                    });
+                    wakeWordRecognizer.startListening(intent);
+                } catch (Exception e) {
+                    isWakeWordListening = false;
+                }
+            }
+        });
+    }
+
+    public void stopWakeWordListener() {
+        isWakeWordListening = false;
+        if (wakeWordRecognizer != null) {
+            try {
+                wakeWordRecognizer.stopListening();
+                wakeWordRecognizer.cancel();
+                wakeWordRecognizer.destroy();
+            } catch (Exception ignored) {}
+            wakeWordRecognizer = null;
+        }
+    }
+
+    private void handleWakeWordSpoken(String raw) {
+        if (raw == null) return;
+        SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        String wakeWord = sp.getString("wake_word_phrase", "oye jarvis").toLowerCase().trim();
+        String lower = raw.toLowerCase().trim();
+        if (lower.contains(wakeWord)) {
+            ShimejiEntity entity = getPrimaryShimeji();
+            if (entity != null) entity.say("Te escucho", 5000);
+            speakTts("Te escucho");
+
+            int idx = lower.indexOf(wakeWord);
+            String command = raw.substring(idx + wakeWord.length()).trim();
+            if (!command.isEmpty()) {
+                showFloatingChat();
+                if (entity != null) {
+                    AiEngineHelper.askAi(this, entity.skin.id, command, new AiEngineHelper.AiCallback() {
+                        @Override
+                        public void onSuccess(String reply) {
+                            ShimejiEntity ent = getPrimaryShimeji();
+                            if (ent != null) ent.say(reply, 8000);
+                            speakTts(reply);
+                        }
+                        @Override
+                        public void onError(String errorMsg) {
+                            ShimejiEntity ent = getPrimaryShimeji();
+                            if (ent != null) ent.say("[!] " + errorMsg, 5000);
+                        }
+                    });
+                }
+            }
+        }
     }
 
     public void playPopueSound() {

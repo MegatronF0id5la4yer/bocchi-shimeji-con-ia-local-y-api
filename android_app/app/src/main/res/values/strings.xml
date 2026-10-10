@@ -6,4 +6,5 @@
     <string name="btn_stop">Detener</string>
     <string name="see_import_guide">\? See import guide</string>
     <string name="import_shimeji">+ Import shimeji...</string>
+    <string name="accessibility_service_description">Servicio de accesibilidad JARVIS para capturas de pantalla y bloqueo de pantalla</string>
 </resources>

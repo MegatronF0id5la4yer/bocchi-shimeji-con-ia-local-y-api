@@ -1,5 +1,7 @@
 package com.bocchi.pinkchan.shimeji;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -591,7 +593,10 @@ public class ShimejiEntity {
 
         // 1. Caida y Lanzamiento con fisicas elasticas y dano
         if ("FALL".equals(state) || "FLUNG".equals(state)) {
-            float gravity = isZeroG ? 0.05f : service.dpToPx(1.35f);
+            SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+            float gravMult = sp.getFloat("shimeji_gravity_mult", 1.0f);
+            boolean allowClimb = sp.getBoolean("allow_wall_climb", true);
+            float gravity = (isZeroG ? 0.05f : service.dpToPx(1.35f)) * gravMult;
             velX *= 0.985f;
             velY *= 0.992f;
             velY += gravity;
@@ -606,7 +611,7 @@ public class ShimejiEntity {
                     takeDamage((int) (impactSpeed / service.dpToPx(2.2f)));
                 }
                 velX = -velX * 0.70f;
-                if (Math.abs(velX) < service.dpToPx(1.5f) && random.nextFloat() < 0.35f) {
+                if (allowClimb && Math.abs(velX) < service.dpToPx(1.5f) && random.nextFloat() < 0.35f) {
                     state = "CLIMB_LEFT";
                     velY = -service.dpToPx(2.2f);
                 }
@@ -619,7 +624,7 @@ public class ShimejiEntity {
                     takeDamage((int) (impactSpeed / service.dpToPx(2.2f)));
                 }
                 velX = -velX * 0.70f;
-                if (Math.abs(velX) < service.dpToPx(1.5f) && random.nextFloat() < 0.35f) {
+                if (allowClimb && Math.abs(velX) < service.dpToPx(1.5f) && random.nextFloat() < 0.35f) {
                     state = "CLIMB_RIGHT";
                     velY = -service.dpToPx(2.2f);
                 }
@@ -827,10 +832,15 @@ public class ShimejiEntity {
         posX = Math.max(leftEdge, Math.min(rightEdge, posX));
         posY = Math.max(topEdge, Math.min(bottomEdge, posY));
 
-        if (random.nextInt(900) == 77 && tvSpeechBubble.getVisibility() != View.VISIBLE && layoutLongPressMenu.getVisibility() != View.VISIBLE) {
-            String[] dl = skin.dialogues;
-            if (dl.length > 0) {
-                say(dl[random.nextInt(dl.length)], 2800);
+        int talkIntervalSec = service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt("shimeji_talk_interval_sec", 45);
+        if (talkIntervalSec > 0) {
+            int ticksNeeded = Math.max(100, talkIntervalSec * 25);
+            if (random.nextInt(ticksNeeded) == 7 && tvSpeechBubble.getVisibility() != View.VISIBLE && layoutLongPressMenu.getVisibility() != View.VISIBLE) {
+                String[] dl = skin.dialogues;
+                if (dl.length > 0) {
+                    say(dl[random.nextInt(dl.length)], 3500);
+                }
             }
         }
 
@@ -851,29 +861,34 @@ public class ShimejiEntity {
 
     private void pickRandomState() {
         if (isKo) return;
+        SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        float speedMult = sp.getFloat("shimeji_walk_speed_mult", 1.0f);
+        boolean allowSit = sp.getBoolean("allow_sitting", true);
+        boolean allowCustom = sp.getBoolean("allow_custom_actions", true);
+
         float r = random.nextFloat();
-        if (r < 0.35f) {
+        if (r < 0.40f) {
             state = "WALK";
             facing = random.nextBoolean() ? 1 : -1;
-            velX = facing * (service.dpToPx(1.5f) + random.nextFloat() * service.dpToPx(1.5f));
+            velX = facing * (service.dpToPx(1.5f) + random.nextFloat() * service.dpToPx(1.5f)) * speedMult;
             stateTimer = 90 + random.nextInt(120);
-        } else if (r < 0.58f) {
+        } else if (r < 0.65f) {
             state = "ROAM";
             facing = random.nextBoolean() ? 1 : -1;
-            velX = facing * (service.dpToPx(1.2f) + random.nextFloat() * service.dpToPx(1.5f));
-            velY = (random.nextBoolean() ? 1 : -1) * (service.dpToPx(1f) + random.nextFloat() * service.dpToPx(1.5f));
+            velX = facing * (service.dpToPx(1.2f) + random.nextFloat() * service.dpToPx(1.5f)) * speedMult;
+            velY = (random.nextBoolean() ? 1 : -1) * (service.dpToPx(1f) + random.nextFloat() * service.dpToPx(1.5f)) * speedMult;
             stateTimer = 80 + random.nextInt(100);
-        } else if (r < 0.74f) {
+        } else if (r < 0.80f) {
             state = "STAND";
             velX = 0;
             velY = 0;
             stateTimer = 60 + random.nextInt(90);
-        } else if (r < 0.84f) {
+        } else if (r < 0.90f && allowSit) {
             state = "SIT";
             velX = 0;
             velY = 0;
             stateTimer = 80 + random.nextInt(90);
-        } else {
+        } else if (allowCustom) {
             String[][] actions = SkinData.getCustomActions(skin.id);
             if (actions != null && actions.length > 0) {
                 int chosenAct = random.nextInt(actions.length);
@@ -882,6 +897,9 @@ public class ShimejiEntity {
                 state = "STAND";
                 stateTimer = 60;
             }
+        } else {
+            state = "STAND";
+            stateTimer = 60;
         }
     }
 

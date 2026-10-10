@@ -25,6 +25,20 @@ import urllib.parse
 import urllib.request
 import time
 import importlib
+import queue
+import datetime
+import winsound
+try:
+    from PIL import ImageGrab
+    IMAGEGRAB_AVAILABLE = True
+except Exception:
+    IMAGEGRAB_AVAILABLE = False
+
+try:
+    import win32com.client, pythoncom
+    SAPI_AVAILABLE = True
+except Exception:
+    SAPI_AVAILABLE = False
 
 try:
     import winreg
@@ -2189,6 +2203,513 @@ class DoxxWindow:
         if self.shimeji:
             self.shimeji.doxx_win = None
 
+
+class JarvisTTS:
+    """Motor de síntesis de voz mediante Windows SAPI nativo en segundo plano."""
+    def __init__(self, config=None):
+        self.config = config if config is not None else {}
+        self._queue = queue.Queue()
+        self._voices_cache = []
+        if SAPI_AVAILABLE:
+            self._thread = threading.Thread(target=self._worker, daemon=True)
+            self._thread.start()
+
+    def get_voices(self):
+        if not SAPI_AVAILABLE:
+            return ["No disponible (SAPI ausente)"]
+        if self._voices_cache:
+            return self._voices_cache
+        try:
+            pythoncom.CoInitialize()
+            sp = win32com.client.Dispatch("SAPI.SpVoice")
+            voices = sp.GetVoices()
+            v_list = []
+            for i in range(voices.Count):
+                try:
+                    desc = voices.Item(i).GetDescription()
+                    v_list.append(desc)
+                except Exception:
+                    v_list.append(f"Voz {i+1}")
+            self._voices_cache = v_list if v_list else ["Voz predeterminada de Windows"]
+            return self._voices_cache
+        except Exception:
+            return ["Voz predeterminada de Windows"]
+
+    def _worker(self):
+        try:
+            pythoncom.CoInitialize()
+            sp = win32com.client.Dispatch("SAPI.SpVoice")
+        except Exception as e:
+            print(f"TTS Init Error: {e}")
+            return
+
+        while True:
+            item = self._queue.get()
+            if not item:
+                continue
+            if not self.config.get("tts_enabled", False):
+                continue
+            try:
+                rate = int(self.config.get("tts_rate", 0))
+                vol = int(self.config.get("tts_volume", 100))
+                sp.Rate = max(-10, min(10, rate))
+                sp.Volume = max(0, min(100, vol))
+                v_idx = int(self.config.get("tts_voice_idx", 0))
+                voices = sp.GetVoices()
+                if 0 <= v_idx < voices.Count:
+                    sp.Voice = voices.Item(v_idx)
+                # Limpiar texto de etiquetas JARVIS y símbolos
+                clean = re.sub(r'\[JARVIS:[^\]]+\]', '', item, flags=re.IGNORECASE)
+                clean = re.sub(r'\[[^\]]+\]', '', clean)
+                clean = re.sub(r'[:;=8][\-o\*\']?[\)\]\(\[dDpPoO/\\]', '', clean)
+                clean = clean.replace("UwU", "").replace("7w7", "").replace("OwO", "").replace("XD", "").strip()
+                if clean:
+                    sp.Speak(clean)
+            except Exception as e:
+                print(f"TTS Speak Error: {e}")
+
+    def speak(self, text_to_speak):
+        if SAPI_AVAILABLE and self.config.get("tts_enabled", False):
+            self._queue.put(text_to_speak)
+
+
+class JarvisWakeWordListener:
+    """Escucha pasiva de la palabra clave de activación (Wake Word) mediante PowerShell Speech."""
+    def __init__(self, callback_fn, config=None):
+        self.callback = callback_fn
+        self.config = config if config is not None else {}
+        self.running = False
+        self.proc = None
+        self.thread = None
+
+    def start(self):
+        if self.running:
+            return
+        self.running = True
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
+
+    def stop(self):
+        self.running = False
+        if self.proc:
+            try:
+                self.proc.terminate()
+            except Exception:
+                pass
+            self.proc = None
+
+    def _run(self):
+        wake = self.config.get("wake_word", "oye jarvis").strip().lower()
+        ps_code = f"""
+        Add-Type -AssemblyName System.Speech
+        $sre = New-Object System.Speech.Recognition.SpeechRecognitionEngine
+        try {{
+            $sre.SetInputToDefaultAudioDevice()
+            $gb = New-Object System.Speech.Recognition.GrammarBuilder
+            $gb.Append('{wake}')
+            $g = New-Object System.Speech.Recognition.Grammar($gb)
+            $sre.LoadGrammar($g)
+            $dict = New-Object System.Speech.Recognition.DictationGrammar
+            $sre.LoadGrammar($dict)
+            while ($true) {{
+                $res = $sre.Recognize()
+                if ($res -ne $null -and $res.Text -ne $null) {{
+                    Write-Output $res.Text
+                    [Console]::Out.Flush()
+                }}
+            }}
+        }} catch {{
+            Write-Output ("ERR: " + $_.Exception.Message)
+        }}
+        """
+        try:
+            self.proc = subprocess.Popen(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_code],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1
+            )
+            while self.running and self.proc and self.proc.poll() is None:
+                line = self.proc.stdout.readline()
+                if not line:
+                    break
+                line = line.strip()
+                if line:
+                    if line.startswith("ERR:"):
+                        break
+                    if self.callback:
+                        self.callback(line)
+        except Exception as e:
+            print(f"Wake listener error: {e}")
+        finally:
+            self.running = False
+
+
+class AgentSettingsWindow:
+    """Ventana independiente de ajustes profundos del Agente JARVIS."""
+    def __init__(self, parent_root, theme_manager, shimeji_ref=None):
+        self.parent = parent_root
+        self.theme = theme_manager
+        self.shimeji = shimeji_ref
+        self.config = self.shimeji.config if self.shimeji else load_config()
+        self.win = None
+        self._build_window()
+
+    def _build_window(self):
+        self.win = tk.Toplevel(self.parent)
+        self.win.title("[JARVIS] Ajustes y Personalización del Agente")
+        self.win.geometry("560x650")
+        self.win.minsize(500, 550)
+        self.win.configure(bg=self.theme.surface)
+        self.win.attributes("-topmost", True)
+
+        header = tk.Frame(self.win, bg=self.theme.surface_variant, pady=10, padx=14)
+        header.pack(fill=tk.X)
+        tk.Label(header, text="[*] Panel de Control del Agente JARVIS",
+                 font=(self.theme.font_family, self.theme.font_size + 2, "bold"),
+                 bg=self.theme.surface_variant, fg=self.theme.accent).pack(anchor="w")
+        tk.Label(header, text="Configura autonomía, voz, permisos, comportamiento y macros",
+                 font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                 bg=self.theme.surface_variant, fg=self.theme.text_dim).pack(anchor="w")
+
+        # Pestañas con ttk.Notebook
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Jarvis.TNotebook", background=self.theme.surface, borderwidth=0)
+        style.configure("Jarvis.TNotebook.Tab", background=self.theme.surface_variant,
+                        foreground=self.theme.text, padding=[10, 5],
+                        font=(self.theme.font_family, self.theme.font_size - 1, "bold"))
+        style.map("Jarvis.TNotebook.Tab",
+                  background=[("selected", self.theme.accent)],
+                  foreground=[("selected", self.theme.accent_text)])
+
+        nb = ttk.Notebook(self.win, style="Jarvis.TNotebook")
+        nb.pack(fill=tk.BOTH, expand=True, padx=10, pady=8)
+
+        tab_agent = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
+        tab_perms = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
+        tab_voice = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
+        tab_shimeji = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
+        tab_macros = tk.Frame(nb, bg=self.theme.surface, padx=12, pady=10)
+
+        nb.add(tab_agent, text="Agente & IA")
+        nb.add(tab_perms, text="Permisos")
+        nb.add(tab_voice, text="Voz & Wake Word")
+        nb.add(tab_shimeji, text="Shimeji & Ventanas")
+        nb.add(tab_macros, text="Macros")
+
+        # ----------------- 1. Agente & IA -----------------
+        tk.Label(tab_agent, text="Nombre del Asistente:", bg=self.theme.surface, fg=self.theme.text,
+                 font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(2, 2))
+        self.var_name = tk.StringVar(value=self.config.get("assistant_name", "JARVIS"))
+        e_name = tk.Entry(tab_agent, textvariable=self.var_name, bg=self.theme.entry_bg, fg=self.theme.text,
+                          insertbackground=self.theme.accent)
+        e_name.pack(fill=tk.X, pady=(0, 8))
+
+        self.var_skin_persona = tk.BooleanVar(value=self.config.get("use_skin_personality", True))
+        tk.Checkbutton(tab_agent, text="Usar personalidad y tono único de la skin activa",
+                       variable=self.var_skin_persona, bg=self.theme.surface, fg=self.theme.text,
+                       selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w", pady=(0, 8))
+
+        tk.Label(tab_agent, text="Instrucciones / Personalidad Adicional:", bg=self.theme.surface, fg=self.theme.text,
+                 font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(4, 2))
+        self.txt_extra = scrolledtext.ScrolledText(tab_agent, height=4, bg=self.theme.entry_bg, fg=self.theme.text,
+                                                   font=(self.theme.font_family, self.theme.font_size - 1))
+        self.txt_extra.insert(tk.END, self.config.get("agent_extra_prompt", ""))
+        self.txt_extra.pack(fill=tk.X, pady=(0, 10))
+
+        row_agent_opts = tk.Frame(tab_agent, bg=self.theme.surface)
+        row_agent_opts.pack(fill=tk.X, pady=4)
+
+        tk.Label(row_agent_opts, text="Pasos máximos autónomos:", bg=self.theme.surface, fg=self.theme.text).grid(row=0, column=0, sticky="w", pady=4)
+        self.var_max_steps = tk.IntVar(value=self.config.get("agent_max_steps", 6))
+        tk.Spinbox(row_agent_opts, from_=1, to=15, textvariable=self.var_max_steps, width=5).grid(row=0, column=1, sticky="w", padx=6)
+
+        tk.Label(row_agent_opts, text="Timeout de la API (segundos):", bg=self.theme.surface, fg=self.theme.text).grid(row=1, column=0, sticky="w", pady=4)
+        self.var_timeout = tk.IntVar(value=self.config.get("agent_timeout", 60))
+        tk.Spinbox(row_agent_opts, from_=15, to=120, textvariable=self.var_timeout, width=5).grid(row=1, column=1, sticky="w", padx=6)
+
+        tk.Label(row_agent_opts, text="Tokens máximos generados:", bg=self.theme.surface, fg=self.theme.text).grid(row=2, column=0, sticky="w", pady=4)
+        self.var_tokens = tk.IntVar(value=self.config.get("agent_max_tokens", 4096))
+        tk.Spinbox(row_agent_opts, from_=512, to=8192, increment=512, textvariable=self.var_tokens, width=7).grid(row=2, column=1, sticky="w", padx=6)
+
+        # ----------------- 2. Permisos & Confirmación -----------------
+        tk.Label(tab_perms, text="Ejecución Automática de Acciones (Sin Preguntar):", bg=self.theme.surface,
+                 fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(0, 6))
+        perms = self.config.get("permissions", {})
+
+        self.perm_apps = tk.BooleanVar(value=perms.get("open_apps", True))
+        self.perm_sys = tk.BooleanVar(value=perms.get("system_control", True))
+        self.perm_file_w = tk.BooleanVar(value=perms.get("file_write", True))
+        self.perm_file_del = tk.BooleanVar(value=perms.get("file_delete", False))
+        self.perm_cmd = tk.BooleanVar(value=perms.get("cmd_exec", False))
+        self.perm_remind = tk.BooleanVar(value=perms.get("reminders", True))
+
+        for text_p, var_p in [
+            ("[+] Abrir aplicaciones instaladas y páginas web", self.perm_apps),
+            ("[+] Control del sistema (volumen, medios, brillo, bloqueo)", self.perm_sys),
+            ("[+] Crear y modificar archivos en el disco", self.perm_file_w),
+            ("[!] Borrar archivos permanentemente (Recomendado: Confirmar)", self.perm_file_del),
+            ("[!] Ejecutar comandos arbitrarios de consola CMD/PowerShell (Recomendado: Confirmar)", self.perm_cmd),
+            ("[+] Crear recordatorios, temporizadores y alarmas", self.perm_remind),
+        ]:
+            tk.Checkbutton(tab_perms, text=text_p, variable=var_p, bg=self.theme.surface, fg=self.theme.text,
+                           selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w", pady=3)
+
+        # ----------------- 3. Voz & Wake Word -----------------
+        self.var_tts = tk.BooleanVar(value=self.config.get("tts_enabled", False))
+        tk.Checkbutton(tab_voice, text="Activar Voz Hablada (TTS de Windows SAPI)", variable=self.var_tts,
+                       bg=self.theme.surface, fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"),
+                       selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w", pady=(0, 6))
+
+        tts_helper = self.shimeji.tts if self.shimeji and hasattr(self.shimeji, "tts") else JarvisTTS(self.config)
+        voices = tts_helper.get_voices()
+        tk.Label(tab_voice, text="Voz instalada de Windows:", bg=self.theme.surface, fg=self.theme.text).pack(anchor="w")
+        self.var_voice_idx = tk.IntVar(value=self.config.get("tts_voice_idx", 0))
+        self.cbo_voice = ttk.Combobox(tab_voice, values=voices, state="readonly")
+        if voices:
+            cur_idx = min(self.var_voice_idx.get(), len(voices) - 1)
+            self.cbo_voice.current(cur_idx)
+        self.cbo_voice.pack(fill=tk.X, pady=(2, 6))
+
+        row_tts_controls = tk.Frame(tab_voice, bg=self.theme.surface)
+        row_tts_controls.pack(fill=tk.X, pady=4)
+
+        tk.Label(row_tts_controls, text="Velocidad (-10 a 10):", bg=self.theme.surface, fg=self.theme.text).grid(row=0, column=0, sticky="w")
+        self.scale_rate = tk.Scale(row_tts_controls, from_=-10, to=10, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text, highlightthickness=0)
+        self.scale_rate.set(self.config.get("tts_rate", 0))
+        self.scale_rate.grid(row=0, column=1, sticky="ew", padx=6)
+
+        tk.Label(row_tts_controls, text="Volumen (0 a 100):", bg=self.theme.surface, fg=self.theme.text).grid(row=1, column=0, sticky="w")
+        self.scale_vol = tk.Scale(row_tts_controls, from_=0, to=100, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text, highlightthickness=0)
+        self.scale_vol.set(self.config.get("tts_volume", 100))
+        self.scale_vol.grid(row=1, column=1, sticky="ew", padx=6)
+
+        tk.Button(tab_voice, text="[>] Probar Voz", bg=self.theme.surface_variant, fg=self.theme.accent,
+                  command=self._test_voice).pack(anchor="w", pady=4)
+
+        tk.Label(tab_voice, text="--------------------------------------------------", bg=self.theme.surface, fg=self.theme.text_dim).pack(pady=4)
+
+        self.var_wake = tk.BooleanVar(value=self.config.get("wake_word_enabled", False))
+        tk.Checkbutton(tab_voice, text="Escucha Continua (Wake Word)", variable=self.var_wake,
+                       bg=self.theme.surface, fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold"),
+                       selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w", pady=(2, 2))
+
+        tk.Label(tab_voice, text="Palabra clave de activación:", bg=self.theme.surface, fg=self.theme.text).pack(anchor="w")
+        self.var_wake_word = tk.StringVar(value=self.config.get("wake_word", "oye jarvis"))
+        tk.Entry(tab_voice, textvariable=self.var_wake_word, bg=self.theme.entry_bg, fg=self.theme.text).pack(fill=tk.X, pady=(2, 6))
+
+        tk.Button(tab_voice, text="[>] Escuchar por voz ahora (Push-to-Talk)", bg=self.theme.accent, fg=self.theme.accent_text,
+                  command=self._listen_now).pack(anchor="w", pady=4)
+
+        # ----------------- 4. Shimeji & Ventanas -----------------
+        tk.Label(tab_shimeji, text="Física y Movimiento del Shimeji:", bg=self.theme.surface,
+                 fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(0, 4))
+
+        row_shim = tk.Frame(tab_shimeji, bg=self.theme.surface)
+        row_shim.pack(fill=tk.X, pady=2)
+        tk.Label(row_shim, text="Velocidad de caminata:", bg=self.theme.surface, fg=self.theme.text).grid(row=0, column=0, sticky="w")
+        self.scale_speed = tk.Scale(row_shim, from_=0.5, to=3.0, resolution=0.1, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text, highlightthickness=0)
+        self.scale_speed.set(self.config.get("walk_speed_mult", 1.0))
+        self.scale_speed.grid(row=0, column=1, sticky="ew", padx=6)
+
+        tk.Label(row_shim, text="Multiplicador de gravedad:", bg=self.theme.surface, fg=self.theme.text).grid(row=1, column=0, sticky="w")
+        self.scale_grav = tk.Scale(row_shim, from_=0.2, to=3.0, resolution=0.1, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text, highlightthickness=0)
+        self.scale_grav.set(self.config.get("gravity_mult", 1.0))
+        self.scale_grav.grid(row=1, column=1, sticky="ew", padx=6)
+
+        tk.Label(row_shim, text="Intervalo de habla aleatoria (s):", bg=self.theme.surface, fg=self.theme.text).grid(row=2, column=0, sticky="w")
+        self.var_speech_interval = tk.IntVar(value=self.config.get("random_speech_interval", 30))
+        tk.Spinbox(row_shim, from_=5, to=300, textvariable=self.var_speech_interval, width=6).grid(row=2, column=1, sticky="w", padx=6)
+
+        tk.Label(tab_shimeji, text="Animaciones y acrobacias permitidas:", bg=self.theme.surface,
+                 fg=self.theme.text, font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(8, 2))
+
+        self.anim_wall = tk.BooleanVar(value=self.config.get("allow_wall_climb", True))
+        self.anim_ceiling = tk.BooleanVar(value=self.config.get("allow_ceiling_climb", True))
+        self.anim_sit = tk.BooleanVar(value=self.config.get("allow_sitting", True))
+        self.anim_jump = tk.BooleanVar(value=self.config.get("allow_jump_fall", True))
+        self.anim_custom = tk.BooleanVar(value=self.config.get("allow_custom_actions", True))
+
+        for text_a, var_a in [
+            ("Escalar paredes laterales", self.anim_wall),
+            ("Trepar y caminar por el techo", self.anim_ceiling),
+            ("Sentarse y descansar en el suelo", self.anim_sit),
+            ("Saltos y caídas con física elástica", self.anim_jump),
+            ("Acciones especiales personalizadas", self.anim_custom),
+        ]:
+            tk.Checkbutton(tab_shimeji, text=text_a, variable=var_a, bg=self.theme.surface, fg=self.theme.text,
+                           selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w", pady=1)
+
+        tk.Label(tab_shimeji, text="Comportamiento del Chat:", bg=self.theme.surface,
+                 fg=self.theme.text, font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(8, 2))
+
+        self.chat_lock = tk.BooleanVar(value=self.config.get("chat_position_locked", False))
+        tk.Checkbutton(tab_shimeji, text="Bloquear posición de la ventana de chat (no mover automáticamente)",
+                       variable=self.chat_lock, bg=self.theme.surface, fg=self.theme.text,
+                       selectcolor=self.theme.surface_variant, activebackground=self.theme.surface).pack(anchor="w")
+
+        # ----------------- 5. Macros -----------------
+        tk.Label(tab_macros, text="Macros Multitarea (Secuencias automáticas de pasos):", bg=self.theme.surface,
+                 fg=self.theme.accent, font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(0, 4))
+
+        self.macro_list = tk.Listbox(tab_macros, height=7, bg=self.theme.entry_bg, fg=self.theme.text,
+                                     selectbackground=self.theme.accent)
+        self.macro_list.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
+
+        macros_dict = self.config.get("macros", {
+            "modo estudio": {
+                "trigger": "modo estudio",
+                "steps": [
+                    "[JARVIS: VOLUME 30]",
+                    "[JARVIS: OPEN \"spotify\"]",
+                    "[JARVIS: URL \"https://lofi.cafe\"]"
+                ]
+            }
+        })
+        self._refresh_macros_list(macros_dict)
+
+        row_macro_btns = tk.Frame(tab_macros, bg=self.theme.surface)
+        row_macro_btns.pack(fill=tk.X, pady=4)
+
+        tk.Button(row_macro_btns, text="[+] Crear Macro", bg=self.theme.surface_variant, fg=self.theme.text,
+                  command=self._add_macro_dialog).pack(side=tk.LEFT, padx=(0, 4))
+        tk.Button(row_macro_btns, text="[-] Eliminar", bg=self.theme.surface_variant, fg=self.theme.danger,
+                  command=self._delete_macro).pack(side=tk.LEFT, padx=4)
+        tk.Button(row_macro_btns, text="[>] Ejecutar", bg=self.theme.accent, fg=self.theme.accent_text,
+                  command=self._run_selected_macro).pack(side=tk.RIGHT)
+
+        # ----------------- Botón Guardar -----------------
+        bottom_bar = tk.Frame(self.win, bg=self.theme.surface_variant, pady=8, padx=12)
+        bottom_bar.pack(fill=tk.X, side=tk.BOTTOM)
+        tk.Button(bottom_bar, text="Guardar Cambios", bg=self.theme.accent, fg=self.theme.accent_text,
+                  font=(self.theme.font_family, self.theme.font_size, "bold"), padx=14, pady=4,
+                  command=self._save_all).pack(side=tk.RIGHT)
+        tk.Button(bottom_bar, text="Cerrar", bg=self.theme.surface, fg=self.theme.text,
+                  command=self.win.destroy).pack(side=tk.LEFT)
+
+    def _refresh_macros_list(self, m_dict):
+        self.macro_list.delete(0, tk.END)
+        for k, v in m_dict.items():
+            trig = v.get("trigger", k)
+            steps_cnt = len(v.get("steps", []))
+            self.macro_list.insert(tk.END, f"{trig} ({steps_cnt} pasos)")
+
+    def _test_voice(self):
+        tts = self.shimeji.tts if self.shimeji and hasattr(self.shimeji, "tts") else JarvisTTS(self.config)
+        cfg_test = dict(self.config)
+        cfg_test["tts_enabled"] = True
+        cfg_test["tts_voice_idx"] = self.cbo_voice.current()
+        cfg_test["tts_rate"] = self.scale_rate.get()
+        cfg_test["tts_volume"] = self.scale_vol.get()
+        tts.config = cfg_test
+        tts.speak("Hola! Sistema de voz SAPI del Agente JARVIS configurado correctamente.")
+
+    def _listen_now(self):
+        if self.shimeji:
+            self.shimeji.listen_voice_command_once()
+
+    def _add_macro_dialog(self):
+        d = tk.Toplevel(self.win)
+        d.title("Nuevo Macro")
+        d.geometry("420x340")
+        d.configure(bg=self.theme.surface)
+        d.attributes("-topmost", True)
+
+        tk.Label(d, text="Frase activadora (ej: 'modo trabajo'):", bg=self.theme.surface, fg=self.theme.text).pack(anchor="w", padx=10, pady=(10, 2))
+        e_trig = tk.Entry(d, bg=self.theme.entry_bg, fg=self.theme.text)
+        e_trig.pack(fill=tk.X, padx=10, pady=(0, 6))
+
+        tk.Label(d, text="Pasos (uno por línea, ej: [JARVIS: VOLUME 40]):", bg=self.theme.surface, fg=self.theme.text).pack(anchor="w", padx=10, pady=(4, 2))
+        txt_steps = scrolledtext.ScrolledText(d, height=8, bg=self.theme.entry_bg, fg=self.theme.text)
+        txt_steps.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+
+        def save_m():
+            t = e_trig.get().strip().lower()
+            lines = [l.strip() for l in txt_steps.get("1.0", tk.END).splitlines() if l.strip()]
+            if t and lines:
+                macros = dict(self.config.get("macros", {}))
+                macros[t] = {"trigger": t, "steps": lines}
+                self.config["macros"] = macros
+                save_config(self.config)
+                self._refresh_macros_list(macros)
+                d.destroy()
+
+        tk.Button(d, text="Añadir Macro", bg=self.theme.accent, fg=self.theme.accent_text, command=save_m).pack(pady=8)
+
+    def _delete_macro(self):
+        sel = self.macro_list.curselection()
+        if not sel:
+            return
+        idx = sel[0]
+        macros = dict(self.config.get("macros", {}))
+        keys = list(macros.keys())
+        if 0 <= idx < len(keys):
+            del macros[keys[idx]]
+            self.config["macros"] = macros
+            save_config(self.config)
+            self._refresh_macros_list(macros)
+
+    def _run_selected_macro(self):
+        sel = self.macro_list.curselection()
+        if not sel or not self.shimeji:
+            return
+        idx = sel[0]
+        macros = self.config.get("macros", {})
+        keys = list(macros.keys())
+        if 0 <= idx < len(keys):
+            self.shimeji.run_macro(keys[idx])
+
+    def _save_all(self):
+        self.config["assistant_name"] = self.var_name.get().strip()
+        self.config["use_skin_personality"] = self.var_skin_persona.get()
+        self.config["agent_extra_prompt"] = self.txt_extra.get("1.0", tk.END).strip()
+        self.config["agent_max_steps"] = int(self.var_max_steps.get())
+        self.config["agent_timeout"] = int(self.var_timeout.get())
+        self.config["agent_max_tokens"] = int(self.var_tokens.get())
+
+        self.config["permissions"] = {
+            "open_apps": self.perm_apps.get(),
+            "system_control": self.perm_sys.get(),
+            "file_write": self.perm_file_w.get(),
+            "file_delete": self.perm_file_del.get(),
+            "cmd_exec": self.perm_cmd.get(),
+            "reminders": self.perm_remind.get()
+        }
+
+        self.config["tts_enabled"] = self.var_tts.get()
+        self.config["tts_voice_idx"] = self.cbo_voice.current() if self.cbo_voice.current() >= 0 else 0
+        self.config["tts_rate"] = self.scale_rate.get()
+        self.config["tts_volume"] = self.scale_vol.get()
+
+        self.config["wake_word_enabled"] = self.var_wake.get()
+        self.config["wake_word"] = self.var_wake_word.get().strip().lower()
+
+        self.config["walk_speed_mult"] = float(self.scale_speed.get())
+        self.config["gravity_mult"] = float(self.scale_grav.get())
+        self.config["random_speech_interval"] = int(self.var_speech_interval.get())
+
+        self.config["allow_wall_climb"] = self.anim_wall.get()
+        self.config["allow_ceiling_climb"] = self.anim_ceiling.get()
+        self.config["allow_sitting"] = self.anim_sit.get()
+        self.config["allow_jump_fall"] = self.anim_jump.get()
+        self.config["allow_custom_actions"] = self.anim_custom.get()
+
+        self.config["chat_position_locked"] = self.chat_lock.get()
+
+        save_config(self.config)
+
+        # Aplicar en caliente al Shimeji
+        if self.shimeji:
+            if hasattr(self.shimeji, "tts"):
+                self.shimeji.tts.config = self.config
+            if hasattr(self.shimeji, "sync_wake_word_state"):
+                self.shimeji.sync_wake_word_state()
+
+        messagebox.showinfo("JARVIS", "Configuración del agente guardada correctamente.")
+        self.win.destroy()
+
 class JarvisAssistant:
     PROGRAM_ALIASES = {
         "bloc de notas": "notepad.exe",
@@ -2890,6 +3411,316 @@ class JarvisAssistant:
             return True, f"[-] Archivo '{os.path.basename(path)}' enviado a la papelera"
         except Exception as e:
             return False, f"[!] Error borrando '{filename}': {e}"
+
+
+    def check_permission(self, category, description):
+        """Verifica si la categoría de acción tiene permiso automático o requiere confirmación."""
+        perms = self.config.get("permissions", {
+            "open_apps": True,
+            "system_control": True,
+            "file_write": True,
+            "file_delete": False,
+            "cmd_exec": False,
+            "reminders": True
+        })
+        if perms.get(category, True):
+            return True
+        # Preguntar al usuario mediante diálogo
+        try:
+            root = self.shimeji.root if self.shimeji else None
+            ans = messagebox.askyesno("[JARVIS] Confirmar Acción",
+                                      f"El Asistente JARVIS solicita ejecutar:\n\n{description}\n\n¿Deseas permitir esta acción?",
+                                      parent=root)
+            return ans
+        except Exception:
+            return True
+
+    def get_installed_apps(self):
+        """Escanea accesos directos del Menú Inicio y apps UWP de Windows."""
+        if hasattr(self, "_apps_cache") and self._apps_cache:
+            return self._apps_cache
+        apps = {}
+        # 1. Programas de ProgramData y AppData
+        search_dirs = [
+            os.path.join(os.environ.get("ProgramData", ""), r"Microsoft\Windows\Start Menu\Programs"),
+            os.path.join(os.environ.get("AppData", ""), r"Microsoft\Windows\Start Menu\Programs"),
+        ]
+        for sdir in search_dirs:
+            if os.path.isdir(sdir):
+                for root, _, files in os.walk(sdir):
+                    for f in files:
+                        if f.lower().endswith((".lnk", ".url")):
+                            name = os.path.splitext(f)[0].lower()
+                            apps[name] = os.path.join(root, f)
+        self._apps_cache = apps
+        return apps
+
+    def set_volume(self, val_or_action):
+        """Controla el volumen maestro de Windows (subir, bajar, silenciar o nivel específico 0-100)."""
+        if not self.check_permission("system_control", f"Ajustar volumen a: {val_or_action}"):
+            return False, "[!] Acción cancelada por el usuario"
+        if not WIN32_AVAILABLE:
+            return False, "[!] win32api no está disponible"
+        act = str(val_or_action).strip().lower()
+        try:
+            VK_VOLUME_MUTE = 0xAD
+            VK_VOLUME_DOWN = 0xAE
+            VK_VOLUME_UP   = 0xAF
+
+            if act in ("mute", "silencio", "mutear"):
+                win32api.keybd_event(VK_VOLUME_MUTE, 0, 0, 0)
+                win32api.keybd_event(VK_VOLUME_MUTE, 0, 2, 0)
+                return True, "[+] Silencio (Mute) alternado [OK]"
+            elif act in ("up", "subir", "+"):
+                for _ in range(5):
+                    win32api.keybd_event(VK_VOLUME_UP, 0, 0, 0)
+                    win32api.keybd_event(VK_VOLUME_UP, 0, 2, 0)
+                return True, "[+] Volumen aumentado [OK]"
+            elif act in ("down", "bajar", "-"):
+                for _ in range(5):
+                    win32api.keybd_event(VK_VOLUME_DOWN, 0, 0, 0)
+                    win32api.keybd_event(VK_VOLUME_DOWN, 0, 2, 0)
+                return True, "[+] Volumen reducido [OK]"
+            else:
+                target_pct = int(re.sub(r'[^0-9]', '', act))
+                target_pct = max(0, min(100, target_pct))
+                # Bajar a 0 y luego subir a target_pct/2
+                for _ in range(50):
+                    win32api.keybd_event(VK_VOLUME_DOWN, 0, 0, 0)
+                    win32api.keybd_event(VK_VOLUME_DOWN, 0, 2, 0)
+                for _ in range(target_pct // 2):
+                    win32api.keybd_event(VK_VOLUME_UP, 0, 0, 0)
+                    win32api.keybd_event(VK_VOLUME_UP, 0, 2, 0)
+                return True, f"[+] Volumen fijado aproximadamente al {target_pct}% [OK]"
+        except Exception as e:
+            return False, f"[!] Error ajustando volumen: {e}"
+
+    def media_control(self, action):
+        """Controla reproducción multimedia (play/pause, next, prev)."""
+        if not self.check_permission("system_control", f"Control multimedia: {action}"):
+            return False, "[!] Acción cancelada por el usuario"
+        if not WIN32_AVAILABLE:
+            return False, "[!] win32api no está disponible"
+        act = action.strip().lower()
+        VK_MEDIA_NEXT_TRACK = 0xB0
+        VK_MEDIA_PREV_TRACK = 0xB1
+        VK_MEDIA_PLAY_PAUSE = 0xB3
+        try:
+            if act in ("play", "pause", "play_pause", "toggle", "pausa", "reproducir"):
+                win32api.keybd_event(VK_MEDIA_PLAY_PAUSE, 0, 0, 0)
+                win32api.keybd_event(VK_MEDIA_PLAY_PAUSE, 0, 2, 0)
+                return True, "[+] Reproducción multimedia alternada (Play/Pausa) [OK]"
+            elif act in ("next", "siguiente", "adelantar"):
+                win32api.keybd_event(VK_MEDIA_NEXT_TRACK, 0, 0, 0)
+                win32api.keybd_event(VK_MEDIA_NEXT_TRACK, 0, 2, 0)
+                return True, "[+] Siguiente pista multimedia [OK]"
+            elif act in ("prev", "previous", "anterior"):
+                win32api.keybd_event(VK_MEDIA_PREV_TRACK, 0, 0, 0)
+                win32api.keybd_event(VK_MEDIA_PREV_TRACK, 0, 2, 0)
+                return True, "[+] Pista multimedia anterior [OK]"
+            return False, f"[!] Acción multimedia desconocida: {act}"
+        except Exception as e:
+            return False, f"[!] Error multimedia: {e}"
+
+    def set_brightness(self, level):
+        """Ajusta el brillo de pantalla (0-100) en laptops y monitores compatibles."""
+        if not self.check_permission("system_control", f"Ajustar brillo al: {level}%"):
+            return False, "[!] Acción cancelada por el usuario"
+        try:
+            pct = max(0, min(100, int(level)))
+            ps_cmd = f"(Get-WmiObject -Namespace root/wmi -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, {pct})"
+            proc = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, text=True, timeout=8)
+            if proc.returncode == 0:
+                return True, f"[+] Brillo ajustado al {pct}% [OK]"
+            return False, "[!] El ajuste de brillo por hardware solo está disponible en pantallas integradas/laptops."
+        except Exception as e:
+            return False, f"[!] Error ajustando brillo: {e}"
+
+    def toggle_wifi(self, enable=True):
+        """Habilita o deshabilita el adaptador de Wi-Fi."""
+        state_str = "activar" if enable else "desactivar"
+        if not self.check_permission("system_control", f"{state_str.capitalize()} Wi-Fi"):
+            return False, "[!] Acción cancelada por el usuario"
+        try:
+            st = "enabled" if enable else "disabled"
+            proc = subprocess.run(f'netsh interface set interface name="Wi-Fi" admin={st}', shell=True, capture_output=True, text=True, timeout=8)
+            if proc.returncode == 0:
+                return True, f"[+] Adaptador Wi-Fi {state_str}do [OK]"
+            # Abrir panel de configuración de red si requiere elevación
+            os.startfile("ms-settings:network-wifi")
+            return True, f"[+] Abriendo configuración de Wi-Fi de Windows..."
+        except Exception as e:
+            return False, f"[!] Error cambiando Wi-Fi: {e}"
+
+    def open_bluetooth_settings(self):
+        """Abre la configuración de Bluetooth de Windows."""
+        try:
+            os.startfile("ms-settings:bluetooth")
+            return True, "[+] Abriendo configuración de Bluetooth de Windows [OK]"
+        except Exception as e:
+            return False, f"[!] Error abriendo Bluetooth: {e}"
+
+    def take_screenshot(self):
+        """Toma una captura de pantalla y la guarda en la carpeta Imágenes."""
+        if not self.check_permission("system_control", "Tomar captura de pantalla"):
+            return False, "[!] Acción cancelada por el usuario"
+        if not IMAGEGRAB_AVAILABLE:
+            return False, "[!] PIL.ImageGrab no disponible"
+        try:
+            pics_dir = os.path.join(os.path.expanduser("~"), "Pictures", "PinkChan_Capturas")
+            os.makedirs(pics_dir, exist_ok=True)
+            ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            fpath = os.path.join(pics_dir, f"captura_{ts}.png")
+            im = ImageGrab.grab()
+            im.save(fpath)
+            return True, f"[+] Captura guardada en:\n  -> {fpath}"
+        except Exception as e:
+            return False, f"[!] Error tomando captura: {e}"
+
+    def lock_workstation(self):
+        """Bloquea la estación de trabajo de Windows."""
+        if not self.check_permission("system_control", "Bloquear la pantalla de la PC"):
+            return False, "[!] Acción cancelada por el usuario"
+        try:
+            ctypes.windll.user32.LockWorkStation()
+            return True, "[+] PC bloqueada exitosamente [OK]"
+        except Exception as e:
+            return False, f"[!] Error bloqueando PC: {e}"
+
+    def search_youtube(self, query):
+        """Busca y reproduce videos en YouTube."""
+        try:
+            q = urllib.parse.quote(query.strip())
+            url = f"https://www.youtube.com/results?search_query={q}"
+            open_web_url(url)
+            return True, f"[+] Buscando en YouTube: '{query}' [OK]"
+        except Exception as e:
+            return False, f"[!] Error en YouTube: {e}"
+
+    def add_timer(self, minutes_or_spec, text="Temporizador"):
+        """Añade un temporizador de N minutos o segundos."""
+        if not self.check_permission("reminders", f"Crear temporizador: '{text}'"):
+            return False, "[!] Acción cancelada por el usuario"
+        try:
+            s = str(minutes_or_spec).strip().lower()
+            secs = 0
+            if s.endswith("m"):
+                secs = int(float(s[:-1]) * 60)
+            elif s.endswith("s"):
+                secs = int(float(s[:-1]))
+            elif s.endswith("h"):
+                secs = int(float(s[:-1]) * 3600)
+            else:
+                secs = int(float(s) * 60)
+
+            due = time.time() + max(1, secs)
+            rems = list(self.config.get("reminders", []))
+            r_item = {
+                "id": int(time.time() * 1000),
+                "type": "timer",
+                "due": due,
+                "text": text,
+                "spec": minutes_or_spec
+            }
+            rems.append(r_item)
+            self.config["reminders"] = rems
+            save_config(self.config)
+            return True, f"[+] Temporizador programado para dentro de {secs}s: '{text}' [OK]"
+        except Exception as e:
+            return False, f"[!] Formato de tiempo inválido: {e}"
+
+    def add_reminder(self, time_str, text="Recordatorio"):
+        """Añade un recordatorio o alarma a una hora específica (ej: '14:30' o '18:00')."""
+        if not self.check_permission("reminders", f"Programar recordatorio a las {time_str}: '{text}'"):
+            return False, "[!] Acción cancelada por el usuario"
+        try:
+            parts = time_str.strip().split(":")
+            h, m = int(parts[0]), int(parts[1])
+            now = datetime.datetime.now()
+            target_dt = now.replace(hour=h, minute=m, second=0, microsecond=0)
+            if target_dt <= now:
+                target_dt += datetime.timedelta(days=1)
+            due = target_dt.timestamp()
+
+            rems = list(self.config.get("reminders", []))
+            r_item = {
+                "id": int(time.time() * 1000),
+                "type": "reminder",
+                "due": due,
+                "text": text,
+                "spec": time_str
+            }
+            rems.append(r_item)
+            self.config["reminders"] = rems
+            save_config(self.config)
+            return True, f"[+] Recordatorio guardado para las {time_str}: '{text}' [OK]"
+        except Exception as e:
+            return False, f"[!] Formato de hora inválido (usa HH:MM): {e}"
+
+    def list_reminders(self):
+        """Lista los temporizadores y recordatorios activos."""
+        rems = self.config.get("reminders", [])
+        if not rems:
+            return True, "[i] No hay recordatorios ni temporizadores pendientes."
+        lines = ["[*] Recordatorios y temporizadores activos:"]
+        now = time.time()
+        for idx, r in enumerate(rems, 1):
+            left_secs = max(0, int(r["due"] - now))
+            m_left = left_secs // 60
+            s_left = left_secs % 60
+            lines.append(f"  {idx}. [{r.get('type','alarma')}] '{r.get('text','')}' (Faltan: {m_left}m {s_left}s)")
+        return True, "\n".join(lines)
+
+    def cancel_reminder(self, idx_or_text):
+        """Cancela un recordatorio por número de índice."""
+        rems = list(self.config.get("reminders", []))
+        try:
+            idx = int(idx_or_text) - 1
+            if 0 <= idx < len(rems):
+                removed = rems.pop(idx)
+                self.config["reminders"] = rems
+                save_config(self.config)
+                return True, f"[+] Recordatorio cancelado: '{removed.get('text','')}' [OK]"
+            return False, "[!] Índice de recordatorio fuera de rango."
+        except Exception:
+            return False, "[!] Debes indicar el número del recordatorio a cancelar."
+
+    def run_macro(self, macro_name):
+        """Ejecuta una macro multitarea paso a paso."""
+        macros = self.config.get("macros", {})
+        clean = macro_name.strip().lower()
+        m = macros.get(clean)
+        if not m:
+            for k, v in macros.items():
+                if clean in k or clean in v.get("trigger", ""):
+                    m = v
+                    break
+        if not m:
+            return False, f"[!] Macro '{macro_name}' no encontrada en la configuración."
+
+        steps = m.get("steps", [])
+        results = [f"[*] Iniciando macro: '{macro_name}' ({len(steps)} pasos)"]
+        for st in steps:
+            st = st.strip()
+            if not st:
+                continue
+            if st.upper().startswith("WAIT"):
+                try:
+                    w_secs = float(st.split()[1])
+                    time.sleep(w_secs)
+                    results.append(f"  -> Espera de {w_secs}s completada")
+                except Exception:
+                    pass
+                continue
+            # Parsear comando jarvis en el paso
+            if hasattr(self, "_chat_ref") and self._chat_ref:
+                cleaned, acts = self._chat_ref._execute_jarvis_tags_in_reply(st)
+                if acts:
+                    results.extend(acts)
+            else:
+                ok, msg = self.open_target(st)
+                results.append(msg)
+        return True, "\n".join(results)
 
     def list_dir(self, folder=None):
         target = self.desktop_dir if not folder else folder.strip().strip('"').strip("'")
@@ -3779,20 +4610,32 @@ class ChatWindow:
         saved_mode = self.config.get("chat_mode", "api" if self.api_key_var.get() else "local")
         self.win = tk.Toplevel(self.parent)
         self.win.title(f"[CHAT] {char_name} - Modo {saved_mode.upper()}")
-        self.win.attributes("-topmost", True)
+        is_topmost = self.config.get("chat_always_on_top", True)
+        self.win.attributes("-topmost", is_topmost)
         self.win.attributes("-alpha", self.theme.opacity)
         self.win.configure(bg=self.theme.bg)
 
-        # Centrar de manera segura en pantalla para garantizar que nunca quede debajo de la barra de tareas
-        sw = self.win.winfo_screenwidth()
-        sh = self.win.winfo_screenheight()
-        w = 540
-        h = min(660, max(520, sh - 90))
-        x = max(20, (sw - w) // 2)
-        y = max(20, (sh - h) // 2 - 25)
-        self.win.geometry(f"{w}x{h}+{x}+{y}")
+        # Centrar o restaurar posicion previa
+        pos_locked = self.config.get("chat_position_locked", False)
+        saved_geom = self.config.get("chat_geometry", "")
+        if saved_geom:
+            try:
+                self.win.geometry(saved_geom)
+            except Exception:
+                saved_geom = ""
+        if not saved_geom:
+            sw = self.win.winfo_screenwidth()
+            sh = self.win.winfo_screenheight()
+            w = 540
+            h = min(660, max(520, sh - 90))
+            x = max(20, (sw - w) // 2)
+            y = max(20, (sh - h) // 2 - 25)
+            self.win.geometry(f"{w}x{h}+{x}+{y}")
         self.win.minsize(460, 480)
-        self.win.resizable(True, True)
+        if pos_locked:
+            self.win.resizable(False, False)
+        else:
+            self.win.resizable(True, True)
         self.win.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # --- 1. TOP HEADER BAR ---
@@ -3998,7 +4841,7 @@ class ChatWindow:
 
         self.send_btn = tk.Button(
             self.inp_frame,
-            text="Enviar",
+            text="Enviar ➤",
             command=self.send_message,
             bg=self.theme.accent,
             fg=self.theme.accent_text,
@@ -4058,7 +4901,7 @@ class ChatWindow:
         for s in SKIN_NAMES:
             meta = SKIN_META.get(s, {})
             disp = meta.get("display", s)
-            chk = " [*]" if s == cur else ""
+            chk = " [✓]" if s == cur else ""
             m.add_command(label=f"{disp}{chk}", command=lambda sk=s: self._select_skin(sk))
         try:
             m.tk_popup(self.win.winfo_pointerx(), self.win.winfo_pointery())
@@ -4789,35 +5632,185 @@ class ChatWindow:
 
         sys_prompt = self.get_system_prompt()
         models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash", "gemini-pro"]
-        reply = None
-        last_err = None
+        max_steps = int(self.config.get("agent_max_steps", 6))
+        step = 0
+        final_reply = ""
+        self._cancel_agent = False
 
-        for m in models_to_try:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
-                payload = {
-                    "contents": self.history,
-                    "generationConfig": {"temperature": 0.85, "maxOutputTokens": 4096}
-                }
-                if m != "gemini-pro":
-                    payload["system_instruction"] = {"parts": [{"text": sys_prompt}]}
-                resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=60)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                    break
+        while step < max_steps:
+            if getattr(self, "_cancel_agent", False):
+                self.parent.after(0, lambda: self._append_system("[!] Tarea autónoma detenida por el usuario."))
+                break
+
+            step += 1
+            reply = None
+            last_err = None
+
+            for m in models_to_try:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
+                    payload = {
+                        "contents": self.history,
+                        "generationConfig": {
+                            "temperature": 0.85,
+                            "maxOutputTokens": int(self.config.get("agent_max_tokens", 4096))
+                        }
+                    }
+                    if m != "gemini-pro":
+                        payload["system_instruction"] = {"parts": [{"text": sys_prompt}]}
+                    timeout_val = int(self.config.get("agent_timeout", 60))
+                    resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=timeout_val)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                        break
+                    else:
+                        last_err = f"HTTP {resp.status_code} ({m}): {resp.text[:100]}"
+                except Exception as e:
+                    last_err = str(e)
+
+            if not reply:
+                if step == 1:
+                    self._show_error(f"Fallo el API de Gemini ({last_err or 'revisa tu API Key'})")
+                    return
                 else:
-                    last_err = f"HTTP {resp.status_code} ({m}): {resp.text[:100]}"
-            except Exception as e:
-                last_err = str(e)
+                    break
 
-        if reply:
+            cleaned_reply, actions = self._execute_jarvis_tags_in_reply(reply)
+            display_turn = cleaned_reply if cleaned_reply else reply
+
+            # Registrar en historial del modelo
             self.history.append({"role": "model", "parts": [{"text": reply}]})
-            self.parent.after(0, self._show_reply, reply)
-        else:
-            self._show_error(f"Fallo el API de Gemini ({last_err or 'revisa tu API Key'})")
+
+            if actions:
+                # Mostrar en chat paso intermedio
+                self.parent.after(0, self._append_bot, display_turn)
+                for act in actions:
+                    self.parent.after(0, self._append_system, f"[Paso {step}] {act}")
+                # Realimentar al modelo con los resultados de las herramientas
+                tool_results_msg = "[RESULTADOS DE HERRAMIENTAS]:\n" + "\n".join(actions)
+                self.history.append({"role": "user", "parts": [{"text": tool_results_msg}]})
+                final_reply = display_turn
+            else:
+                # El modelo terminó la respuesta final sin más etiquetas
+                final_reply = display_turn
+                self.parent.after(0, self._append_bot, final_reply)
+                break
+
+        self.parent.after(0, self._finalize_agent_turn, final_reply)
+
+    def _finalize_agent_turn(self, final_reply):
+        self.send_btn.configure(state=tk.NORMAL, text="Enviar ➤")
+        if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win):
+            self.entry.focus_set()
+        if self.shimeji and final_reply:
+            self.shimeji.show_speech(final_reply)
+            if hasattr(self.shimeji, "tts"):
+                self.shimeji.tts.speak(final_reply)
 
     def _execute_jarvis_tags_in_reply(self, reply_text):
+        results = []
+        cleaned = reply_text
+        self.jarvis._chat_ref = self
+
+        # VOLUME
+        for m in re.finditer(r'\[JARVIS:\s*VOLUME\s+["\']?([^"\'\n\]]+?)["\']?\]', reply_text, re.IGNORECASE):
+            arg = m.group(1).strip()
+            ok, msg = self.jarvis.set_volume(arg)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # MEDIA
+        for m in re.finditer(r'\[JARVIS:\s*MEDIA\s+["\']?([^"\'\n\]]+?)["\']?\]', reply_text, re.IGNORECASE):
+            arg = m.group(1).strip()
+            ok, msg = self.jarvis.media_control(arg)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # BRIGHTNESS
+        for m in re.finditer(r'\[JARVIS:\s*BRIGHTNESS\s+["\']?([0-9]+)["\']?\]', reply_text, re.IGNORECASE):
+            arg = m.group(1).strip()
+            ok, msg = self.jarvis.set_brightness(arg)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # WIFI
+        for m in re.finditer(r'\[JARVIS:\s*WIFI\s+["\']?(on|off|activar|desactivar|enabled|disabled)["\']?\]', reply_text, re.IGNORECASE):
+            arg = m.group(1).strip().lower()
+            en = arg in ("on", "activar", "enabled")
+            ok, msg = self.jarvis.toggle_wifi(en)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # BLUETOOTH
+        for m in re.finditer(r'\[JARVIS:\s*BLUETOOTH\]', reply_text, re.IGNORECASE):
+            ok, msg = self.jarvis.open_bluetooth_settings()
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # SCREENSHOT
+        for m in re.finditer(r'\[JARVIS:\s*SCREENSHOT\]', reply_text, re.IGNORECASE):
+            ok, msg = self.jarvis.take_screenshot()
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # LOCK
+        for m in re.finditer(r'\[JARVIS:\s*LOCK\]', reply_text, re.IGNORECASE):
+            ok, msg = self.jarvis.lock_workstation()
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # PLAY_YT
+        for m in re.finditer(r'\[JARVIS:\s*PLAY_YT\s+["\']?([^"\'\n\]]+?)["\']?\]', reply_text, re.IGNORECASE):
+            q = m.group(1).strip()
+            ok, msg = self.jarvis.search_youtube(q)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # URL
+        for m in re.finditer(r'\[JARVIS:\s*URL\s+["\']?([^"\'\n\]]+?)["\']?\]', reply_text, re.IGNORECASE):
+            u = m.group(1).strip()
+            ok, msg = self.jarvis.open_target(u)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # TIMER
+        for m in re.finditer(r'\[JARVIS:\s*TIMER\s+["\']?([0-9a-zA-Z]+)["\']?(?:\s+["\']?([^"\'\]]*?)["\']?)?\]', reply_text, re.IGNORECASE):
+            spec = m.group(1).strip()
+            desc = m.group(2).strip() if m.group(2) else "Temporizador"
+            ok, msg = self.jarvis.add_timer(spec, desc)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # REMIND / ALARM
+        for m in re.finditer(r'\[JARVIS:\s*(?:REMIND|ALARM)\s+["\']?([0-9]{1,2}:[0-9]{2})["\']?(?:\s+["\']?([^"\'\]]*?)["\']?)?\]', reply_text, re.IGNORECASE):
+            t_spec = m.group(1).strip()
+            desc = m.group(2).strip() if m.group(2) else "Recordatorio"
+            ok, msg = self.jarvis.add_reminder(t_spec, desc)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # LIST_REMINDERS
+        for m in re.finditer(r'\[JARVIS:\s*LIST_REMINDERS\]', reply_text, re.IGNORECASE):
+            ok, msg = self.jarvis.list_reminders()
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # CANCEL_REMINDER
+        for m in re.finditer(r'\[JARVIS:\s*CANCEL_REMINDER\s+["\']?([0-9]+)["\']?\]', reply_text, re.IGNORECASE):
+            num = m.group(1).strip()
+            ok, msg = self.jarvis.cancel_reminder(num)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # RUN_MACRO
+        for m in re.finditer(r'\[JARVIS:\s*RUN_MACRO\s+["\']?([^"\'\n\]]+?)["\']?\]', reply_text, re.IGNORECASE):
+            mac = m.group(1).strip()
+            ok, msg = self.jarvis.run_macro(mac)
+            results.append(msg)
+            cleaned = cleaned.replace(m.group(0), "")
+
+        # RENAME
         results = []
         cleaned = reply_text
 
@@ -4966,7 +5959,7 @@ class ChatWindow:
         if actions:
             for act in actions:
                 self._append_system(act)
-        self.send_btn.configure(state=tk.NORMAL, text="Enviar")
+        self.send_btn.configure(state=tk.NORMAL, text="Enviar ➤")
         if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win):
             self.entry.focus_set()
         short_speech = display_text[:50] + ("..." if len(display_text) > 50 else "")
@@ -4975,11 +5968,17 @@ class ChatWindow:
     def _show_error(self, msg):
         self.parent.after(0, lambda: (
             self._append_system(f"[!] {msg}"),
-            self.send_btn.configure(state=tk.NORMAL, text="Enviar"),
+            self.send_btn.configure(state=tk.NORMAL, text="Enviar ➤"),
             self.entry.focus_set() if hasattr(self, "entry") and self.entry and tk.Toplevel.winfo_exists(self.win) else None
         ))
 
     def _on_close(self):
+        try:
+            if not self.config.get("chat_position_locked", False):
+                self.config["chat_geometry"] = self.win.geometry()
+                save_config(self.config)
+        except Exception:
+            pass
         if hasattr(self, "_gif_timer") and self._gif_timer:
             try:
                 self.win.after_cancel(self._gif_timer)
@@ -5483,6 +6482,10 @@ class Shimeji:
         self.user_info   = UserSystemInfo()
         self.theme_manager = ThemeManager(self.config)
         self.jarvis      = JarvisAssistant(self, self.user_info)
+        self.tts         = JarvisTTS(self.config)
+        self.wake_word_listener = None
+        self.agent_settings_win = None
+        self._last_remind_check = 0
         self.troll_mode  = self.config.get("troll_mode", False)
         self.api_key_var = tk.StringVar(value=self.config.get("gemini_api_key", GEMINI_API_KEY))
         self.chat_win    = None
@@ -5498,6 +6501,7 @@ class Shimeji:
         self.canvas.bind("<ButtonPress-3>",   self.on_right_click)
         self.canvas.bind("<Double-Button-1>", self.on_double_click)
 
+        self.sync_wake_word_state()
         self.schedule_random_speech()
         self._schedule_random_mouse_move()
         self.set_state("walking")
@@ -5758,7 +6762,8 @@ class Shimeji:
         if surface is not None:
             self.surface = surface
 
-        speed = self.WALK_SPEED
+        speed = max(1, int(self.WALK_SPEED * float(self.config.get("shimeji_walk_speed_mult", 1.0))))
+        speed_wb = max(1, int(2 * float(self.config.get("shimeji_walk_speed_mult", 1.0))))
 
         # Detección inteligente de frames de escalada y techo
         climb_frames = [f for f in ["climb1", "climb2", "climb"] if f in self.images] or WALK_FRAMES
@@ -5768,7 +6773,7 @@ class Shimeji:
         cfg = {
             "standing":     (STAND_FRAMES,  15, 30+random.randint(10,30),    0,     0),
             "walking":      (WALK_FRAMES,   5,  120+random.randint(40,160),  random.choice([-1,1])*speed, 0),
-            "walk_back":    (WALK_BACK,     8,  40+random.randint(20,50),    random.choice([-1,1])*2, 0),
+            "walk_back":    (WALK_BACK,     8,  40+random.randint(20,50),    random.choice([-1,1])*speed_wb, 0),
             "sitting":      (SIT_FRAMES,    10, 40+random.randint(20,50),    0,     0),
             "guitar":       (GUITAR_FRAMES, 8,  50+random.randint(20,50),    0,     0),
             "ceiling_idle": (ceiling_idle_frames, 12, 50+random.randint(20,60), 0,  0),
@@ -5809,30 +6814,24 @@ class Shimeji:
             self.set_state("ko", surface=SURFACE_FLOOR)
             return
 
+        allow_sit = self.config.get("allow_sitting", True)
+        allow_custom = self.config.get("allow_custom_actions", True)
+
         skin = getattr(self, "current_skin", "Bocchi")
         if skin == "Bocchi":
-            pool = (
-                ["walking"] * 16 +
-                ["walk_back"] * 5 +
-                ["standing"] * 3 +
-                ["sitting"] * 2 +
-                ["guitar"] * 2 +
-                ["blob"] * 1 +
-                ["ghost"] * 1 +
-                ["box"] * 2 +
-                ["kneel"] * 1
-            )
+            pool = ["walking"] * 16 + ["walk_back"] * 5 + ["standing"] * 3
+            if allow_sit:
+                pool += ["sitting"] * 2 + ["kneel"] * 1
+            if allow_custom:
+                pool += ["guitar"] * 2 + ["blob"] * 1 + ["ghost"] * 1 + ["box"] * 2
             self.set_state(random.choice(pool), surface=SURFACE_FLOOR)
         else:
             # Dokis, Konata, Hachi, Usagi, Pusheen: NUNCA usan guitar/box que duplicaban el clon
-            pool = (
-                ["walking"] * 18 +
-                ["walk_back"] * 5 +
-                ["standing"] * 4 +
-                ["sitting"] * 3 +
-                ["kneel"] * 1 +
-                ["custom_action"] * 3
-            )
+            pool = ["walking"] * 18 + ["walk_back"] * 5 + ["standing"] * 4
+            if allow_sit:
+                pool += ["sitting"] * 3 + ["kneel"] * 1
+            if allow_custom:
+                pool += ["custom_action"] * 3
             choice = random.choice(pool)
             if choice == "custom_action":
                 self.trigger_random_custom_action()
@@ -5840,9 +6839,10 @@ class Shimeji:
                 self.set_state(choice, surface=SURFACE_FLOOR)
         
     def choose_next_ceiling_state(self):
+        speed = max(1, int(self.WALK_SPEED * float(self.config.get("shimeji_walk_speed_mult", 1.0))))
         if random.random() < 0.65:
             self.set_state("ceiling_walk", surface=SURFACE_CEILING)
-            self.vel_x = random.choice([-1, 1]) * self.WALK_SPEED
+            self.vel_x = random.choice([-1, 1]) * speed
             self.vel_y = 0
         else:
             self.set_state("ceiling_idle", surface=SURFACE_CEILING)
@@ -5851,6 +6851,7 @@ class Shimeji:
 
     def tick(self):
         try:
+            self._check_pending_reminders()
             if self._follow_cursor_enabled and WIN32_AVAILABLE and not self.dragging and not self.dragging_window:
                 self._move_towards_cursor()
             if not self.dragging and not self.dragging_window:
@@ -5870,7 +6871,8 @@ class Shimeji:
             return
 
         if self.state in ("flung", "falling"):
-            self.vel_y += 1.4  # Gravedad fluida
+            grav_mult = float(self.config.get("shimeji_gravity_mult", 1.0))
+            self.vel_y += 1.4 * grav_mult  # Gravedad fluida
             self.vel_x *= 0.985 # Resistencia del aire
             self.x += self.vel_x
             self.y += self.vel_y
@@ -5969,19 +6971,21 @@ class Shimeji:
         if self.state not in ("walking", "walk_back"):
             return
         self.x += self.vel_x
+        allow_climb = self.config.get("allow_wall_climb", True)
+        speed = max(1, int(self.WALK_SPEED * float(self.config.get("shimeji_walk_speed_mult", 1.0))))
         if self.x <= self.wall_lx:
             self.x = self.wall_lx
-            if random.random() < self.CLIMB_CHANCE:
+            if allow_climb and random.random() < self.CLIMB_CHANCE:
                 self._start_climb(SURFACE_WALL_L, going_up=True)
             else:
-                self.vel_x = self.WALK_SPEED
+                self.vel_x = speed
                 self.flipped = False
         elif self.x >= self.wall_rx:
             self.x = self.wall_rx
-            if random.random() < self.CLIMB_CHANCE:
+            if allow_climb and random.random() < self.CLIMB_CHANCE:
                 self._start_climb(SURFACE_WALL_R, going_up=True)
             else:
-                self.vel_x = -self.WALK_SPEED
+                self.vel_x = -speed
                 self.flipped = True
 
     def _physics_wall(self):
@@ -5996,7 +7000,10 @@ class Shimeji:
 
         if self.y <= self.ceiling_y:
             self.y = self.ceiling_y
-            self.choose_next_ceiling_state()
+            if self.config.get("allow_ceiling", True):
+                self.choose_next_ceiling_state()
+            else:
+                self.vel_y = self.CLIMB_SPEED
         elif self.y >= self.ground_y:
             self.y = self.ground_y
             self.choose_next_floor_state()
@@ -6006,20 +7013,21 @@ class Shimeji:
             return
         self.x += self.vel_x
         self.y  = self.ceiling_y
+        speed = max(1, int(self.WALK_SPEED * float(self.config.get("shimeji_walk_speed_mult", 1.0))))
 
         if self.x <= self.wall_lx:
             self.x = self.wall_lx
             if random.random() < 0.5:
                 self._start_climb(SURFACE_WALL_L, going_up=False)
             else:
-                self.vel_x = self.WALK_SPEED
+                self.vel_x = speed
                 self.flipped = False
         elif self.x >= self.wall_rx:
             self.x = self.wall_rx
             if random.random() < 0.5:
                 self._start_climb(SURFACE_WALL_R, going_up=False)
             else:
-                self.vel_x = -self.WALK_SPEED
+                self.vel_x = -speed
                 self.flipped = True
 
     def _start_climb(self, wall, going_up=True):
@@ -6058,7 +7066,8 @@ class Shimeji:
         if self.surface == SURFACE_FLOOR:
             self.choose_next_floor_state()
         elif self.surface in (SURFACE_WALL_L, SURFACE_WALL_R):
-            if random.random() < 0.3:
+            allow_fall = self.config.get("allow_fall_jump", True)
+            if allow_fall and random.random() < 0.3:
                 self.surface = SURFACE_FLOOR
                 self.set_state("falling", SURFACE_FLOOR)
                 self.vel_x = random.choice([-1,1]) * 3
@@ -6235,7 +7244,7 @@ class Shimeji:
             size_menu.add_command(label="[+] Personalizar en Apariencia...", command=self.open_appearance)
             menu.add_cascade(label=f"[#] Cambiar Tamaño ({getattr(self, 'size', 128)}px) >>", menu=size_menu)
 
-            menu.add_command(label=f"[*] Buscar Actualizaciones (v{APP_VERSION})", command=lambda: check_for_updates(self, is_manual=True))
+            menu.add_command(label=f"[★] Buscar Actualizaciones (v{APP_VERSION})", command=lambda: check_for_updates(self, is_manual=True))
             
             skin_menu = tk.Menu(menu, tearoff=0,
                                 bg=t.surface, fg=t.text,
@@ -6245,9 +7254,9 @@ class Shimeji:
             for s in SKIN_NAMES:
                 meta = SKIN_META.get(s, {})
                 disp = meta.get("display", s)
-                chk = " [*]" if s == self.current_skin else ""
+                chk = " [✓]" if s == self.current_skin else ""
                 skin_menu.add_command(label=f"{disp}{chk}", command=lambda sk=s: self.set_skin(sk))
-            menu.add_cascade(label="[] Elegir Skin / Personaje >>", menu=skin_menu)
+            menu.add_cascade(label="[+] Elegir Skin / Personaje >>", menu=skin_menu)
 
             troll_toggle_lbl = "[!] MODO TROLL: [ON] (Desactivar)" if self.troll_mode else "[o] MODO TROLL: [OFF] (Activar)"
             menu.add_command(label=troll_toggle_lbl, command=self.toggle_troll_mode)
@@ -6255,13 +7264,13 @@ class Shimeji:
             menu.add_command(label=f"[#] Hablar con {char_name} (IA & JARVIS) >>", command=self.open_chat)
             menu.add_command(label="[*] Doxxearte / Info Real >>", command=self.open_doxx)
             menu.add_command(label="[?] Decir algo al azar", command=lambda: self.show_speech(self.get_random_speech()))
-            menu.add_command(label="[] Soltar Item / Snack (Sprite Sheet)", command=self.drop_random_item)
+            menu.add_command(label="[+] Soltar Item / Snack (Sprite Sheet)", command=self.drop_random_item)
             menu.add_separator()
 
             # Salud y física divertida
             hp_cur = getattr(self, "hp", 100)
-            menu.add_command(label=f"[] Salud: {hp_cur}/100 HP (Curar y alimentar)", command=lambda: self.heal(100, "pastelito y té"))
-            menu.add_command(label="[] Lanzar hacia arriba (Prueba de Física Fling)", command=self.fling_upwards)
+            menu.add_command(label=f"[+] Salud: {hp_cur}/100 HP (Curar y alimentar)", command=lambda: self.heal(100, "pastelito y té"))
+            menu.add_command(label="[+] Lanzar hacia arriba (Prueba de Fisica Fling)", command=self.fling_upwards)
 
             # Acciones especiales personalizadas por personaje
             c_actions = CUSTOM_SKIN_ACTIONS.get(self.current_skin, [])
@@ -6272,8 +7281,8 @@ class Shimeji:
                                         activeforeground=acc_fg,
                                         font=(t.font_family, t.font_size))
                 for lbl, a_name, fr_list, sp_text in c_actions:
-                    cust_act_menu.add_command(label=f"[] {lbl}", command=lambda an=a_name, fl=fr_list, st=sp_text: self.trigger_custom_action(an, fl, st))
-                menu.add_cascade(label=f"[] Acciones Especiales de {char_name} >>", menu=cust_act_menu)
+                    cust_act_menu.add_command(label=f"[>] {lbl}", command=lambda an=a_name, fl=fr_list, st=sp_text: self.trigger_custom_action(an, fl, st))
+                menu.add_cascade(label=f"[+] Acciones Especiales de {char_name} >>", menu=cust_act_menu)
 
             poses_menu = tk.Menu(menu, tearoff=0,
                                  bg=t.surface, fg=t.text,
@@ -6363,6 +7372,9 @@ class Shimeji:
             menu.add_cascade(label="[!] Travesuras & Windows >>", menu=troll_menu)
 
             menu.add_separator()
+            menu.add_command(label="[>] Escuchar comando de voz (JARVIS)", command=self.listen_voice_command_once)
+            menu.add_command(label="[*] Ajustes del Agente JARVIS >>", command=self.open_agent_settings)
+            menu.add_separator()
             menu.add_command(label="[x] Cerrar Shimeji", command=self.close_shimeji,
                              foreground=t.danger, activeforeground=t.danger)
             rx = self.root.winfo_rootx() + e.x
@@ -6376,8 +7388,104 @@ class Shimeji:
             except Exception:
                 pass
 
+    def open_agent_settings(self):
+        """Abre la ventana de ajustes avanzados del agente JARVIS."""
+        if self.agent_settings_win is not None and tk.Toplevel.winfo_exists(self.agent_settings_win.win):
+            self.agent_settings_win.win.lift()
+            self.agent_settings_win.win.focus_force()
+            return
+        self.agent_settings_win = AgentSettingsWindow(self.root, self.theme_manager, self)
+
+    def sync_wake_word_state(self):
+        """Inicia o detiene el oyente de palabra de activacion segun la configuracion."""
+        enabled = self.config.get("agent_wake_word_enabled", False)
+        wake_word = self.config.get("agent_wake_word", "oye jarvis")
+        if enabled:
+            if self.wake_word_listener is None or not self.wake_word_listener.is_alive():
+                self.wake_word_listener = JarvisWakeWordListener(
+                    on_heard=self._on_wake_word_heard,
+                    wake_word=wake_word
+                )
+                self.wake_word_listener.start()
+        else:
+            if self.wake_word_listener is not None:
+                self.wake_word_listener.stop()
+                self.wake_word_listener = None
+
+    def _on_wake_word_heard(self, text):
+        """Manejador cuando el oyente continuo detecta la palabra de activacion."""
+        def _handle():
+            self.show_speech("Te escucho")
+            if hasattr(self, "tts") and self.tts:
+                self.tts.speak("Te escucho")
+            if not text or not text.strip():
+                return
+            if self.chat_win is None or not tk.Toplevel.winfo_exists(self.chat_win.win):
+                self.open_chat()
+            if self.chat_win and hasattr(self.chat_win, "send_message"):
+                self.chat_win.input_entry.delete(0, tk.END)
+                self.chat_win.input_entry.insert(0, text.strip())
+                self.chat_win.send_message()
+        self.root.after(0, _handle)
+
+    def listen_voice_command_once(self):
+        """Escucha un solo comando de voz mediante push-to-talk."""
+        self.show_speech("Escuchando comando de voz...")
+        def _worker():
+            listener = JarvisWakeWordListener(lambda t: None)
+            cmd = listener.listen_once()
+            if cmd:
+                def _inject():
+                    self.show_speech(f"Comando: {cmd}")
+                    if self.chat_win is None or not tk.Toplevel.winfo_exists(self.chat_win.win):
+                        self.open_chat()
+                    if self.chat_win and hasattr(self.chat_win, "send_message"):
+                        self.chat_win.input_entry.delete(0, tk.END)
+                        self.chat_win.input_entry.insert(0, cmd)
+                        self.chat_win.send_message()
+                self.root.after(0, _inject)
+            else:
+                self.root.after(0, lambda: self.show_speech("No se detecto voz"))
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _check_pending_reminders(self):
+        """Revisa si hay recordatorios o temporizadores vencidos para alertar al usuario."""
+        now = time.time()
+        if now - getattr(self, "_last_remind_check", 0) < 1.0:
+            return
+        self._last_remind_check = now
+        reminders = self.config.get("agent_reminders", [])
+        if not reminders:
+            return
+        still_pending = []
+        triggered = []
+        for r in reminders:
+            due = r.get("due_timestamp", 0)
+            if due > 0 and now >= due:
+                triggered.append(r)
+            else:
+                still_pending.append(r)
+        if triggered:
+            self.config["agent_reminders"] = still_pending
+            save_config(self.config)
+            for r in triggered:
+                text = r.get("text", "Recordatorio programado")
+                self.show_speech(f"Recordatorio: {text}")
+                if hasattr(self, "tts") and self.tts:
+                    self.tts.speak(f"Atencion, recordatorio: {text}")
+                if WINSOUND_AVAILABLE:
+                    try:
+                        winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+                    except Exception:
+                        pass
+
     def close_shimeji(self):
         """Reproduce popue.wav al desaparecer y cierra el Shimeji limpiamente."""
+        if hasattr(self, "wake_word_listener") and self.wake_word_listener:
+            try:
+                self.wake_word_listener.stop()
+            except Exception:
+                pass
         play_popue_sound()
         try:
             self.root.after(350, self.root.destroy)
@@ -7248,17 +8356,22 @@ class Shimeji:
         return random.choice(pool)
 
     def schedule_random_speech(self):
+        interval_sec = int(self.config.get("shimeji_talk_interval_sec", 45))
+        if interval_sec <= 0:
+            return
         if getattr(self, "troll_mode", False):
-            delay = random.randint(6000, 14000)
+            delay = random.randint(max(3000, interval_sec * 300), max(6000, interval_sec * 600))
         else:
-            delay = random.randint(10000, 20000)
+            delay = random.randint(max(5000, interval_sec * 700), max(10000, interval_sec * 1200))
         self.root.after(delay, self.random_speech_tick)
 
     def random_speech_tick(self):
-        chance = 0.85 if getattr(self, "troll_mode", False) else 0.65
-        if random.random() < chance:
-            self.show_speech(self.get_random_speech())
-        self.schedule_random_speech()
+        interval_sec = int(self.config.get("shimeji_talk_interval_sec", 45))
+        if interval_sec > 0:
+            chance = 0.85 if getattr(self, "troll_mode", False) else 0.65
+            if random.random() < chance:
+                self.show_speech(self.get_random_speech())
+            self.schedule_random_speech()
 
     def _schedule_random_mouse_move(self):
         delay = random.randint(20000, 30000)

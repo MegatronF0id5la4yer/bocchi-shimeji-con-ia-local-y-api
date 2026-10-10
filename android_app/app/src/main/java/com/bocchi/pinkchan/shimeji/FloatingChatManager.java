@@ -152,7 +152,7 @@ public class FloatingChatManager {
 
         // Botón cerrar
         TextView btnClose = new TextView(service);
-        btnClose.setText("X");
+        btnClose.setText("✕");
         btnClose.setTextColor(Color.parseColor("#EF4444"));
         btnClose.setTextSize(14);
         btnClose.setTypeface(null, Typeface.BOLD);
@@ -170,6 +170,11 @@ public class FloatingChatManager {
         headerBar.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                boolean isLocked = service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+                    .getBoolean("chat_pos_locked", false);
+                if (isLocked) {
+                    return false;
+                }
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         initialTouchX = event.getRawX();
@@ -181,6 +186,13 @@ public class FloatingChatManager {
                         chatParams.x = initialParamX + (int) (event.getRawX() - initialTouchX);
                         chatParams.y = initialParamY + (int) (event.getRawY() - initialTouchY);
                         service.getWindowManager().updateViewLayout(chatOverlayView, chatParams);
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        service.getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+                            .edit()
+                            .putInt("chat_last_x", chatParams.x)
+                            .putInt("chat_last_y", chatParams.y)
+                            .apply();
                         return true;
                 }
                 return false;
@@ -195,7 +207,7 @@ public class FloatingChatManager {
         tabsRow.setPadding(0, 0, 0, service.dpToPx(8));
 
         btnTabChat = createTabButton("Chat IA", true);
-        btnTabDialogues = createTabButton("Dialogos", false);
+        btnTabDialogues = createTabButton("Diálogos", false);
         btnTabActions = createTabButton("Acciones", false);
 
         btnTabChat.setOnClickListener(new View.OnClickListener() {
@@ -264,7 +276,7 @@ public class FloatingChatManager {
         inputBar.addView(etInput);
 
         TextView btnSend = new TextView(service);
-        btnSend.setText("Enviar");
+        btnSend.setText("➤ Enviar");
         btnSend.setTextColor(Color.WHITE);
         btnSend.setTextSize(12);
         btnSend.setTypeface(null, Typeface.BOLD);
@@ -395,7 +407,7 @@ public class FloatingChatManager {
 
         // Estado de Salud (HP)
         TextView tvHp = new TextView(service);
-        tvHp.setText("Salud de " + entity.skin.name + ": " + entity.hp + "/100 HP" + (entity.isKo ? " (K.O.)" : ""));
+        tvHp.setText("Salud de " + entity.skin.name + ": " + entity.hp + "/100 HP" + (entity.isKo ? " (¡K.O.!)" : ""));
         tvHp.setTextColor(entity.hp > 30 ? Color.parseColor("#34D399") : Color.parseColor("#F87171"));
         tvHp.setTextSize(12);
         tvHp.setTypeface(null, Typeface.BOLD);
@@ -459,7 +471,7 @@ public class FloatingChatManager {
             String speech = customActs[i][4];
 
             TextView btnAct = new TextView(service);
-            btnAct.setText("[>] " + label + " -> \"" + speech + "\"");
+            btnAct.setText(label + " -> \"" + speech + "\"");
             btnAct.setTextColor(Color.parseColor("#F5F3FF"));
             btnAct.setTextSize(11);
             btnAct.setBackgroundResource(R.drawable.chip_action_bg);
@@ -481,7 +493,7 @@ public class FloatingChatManager {
 
         // Acciones generales del sistema
         TextView tvSys = new TextView(service);
-        tvSys.setText("Herramientas utiles del sistema:");
+        tvSys.setText("Herramientas útiles del sistema:");
         tvSys.setTextColor(Color.parseColor("#A382FF"));
         tvSys.setTextSize(11);
         tvSys.setTypeface(null, Typeface.BOLD);
@@ -547,7 +559,7 @@ public class FloatingChatManager {
         addBubble("Tú", text, true);
 
         // Indicador de escritura
-        final TextView tvThinking = addBubble(skinName, skinName + " esta pensando...", false);
+        final TextView tvThinking = addBubble(skinName, skinName + " está pensando...", false);
 
         AiEngineHelper.askAi(service, skinId, text, new AiEngineHelper.AiCallback() {
             @Override
@@ -561,6 +573,9 @@ public class FloatingChatManager {
                     entity.say(reply, bubbleDur);
                     service.triggerHaptic(20);
                 }
+                if (service != null) {
+                    service.speakTts(reply);
+                }
             }
 
             @Override
@@ -573,9 +588,21 @@ public class FloatingChatManager {
         });
     }
 
+    public TextView addSystemMessage(final String message) {
+        if (service != null && service.getHandler() != null) {
+            service.getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    addBubble("JARVIS", message, false);
+                }
+            });
+        }
+        return null;
+    }
+
     private TextView addBubble(String sender, String message, boolean isUser) {
         TextView bubble = new TextView(service);
-        bubble.setText((isUser ? "[Tu] " : "[" + sender + "]:\n") + message);
+        bubble.setText(sender + ":\n" + message);
         bubble.setTextSize(11);
         bubble.setPadding(service.dpToPx(10), service.dpToPx(6), service.dpToPx(10), service.dpToPx(6));
 

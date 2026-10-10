@@ -1415,7 +1415,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="+  *  +"
+                        android:text="✦  ★  ✦"
                         android:textColor="@color/accent_lavender"
                         android:textSize="14sp"
                         android:layout_marginBottom="8dp" />
@@ -2399,6 +2399,567 @@
                         android:textColor="@color/text_primary"
                         android:textSize="12sp"
                         android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Card: Panel del Agente JARVIS y Personalizacion -->
+                <LinearLayout
+                    android:id="@+id/card_jarvis_agent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/card_bg"
+                    android:padding="16dp"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Panel de Control del Agente JARVIS"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Asistente autonomo en Android: control del sistema, voz, wake word y fisicas del shimeji."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Nombre del asistente -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nombre del Asistente"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <EditText
+                        android:id="@+id/et_jarvis_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/edittext_bg"
+                        android:hint="Jarvis"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:layout_marginBottom="10dp" />
+
+                    <!-- Prompt / Personalidad extra -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Personalidad / Prompt Adicional del Sistema"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <EditText
+                        android:id="@+id/et_jarvis_prompt"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:background="@drawable/edittext_bg"
+                        android:hint="Instrucciones especiales para el agente..."
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:gravity="top|start"
+                        android:padding="8dp"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Checkbox Usar personalidad de skin -->
+                    <CheckBox
+                        android:id="@+id/cb_jarvis_use_skin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Combinar con personalidad de la skin actual"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Pasos Maximos (Bucle autonomo) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Pasos maximos por consulta (Bucle)"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/badge_jarvis_steps"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/chip_tag_bg"
+                            android:text="6 pasos"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/sb_jarvis_steps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="10"
+                        android:progress="6"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Permisos de Ejecucion sin Confirmar -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Permisos de Ejecucion Automatica"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <CheckBox
+                        android:id="@+id/cb_perm_apps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Abrir aplicaciones instaladas directamente"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true" />
+
+                    <CheckBox
+                        android:id="@+id/cb_perm_system"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Ajustar volumen, brillo, linterna y multimedia"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true" />
+
+                    <CheckBox
+                        android:id="@+id/cb_perm_reminders"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Programar alarmas, temporizadores y recordatorios"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true" />
+
+                    <CheckBox
+                        android:id="@+id/cb_perm_files_write"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Crear y editar archivos en JarvisFiles"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true" />
+
+                    <CheckBox
+                        android:id="@+id/cb_perm_files_delete"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Borrar archivos sin confirmacion previa"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="false" />
+
+                    <CheckBox
+                        android:id="@+id/cb_perm_shell"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Ejecutar comandos shell / scripts sin confirmacion"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="false"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Servicio de Accesibilidad -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Servicio de Accesibilidad JARVIS"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Requerido para tomar capturas de pantalla y bloquear pantalla."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/btn_jarvis_accessibility"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:background="@drawable/btn_pill_outline"
+                        android:text="Abrir Ajustes de Accesibilidad"
+                        android:textColor="@color/accent_lavender_light"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="14dp" />
+
+                    <!-- Voz y Wake Word -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Voz y Wake Word"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <CheckBox
+                        android:id="@+id/cb_jarvis_tts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Activar respuestas habladas (Text-to-Speech)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp" />
+
+                    <!-- Sliders de voz -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Velocidad de voz (Rate)"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tv_tts_rate_val"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.0x"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/sb_tts_rate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="20"
+                        android:progress="10" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Tono de voz (Pitch)"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tv_tts_pitch_val"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.0x"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/sb_tts_pitch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="20"
+                        android:progress="10"
+                        android:layout_marginBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/btn_jarvis_test_tts"
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="Probar Voz TTS"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="10dp" />
+
+                    <!-- Wake Word -->
+                    <CheckBox
+                        android:id="@+id/cb_jarvis_wake_word"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Wake Word continuo (Oye Jarvis)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp" />
+
+                    <EditText
+                        android:id="@+id/et_jarvis_wake_phrase"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:background="@drawable/edittext_bg"
+                        android:hint="oye jarvis"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:layout_marginBottom="6dp" />
+
+                    <Button
+                        android:id="@+id/btn_jarvis_push_to_talk"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:background="@drawable/btn_pill_outline"
+                        android:text="Hablar Ahora (Push-to-Talk)"
+                        android:textColor="@color/accent_lavender_light"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="14dp" />
+
+                    <!-- Personalizacion de Conducta y Fisica del Shimeji -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Conducta y Fisicas del Shimeji"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <!-- Velocidad de caminata -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Velocidad al caminar"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tv_shimeji_speed_val"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.0x"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/sb_shimeji_speed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="30"
+                        android:progress="10" />
+
+                    <!-- Gravedad -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Gravedad al caer"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tv_shimeji_gravity_val"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1.0x"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/sb_shimeji_gravity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="30"
+                        android:progress="10" />
+
+                    <!-- Frecuencia de charla espontanea -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Frecuencia de charla espontanea"
+                            android:textColor="@color/text_primary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tv_shimeji_talk_val"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="45s"
+                            android:textColor="@color/accent_lavender"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/sb_shimeji_talk"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="180"
+                        android:progress="45"
+                        android:layout_marginBottom="8dp" />
+
+                    <!-- Animaciones permitidas -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Animaciones y Movimientos Permitidos:"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="4dp" />
+
+                    <CheckBox
+                        android:id="@+id/cb_allow_wall_climb"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Escalar paredes laterales"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true" />
+
+                    <CheckBox
+                        android:id="@+id/cb_allow_ceiling"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Caminar por el techo"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true" />
+
+                    <CheckBox
+                        android:id="@+id/cb_allow_sitting"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Sentarse y descansar"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true" />
+
+                    <CheckBox
+                        android:id="@+id/cb_allow_custom_actions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Acciones especiales de la skin (caja, guitarra, etc.)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:checked="true"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Ventana de Chat Flotante -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ventana de Chat Flotante"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <CheckBox
+                        android:id="@+id/cb_chat_pos_locked"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Bloquear posicion del chat flotante (no arrastrar)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Seccion de Macros Personalizadas -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Macros Multitarea del Agente"
+                        android:textColor="@color/accent_lavender"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Encadena varios pasos (ej: abrir app, ajustar volumen, poner recordatorio)."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:id="@+id/layout_macros_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="8dp" />
+
+                    <Button
+                        android:id="@+id/btn_add_jarvis_macro"
+                        android:layout_width="match_parent"
+                        android:layout_height="38dp"
+                        android:background="@drawable/chip_action_bg"
+                        android:text="+ Agregar Macro Personalizada"
+                        android:textColor="@color/accent_lavender_light"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Boton Guardar Todo -->
+                    <Button
+                        android:id="@+id/btn_save_jarvis_all"
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:background="@drawable/btn_pill_violet"
+                        android:text="Guardar Todo el Agente JARVIS"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
                 </LinearLayout>
 
             </LinearLayout>

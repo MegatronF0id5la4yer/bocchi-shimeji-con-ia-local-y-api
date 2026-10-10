@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -136,6 +137,16 @@ public class MainActivity extends Activity {
     private TextView badgeSlotsCount, tvEmptySlots;
     private LinearLayout layoutSlotsContainer;
     private Button btnAddCommandSlot;
+
+    // JARVIS Agent Views
+    private EditText etJarvisName, etJarvisPrompt, etJarvisWakePhrase;
+    private CheckBox cbJarvisUseSkin, cbPermApps, cbPermSystem, cbPermReminders, cbPermFilesWrite, cbPermFilesDelete, cbPermShell;
+    private CheckBox cbJarvisTts, cbJarvisWakeWord, cbChatPosLocked;
+    private CheckBox cbAllowWallClimb, cbAllowCeiling, cbAllowSitting, cbAllowCustomActions;
+    private SeekBar sbJarvisSteps, sbTtsRate, sbTtsPitch, sbShimejiSpeed, sbShimejiGravity, sbShimejiTalk;
+    private TextView badgeJarvisSteps, tvTtsRateVal, tvTtsPitchVal, tvShimejiSpeedVal, tvShimejiGravityVal, tvShimejiTalkVal;
+    private Button btnJarvisAccessibility, btnJarvisTestTts, btnJarvisPushToTalk, btnAddJarvisMacro, btnSaveJarvisAll;
+    private LinearLayout layoutMacrosContainer;
 
     private SharedPreferences prefs;
 
@@ -277,6 +288,43 @@ public class MainActivity extends Activity {
         tvEmptySlots = findViewById(R.id.tv_empty_slots);
         layoutSlotsContainer = findViewById(R.id.layout_slots_container);
         btnAddCommandSlot = findViewById(R.id.btn_add_command_slot);
+
+        // JARVIS Agent Views
+        etJarvisName = findViewById(R.id.et_jarvis_name);
+        etJarvisPrompt = findViewById(R.id.et_jarvis_prompt);
+        etJarvisWakePhrase = findViewById(R.id.et_jarvis_wake_phrase);
+        cbJarvisUseSkin = findViewById(R.id.cb_jarvis_use_skin);
+        cbPermApps = findViewById(R.id.cb_perm_apps);
+        cbPermSystem = findViewById(R.id.cb_perm_system);
+        cbPermReminders = findViewById(R.id.cb_perm_reminders);
+        cbPermFilesWrite = findViewById(R.id.cb_perm_files_write);
+        cbPermFilesDelete = findViewById(R.id.cb_perm_files_delete);
+        cbPermShell = findViewById(R.id.cb_perm_shell);
+        cbJarvisTts = findViewById(R.id.cb_jarvis_tts);
+        cbJarvisWakeWord = findViewById(R.id.cb_jarvis_wake_word);
+        cbChatPosLocked = findViewById(R.id.cb_chat_pos_locked);
+        cbAllowWallClimb = findViewById(R.id.cb_allow_wall_climb);
+        cbAllowCeiling = findViewById(R.id.cb_allow_ceiling);
+        cbAllowSitting = findViewById(R.id.cb_allow_sitting);
+        cbAllowCustomActions = findViewById(R.id.cb_allow_custom_actions);
+        sbJarvisSteps = findViewById(R.id.sb_jarvis_steps);
+        sbTtsRate = findViewById(R.id.sb_tts_rate);
+        sbTtsPitch = findViewById(R.id.sb_tts_pitch);
+        sbShimejiSpeed = findViewById(R.id.sb_shimeji_speed);
+        sbShimejiGravity = findViewById(R.id.sb_shimeji_gravity);
+        sbShimejiTalk = findViewById(R.id.sb_shimeji_talk);
+        badgeJarvisSteps = findViewById(R.id.badge_jarvis_steps);
+        tvTtsRateVal = findViewById(R.id.tv_tts_rate_val);
+        tvTtsPitchVal = findViewById(R.id.tv_tts_pitch_val);
+        tvShimejiSpeedVal = findViewById(R.id.tv_shimeji_speed_val);
+        tvShimejiGravityVal = findViewById(R.id.tv_shimeji_gravity_val);
+        tvShimejiTalkVal = findViewById(R.id.tv_shimeji_talk_val);
+        btnJarvisAccessibility = findViewById(R.id.btn_jarvis_accessibility);
+        btnJarvisTestTts = findViewById(R.id.btn_jarvis_test_tts);
+        btnJarvisPushToTalk = findViewById(R.id.btn_jarvis_push_to_talk);
+        btnAddJarvisMacro = findViewById(R.id.btn_add_jarvis_macro);
+        btnSaveJarvisAll = findViewById(R.id.btn_save_jarvis_all);
+        layoutMacrosContainer = findViewById(R.id.layout_macros_container);
     }
 
     private void setupTabs() {
@@ -747,6 +795,7 @@ public class MainActivity extends Activity {
         setupColorPaletteListeners();
         setupAiEngineListeners();
         setupCommandSlotsListeners();
+        setupJarvisAgentListeners();
     }
 
     private void setupAiEngineListeners() {
@@ -924,7 +973,7 @@ public class MainActivity extends Activity {
 
             // Boton Eliminar
             TextView btnDelete = new TextView(this);
-            btnDelete.setText("X");
+            btnDelete.setText("✕");
             btnDelete.setTextColor(Color.parseColor("#FCA5A5"));
             btnDelete.setTextSize(14);
             btnDelete.setPadding(dpToPx(8), dpToPx(4), dpToPx(4), dpToPx(4));
@@ -1086,6 +1135,438 @@ public class MainActivity extends Activity {
         builder.setNegativeButton("Cancelar", null);
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void setupJarvisAgentListeners() {
+        if (etJarvisName != null) {
+            etJarvisName.setText(prefs.getString("assistant_name", "Jarvis"));
+        }
+        if (etJarvisPrompt != null) {
+            etJarvisPrompt.setText(prefs.getString("agent_extra_prompt", ""));
+        }
+        if (cbJarvisUseSkin != null) {
+            cbJarvisUseSkin.setChecked(prefs.getBoolean("agent_use_skin_persona", true));
+        }
+
+        // Steps
+        if (sbJarvisSteps != null) {
+            int steps = prefs.getInt("agent_max_steps", 6);
+            sbJarvisSteps.setProgress(Math.max(1, Math.min(10, steps)));
+            if (badgeJarvisSteps != null) badgeJarvisSteps.setText(sbJarvisSteps.getProgress() + " pasos");
+            sbJarvisSteps.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (progress < 1) progress = 1;
+                    if (badgeJarvisSteps != null) badgeJarvisSteps.setText(progress + " pasos");
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        // Permisos
+        if (cbPermApps != null) cbPermApps.setChecked(prefs.getBoolean("perm_apps", true));
+        if (cbPermSystem != null) cbPermSystem.setChecked(prefs.getBoolean("perm_system", true));
+        if (cbPermReminders != null) cbPermReminders.setChecked(prefs.getBoolean("perm_reminders", true));
+        if (cbPermFilesWrite != null) cbPermFilesWrite.setChecked(prefs.getBoolean("perm_files_write", true));
+        if (cbPermFilesDelete != null) cbPermFilesDelete.setChecked(prefs.getBoolean("perm_files_delete", false));
+        if (cbPermShell != null) cbPermShell.setChecked(prefs.getBoolean("perm_shell", false));
+
+        // Accesibilidad
+        if (btnJarvisAccessibility != null) {
+            btnJarvisAccessibility.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                        startActivity(intent);
+                        Toast.makeText(MainActivity.this, "Busca 'PinkChan Shimeji JARVIS' y activalo", Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        Toast.makeText(MainActivity.this, "No se pudo abrir ajustes de accesibilidad", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        // TTS
+        if (cbJarvisTts != null) cbJarvisTts.setChecked(prefs.getBoolean("tts_enabled", false));
+        if (sbTtsRate != null) {
+            int rateVal = (int) (prefs.getFloat("tts_rate", 1.0f) * 10);
+            sbTtsRate.setProgress(Math.max(5, Math.min(20, rateVal)));
+            if (tvTtsRateVal != null) tvTtsRateVal.setText(String.format(Locale.US, "%.1fx", sbTtsRate.getProgress() / 10.0f));
+            sbTtsRate.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (progress < 5) progress = 5;
+                    if (tvTtsRateVal != null) tvTtsRateVal.setText(String.format(Locale.US, "%.1fx", progress / 10.0f));
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+        if (sbTtsPitch != null) {
+            int pitchVal = (int) (prefs.getFloat("tts_pitch", 1.0f) * 10);
+            sbTtsPitch.setProgress(Math.max(5, Math.min(20, pitchVal)));
+            if (tvTtsPitchVal != null) tvTtsPitchVal.setText(String.format(Locale.US, "%.1fx", sbTtsPitch.getProgress() / 10.0f));
+            sbTtsPitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (progress < 5) progress = 5;
+                    if (tvTtsPitchVal != null) tvTtsPitchVal.setText(String.format(Locale.US, "%.1fx", progress / 10.0f));
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        if (btnJarvisTestTts != null) {
+            btnJarvisTestTts.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String name = etJarvisName != null ? etJarvisName.getText().toString().trim() : "Jarvis";
+                    if (name.isEmpty()) name = "Jarvis";
+                    String testPhrase = "Hola, soy " + name + ", tu asistente inteligente.";
+                    ShimejiService s = ShimejiService.getInstance();
+                    if (s != null) {
+                        float r = sbTtsRate != null ? (sbTtsRate.getProgress() / 10.0f) : 1.0f;
+                        float p = sbTtsPitch != null ? (sbTtsPitch.getProgress() / 10.0f) : 1.0f;
+                        prefs.edit().putFloat("tts_rate", r).putFloat("tts_pitch", p).putBoolean("tts_enabled", true).apply();
+                        s.syncTtsSettings();
+                        s.speakTts(testPhrase);
+                    } else {
+                        Toast.makeText(MainActivity.this, "[TTS]: " + testPhrase, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+        // Wake Word
+        if (cbJarvisWakeWord != null) cbJarvisWakeWord.setChecked(prefs.getBoolean("wake_word_enabled", false));
+        if (etJarvisWakePhrase != null) etJarvisWakePhrase.setText(prefs.getString("wake_word_phrase", "oye jarvis"));
+
+        if (btnJarvisPushToTalk != null) {
+            btnJarvisPushToTalk.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ShimejiService s = ShimejiService.getInstance();
+                    if (s != null) {
+                        s.startVoiceAssistant();
+                        Toast.makeText(MainActivity.this, "Escuchando... Di tu comando", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Inicia los Shimejis primero para usar el asistente de voz", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+        }
+
+        // Shimeji Behavior
+        if (sbShimejiSpeed != null) {
+            int spdVal = (int) (prefs.getFloat("shimeji_walk_speed_mult", 1.0f) * 10);
+            sbShimejiSpeed.setProgress(Math.max(5, Math.min(30, spdVal)));
+            if (tvShimejiSpeedVal != null) tvShimejiSpeedVal.setText(String.format(Locale.US, "%.1fx", sbShimejiSpeed.getProgress() / 10.0f));
+            sbShimejiSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (progress < 5) progress = 5;
+                    if (tvShimejiSpeedVal != null) tvShimejiSpeedVal.setText(String.format(Locale.US, "%.1fx", progress / 10.0f));
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+        if (sbShimejiGravity != null) {
+            int grvVal = (int) (prefs.getFloat("shimeji_gravity_mult", 1.0f) * 10);
+            sbShimejiGravity.setProgress(Math.max(2, Math.min(30, grvVal)));
+            if (tvShimejiGravityVal != null) tvShimejiGravityVal.setText(String.format(Locale.US, "%.1fx", sbShimejiGravity.getProgress() / 10.0f));
+            sbShimejiGravity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (progress < 2) progress = 2;
+                    if (tvShimejiGravityVal != null) tvShimejiGravityVal.setText(String.format(Locale.US, "%.1fx", progress / 10.0f));
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+        if (sbShimejiTalk != null) {
+            int talkVal = prefs.getInt("shimeji_talk_interval_sec", 45);
+            sbShimejiTalk.setProgress(Math.max(10, Math.min(180, talkVal)));
+            if (tvShimejiTalkVal != null) tvShimejiTalkVal.setText(sbShimejiTalk.getProgress() + "s");
+            sbShimejiTalk.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (progress < 10) progress = 10;
+                    if (tvShimejiTalkVal != null) tvShimejiTalkVal.setText(progress + "s");
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        if (cbAllowWallClimb != null) cbAllowWallClimb.setChecked(prefs.getBoolean("allow_wall_climb", true));
+        if (cbAllowCeiling != null) cbAllowCeiling.setChecked(prefs.getBoolean("allow_ceiling", true));
+        if (cbAllowSitting != null) cbAllowSitting.setChecked(prefs.getBoolean("allow_sitting", true));
+        if (cbAllowCustomActions != null) cbAllowCustomActions.setChecked(prefs.getBoolean("allow_custom_actions", true));
+
+        // Chat
+        if (cbChatPosLocked != null) cbChatPosLocked.setChecked(prefs.getBoolean("chat_pos_locked", false));
+
+        // Macros
+        refreshMacrosUI();
+        if (btnAddJarvisMacro != null) {
+            btnAddJarvisMacro.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showAddMacroDialog();
+                }
+            });
+        }
+
+        // Save All Button
+        if (btnSaveJarvisAll != null) {
+            btnSaveJarvisAll.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    saveAllJarvisSettings();
+                }
+            });
+        }
+    }
+
+    private void saveAllJarvisSettings() {
+        String name = etJarvisName != null ? etJarvisName.getText().toString().trim() : "Jarvis";
+        if (name.isEmpty()) name = "Jarvis";
+        String prompt = etJarvisPrompt != null ? etJarvisPrompt.getText().toString().trim() : "";
+        boolean useSkin = cbJarvisUseSkin == null || cbJarvisUseSkin.isChecked();
+        int steps = sbJarvisSteps != null ? Math.max(1, sbJarvisSteps.getProgress()) : 6;
+
+        boolean pApps = cbPermApps == null || cbPermApps.isChecked();
+        boolean pSys = cbPermSystem == null || cbPermSystem.isChecked();
+        boolean pRem = cbPermReminders == null || cbPermReminders.isChecked();
+        boolean pWrite = cbPermFilesWrite == null || cbPermFilesWrite.isChecked();
+        boolean pDel = cbPermFilesDelete != null && cbPermFilesDelete.isChecked();
+        boolean pShell = cbPermShell != null && cbPermShell.isChecked();
+
+        boolean ttsOn = cbJarvisTts != null && cbJarvisTts.isChecked();
+        float ttsRate = sbTtsRate != null ? (sbTtsRate.getProgress() / 10.0f) : 1.0f;
+        float ttsPitch = sbTtsPitch != null ? (sbTtsPitch.getProgress() / 10.0f) : 1.0f;
+
+        boolean wakeOn = cbJarvisWakeWord != null && cbJarvisWakeWord.isChecked();
+        String wakePhrase = etJarvisWakePhrase != null ? etJarvisWakePhrase.getText().toString().trim() : "oye jarvis";
+        if (wakePhrase.isEmpty()) wakePhrase = "oye jarvis";
+
+        float spdMult = sbShimejiSpeed != null ? (sbShimejiSpeed.getProgress() / 10.0f) : 1.0f;
+        float grvMult = sbShimejiGravity != null ? (sbShimejiGravity.getProgress() / 10.0f) : 1.0f;
+        int talkSec = sbShimejiTalk != null ? sbShimejiTalk.getProgress() : 45;
+
+        boolean allowClimb = cbAllowWallClimb == null || cbAllowWallClimb.isChecked();
+        boolean allowCeil = cbAllowCeiling == null || cbAllowCeiling.isChecked();
+        boolean allowSit = cbAllowSitting == null || cbAllowSitting.isChecked();
+        boolean allowCustom = cbAllowCustomActions == null || cbAllowCustomActions.isChecked();
+
+        boolean chatLocked = cbChatPosLocked != null && cbChatPosLocked.isChecked();
+
+        prefs.edit()
+            .putString("assistant_name", name)
+            .putString("agent_extra_prompt", prompt)
+            .putBoolean("agent_use_skin_persona", useSkin)
+            .putInt("agent_max_steps", steps)
+            .putBoolean("perm_apps", pApps)
+            .putBoolean("perm_system", pSys)
+            .putBoolean("perm_reminders", pRem)
+            .putBoolean("perm_files_write", pWrite)
+            .putBoolean("perm_files_delete", pDel)
+            .putBoolean("perm_shell", pShell)
+            .putBoolean("tts_enabled", ttsOn)
+            .putFloat("tts_rate", ttsRate)
+            .putFloat("tts_pitch", ttsPitch)
+            .putBoolean("wake_word_enabled", wakeOn)
+            .putString("wake_word_phrase", wakePhrase)
+            .putFloat("shimeji_walk_speed_mult", spdMult)
+            .putFloat("shimeji_gravity_mult", grvMult)
+            .putInt("shimeji_talk_interval_sec", talkSec)
+            .putBoolean("allow_wall_climb", allowClimb)
+            .putBoolean("allow_ceiling", allowCeil)
+            .putBoolean("allow_sitting", allowSit)
+            .putBoolean("allow_custom_actions", allowCustom)
+            .putBoolean("chat_pos_locked", chatLocked)
+            .apply();
+
+        ShimejiService s = ShimejiService.getInstance();
+        if (s != null) {
+            s.syncTtsSettings();
+            s.syncWakeWordState();
+        }
+
+        Toast.makeText(this, "Ajustes de JARVIS y personalizacion guardados", Toast.LENGTH_SHORT).show();
+    }
+
+    public void refreshMacrosUI() {
+        if (layoutMacrosContainer == null) return;
+        layoutMacrosContainer.removeAllViews();
+
+        String raw = prefs.getString(AgentToolExecutor.PREF_MACROS, "{}");
+        try {
+            JSONObject obj = new JSONObject(raw);
+            if (obj.length() == 0) {
+                JSONArray sample = new JSONArray();
+                sample.put("[JARVIS: VOLUME 80]");
+                sample.put("[JARVIS: SEARCH_YT \"chill beats\"]");
+                obj.put("Modo Relax", sample);
+                prefs.edit().putString(AgentToolExecutor.PREF_MACROS, obj.toString()).apply();
+            }
+
+            java.util.Iterator<String> keys = obj.keys();
+            while (keys.hasNext()) {
+                final String macroName = keys.next();
+                final JSONArray steps = obj.getJSONArray(macroName);
+
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                row.setBackgroundResource(R.drawable.chip_tag_bg);
+                row.setPadding(dpToPx(12), dpToPx(8), dpToPx(8), dpToPx(8));
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lp.bottomMargin = dpToPx(6);
+                row.setLayoutParams(lp);
+
+                TextView tvName = new TextView(this);
+                tvName.setText(macroName + " (" + steps.length() + " pasos)");
+                tvName.setTextColor(Color.parseColor("#EDE9FE"));
+                tvName.setTextSize(12);
+                tvName.setTypeface(null, android.graphics.Typeface.BOLD);
+                LinearLayout.LayoutParams nameLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+                tvName.setLayoutParams(nameLp);
+                row.addView(tvName);
+
+                // Boton Ejecutar
+                TextView btnRun = new TextView(this);
+                btnRun.setText("Ejecutar");
+                btnRun.setTextColor(Color.parseColor("#A78BFA"));
+                btnRun.setTextSize(11);
+                btnRun.setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4));
+                btnRun.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                final String res = AgentToolExecutor.runMacro(MainActivity.this, macroName);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.this, res, Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            }
+                        }).start();
+                    }
+                });
+                row.addView(btnRun);
+
+                // Boton Eliminar
+                TextView btnDel = new TextView(this);
+                btnDel.setText("✕");
+                btnDel.setTextColor(Color.parseColor("#FCA5A5"));
+                btnDel.setTextSize(13);
+                btnDel.setPadding(dpToPx(8), dpToPx(4), dpToPx(4), dpToPx(4));
+                btnDel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            String cur = prefs.getString(AgentToolExecutor.PREF_MACROS, "{}");
+                            JSONObject o = new JSONObject(cur);
+                            o.remove(macroName);
+                            prefs.edit().putString(AgentToolExecutor.PREF_MACROS, o.toString()).apply();
+                            refreshMacrosUI();
+                            Toast.makeText(MainActivity.this, "Macro eliminada", Toast.LENGTH_SHORT).show();
+                        } catch (Exception ignored) {}
+                    }
+                });
+                row.addView(btnDel);
+
+                layoutMacrosContainer.addView(row);
+            }
+        } catch (Exception e) {
+            TextView err = new TextView(this);
+            err.setText("Sin macros configuradas");
+            err.setTextColor(Color.parseColor("#9CA3AF"));
+            err.setTextSize(11);
+            layoutMacrosContainer.addView(err);
+        }
+    }
+
+    private void showAddMacroDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#181428"));
+        root.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+        TextView tvTitle = new TextView(this);
+        tvTitle.setText("Nueva Macro Multitarea");
+        tvTitle.setTextColor(Color.parseColor("#F3F0FA"));
+        tvTitle.setTextSize(16);
+        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTitle.setPadding(0, 0, 0, dpToPx(6));
+        root.addView(tvTitle);
+
+        TextView tvDesc = new TextView(this);
+        tvDesc.setText("Escribe los pasos separados por linea (ej: [JARVIS: VOLUME 50], [JARVIS: OPEN \"tiktok\"] o WAIT 2):");
+        tvDesc.setTextColor(Color.parseColor("#A69DB8"));
+        tvDesc.setTextSize(11);
+        tvDesc.setPadding(0, 0, 0, dpToPx(8));
+        root.addView(tvDesc);
+
+        final EditText etName = new EditText(this);
+        etName.setHint("Nombre de la macro (ej: Mi Rutina)");
+        etName.setTextColor(Color.WHITE);
+        etName.setHintTextColor(Color.parseColor("#6B7280"));
+        etName.setTextSize(12);
+        etName.setBackgroundResource(R.drawable.edittext_bg);
+        etName.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        LinearLayout.LayoutParams nLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(40));
+        nLp.bottomMargin = dpToPx(8);
+        etName.setLayoutParams(nLp);
+        root.addView(etName);
+
+        final EditText etSteps = new EditText(this);
+        etSteps.setHint("[JARVIS: VOLUME 70]\nWAIT 1\n[JARVIS: SEARCH_YT \"bocchi\"]");
+        etSteps.setTextColor(Color.WHITE);
+        etSteps.setHintTextColor(Color.parseColor("#6B7280"));
+        etSteps.setTextSize(11);
+        etSteps.setGravity(Gravity.TOP | Gravity.START);
+        etSteps.setBackgroundResource(R.drawable.edittext_bg);
+        etSteps.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        LinearLayout.LayoutParams sLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(90));
+        etSteps.setLayoutParams(sLp);
+        root.addView(etSteps);
+
+        builder.setView(root);
+        builder.setPositiveButton("Guardar Macro", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String name = etName.getText().toString().trim();
+                String stepsText = etSteps.getText().toString().trim();
+                if (name.isEmpty() || stepsText.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Nombre y pasos requeridos", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    String cur = prefs.getString(AgentToolExecutor.PREF_MACROS, "{}");
+                    JSONObject o = new JSONObject(cur);
+                    JSONArray arr = new JSONArray();
+                    String[] lines = stepsText.split("\n");
+                    for (String line : lines) {
+                        String l = line.trim();
+                        if (!l.isEmpty()) arr.put(l);
+                    }
+                    o.put(name, arr);
+                    prefs.edit().putString(AgentToolExecutor.PREF_MACROS, o.toString()).apply();
+                    refreshMacrosUI();
+                    Toast.makeText(MainActivity.this, "Macro '" + name + "' guardada", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Error guardando macro: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
     }
 
     private void updateInspectorMascot(String skinId) {
