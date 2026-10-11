@@ -257,10 +257,31 @@ public class ShimejiService extends Service {
                     entity.updatePhysics(screenWidth, screenHeight, zeroGravity);
                 }
 
-                handler.postDelayed(this, 40); // 25 FPS
+                SharedPreferences sp = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+                int fps = sp.getInt("animation_fps", 25);
+                int delay = Math.max(16, 1000 / Math.max(10, Math.min(60, fps)));
+                handler.postDelayed(this, delay);
             }
         };
         handler.post(loopRunnable);
+    }
+
+    public void updateFps(int newFps) {
+        if (loopRunnable != null) {
+            handler.removeCallbacks(loopRunnable);
+            handler.post(loopRunnable);
+        }
+    }
+
+    public void showBubbleOnActive(final String text) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (!shimejiList.isEmpty()) {
+                    shimejiList.get(0).say(text, 5500);
+                }
+            }
+        });
     }
 
     public void spawnExtraShimeji(String skinId) {

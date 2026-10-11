@@ -1785,7 +1785,9 @@
                             android:paddingLeft="8dp"
                             android:paddingRight="8dp"
                             android:paddingTop="2dp"
-                            android:paddingBottom="2dp" />
+                            android:paddingBottom="2dp"
+                            android:clickable="true"
+                            android:focusable="true" />
                     </LinearLayout>
 
                     <!-- Maximum Shimeji Count -->

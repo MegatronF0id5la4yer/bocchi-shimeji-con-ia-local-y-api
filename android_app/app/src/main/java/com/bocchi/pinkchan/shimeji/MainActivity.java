@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
     public static final String KEY_BUBBLE_ALPHA = "bubble_alpha";
     public static final String KEY_BUBBLE_BORDER = "bubble_border";
     public static final String KEY_LAST_UPDATE_CHECK = "last_update_check_time";
-    private static final long UPDATE_CHECK_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000L;
+    private static final long UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000L; // 15 minutos
 
     public static final String KEY_AI_MODE = "ai_mode";
     public static final String KEY_GEMINI_KEY = "gemini_api_key";
@@ -166,6 +166,7 @@ public class MainActivity extends Activity {
     private TextView tagFilterLuckyStar, tagFilterBocchi, tagFilterDokiDoki, tagFilterMascots, tagFilterAddCustom;
     private CheckBox cbSettingsBoot;
     private TextView badgeCountNum;
+    private TextView badgeFramerateNum;
     private android.speech.tts.TextToSpeech localTts;
     private MediaPlayer previewMediaPlayer;
     private String activeGridFilter = null;
@@ -291,6 +292,7 @@ public class MainActivity extends Activity {
 
         cbSettingsBoot = findViewById(R.id.cb_settings_boot);
         badgeCountNum = findViewById(R.id.badge_count_num);
+        badgeFramerateNum = findViewById(R.id.badge_framerate_num);
         tagFilterLuckyStar = findViewById(R.id.tag_filter_luckystar);
         tagFilterBocchi = findViewById(R.id.tag_filter_bocchi);
         tagFilterDokiDoki = findViewById(R.id.tag_filter_dokidoki);
@@ -887,6 +889,17 @@ public class MainActivity extends Activity {
                 @Override
                 public void onClick(View v) {
                     showMaxCountDialog();
+                }
+            });
+        }
+
+        if (badgeFramerateNum != null) {
+            int curFps = prefs.getInt("animation_fps", 25);
+            badgeFramerateNum.setText(curFps + " FPS (Fluido)");
+            badgeFramerateNum.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showFramerateDialog();
                 }
             });
         }
@@ -1995,6 +2008,13 @@ public class MainActivity extends Activity {
                     @Override
                     public void onClick(View v) {
                         applyAccentColor(colorResIds[index], colorNames[index], index);
+                    }
+                });
+                iv.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        showCustomColorPickerPaletteDialog();
+                        return true;
                     }
                 });
             }
@@ -3430,6 +3450,310 @@ public class MainActivity extends Activity {
         });
         b.setNegativeButton("Cancelar", null);
         b.show();
+    }
+
+    private void showFramerateDialog() {
+        final int[] fpsValues = {15, 20, 25, 30, 45, 60};
+        String[] labels = {
+            "15 FPS (Bajo consumo de bateria)",
+            "20 FPS (Equilibrado)",
+            "25 FPS (Predeterminado - Fluido)",
+            "30 FPS (Rapido y agil)",
+            "45 FPS (Ultra fluido)",
+            "60 FPS (Maximo rendimiento)"
+        };
+        int current = prefs.getInt("animation_fps", 25);
+        int selectedIndex = 2;
+        for (int i = 0; i < fpsValues.length; i++) {
+            if (fpsValues[i] == current) {
+                selectedIndex = i;
+                break;
+            }
+        }
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("Tasa de Cuadros de Animacion (FPS)");
+        b.setSingleChoiceItems(labels, selectedIndex, (dialog, which) -> {
+            int chosen = fpsValues[which];
+            prefs.edit().putInt("animation_fps", chosen).apply();
+            if (badgeFramerateNum != null) {
+                badgeFramerateNum.setText(chosen + " FPS");
+            }
+            if (ShimejiService.getInstance() != null) {
+                ShimejiService.getInstance().updateFps(chosen);
+            }
+            Toast.makeText(MainActivity.this, "Tasa fijada en: " + chosen + " FPS", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+        b.setNegativeButton("Cancelar", null);
+        b.show();
+    }
+
+    private void showCustomColorPickerPaletteDialog() {
+        final String[] paletteNames = {
+            "Lavanda Real (#8A56E2)", "Cyber Cyan (#00E5FF)", "Sakura Rosa (#FF69B4)",
+            "Ambar Dorado (#FFA000)", "Menta Fresca (#00E676)", "Cielo Suave (#40C4FF)",
+            "Rubi Carmesi (#FF1744)", "Violeta Neon (#D500F9)", "Naranja Fuego (#FF6D00)",
+            "Esmeralda (#00BFA5)", "Azul Electrico (#2979FF)", "Oro Solar (#FFD600)",
+            "Verde Lima (#76FF03)", "Rosa Coral (#FF5252)", "Purpura Oscuro (#6200EA)",
+            "Carbon Minimalista (#37474F)"
+        };
+        final String[] paletteHexes = {
+            "#8A56E2", "#00E5FF", "#FF69B4",
+            "#FFA000", "#00E676", "#40C4FF",
+            "#FF1744", "#D500F9", "#FF6D00",
+            "#00BFA5", "#2979FF", "#FFD600",
+            "#76FF03", "#FF5252", "#6200EA",
+            "#37474F"
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Personalizar Colores y Acento");
+
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dpToPx(16), dpToPx(12), dpToPx(16), dpToPx(12));
+
+        TextView tvHint = new TextView(this);
+        tvHint.setText("Elige una paleta sin limites, escribe cualquier codigo Hex o configura la burbuja:");
+        tvHint.setTextColor(Color.parseColor("#C4B5FD"));
+        tvHint.setTextSize(12);
+        tvHint.setPadding(0, 0, 0, dpToPx(8));
+        root.addView(tvHint);
+
+        final EditText etHex = new EditText(this);
+        String curHex = prefs.getString("accent_color_hex", "#8A56E2");
+        etHex.setText(curHex);
+        etHex.setHint("#RRGGBB");
+        etHex.setTextColor(Color.WHITE);
+        etHex.setBackgroundResource(R.drawable.chip_tag_bg);
+        etHex.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        root.addView(etHex);
+
+        Button btnApplyHex = new Button(this);
+        btnApplyHex.setText("Aplicar Codigo Hexadecimal");
+        btnApplyHex.setTextColor(Color.WHITE);
+        btnApplyHex.setBackgroundResource(R.drawable.btn_accent);
+        if (currentAccentColor != 0) {
+            btnApplyHex.setBackgroundTintList(ColorStateList.valueOf(currentAccentColor));
+        }
+        LinearLayout.LayoutParams btnLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(40));
+        btnLp.topMargin = dpToPx(8);
+        btnLp.bottomMargin = dpToPx(8);
+        root.addView(btnApplyHex, btnLp);
+
+        Button btnBubbleConfig = new Button(this);
+        btnBubbleConfig.setText("Configurar Burbuja de Dialogo...");
+        btnBubbleConfig.setTextColor(Color.parseColor("#E9D5FF"));
+        btnBubbleConfig.setBackgroundResource(R.drawable.btn_pill_outline);
+        LinearLayout.LayoutParams bubLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(40));
+        bubLp.bottomMargin = dpToPx(12);
+        root.addView(btnBubbleConfig, bubLp);
+
+        ScrollView sv = new ScrollView(this);
+        LinearLayout palList = new LinearLayout(this);
+        palList.setOrientation(LinearLayout.VERTICAL);
+
+        builder.setView(root);
+        final AlertDialog dialog = builder.create();
+
+        btnApplyHex.setOnClickListener(v -> {
+            String input = etHex.getText().toString().trim();
+            if (!input.startsWith("#")) input = "#" + input;
+            try {
+                Color.parseColor(input);
+                applyCustomAccentHex(input, "Personalizado " + input);
+                dialog.dismiss();
+            } catch (Exception e) {
+                Toast.makeText(MainActivity.this, "Codigo de color invalido. Usa formato #RRGGBB", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnBubbleConfig.setOnClickListener(v -> {
+            dialog.dismiss();
+            showBubbleConfigDialog();
+        });
+
+        for (int i = 0; i < paletteNames.length; i++) {
+            final String h = paletteHexes[i];
+            final String n = paletteNames[i];
+            TextView tvItem = new TextView(this);
+            tvItem.setText("● " + n);
+            try {
+                tvItem.setTextColor(Color.parseColor(h));
+            } catch (Exception e) {
+                tvItem.setTextColor(Color.WHITE);
+            }
+            tvItem.setTextSize(13);
+            tvItem.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
+            tvItem.setBackgroundResource(R.drawable.chip_tag_bg);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.bottomMargin = dpToPx(6);
+            tvItem.setLayoutParams(lp);
+            tvItem.setOnClickListener(v -> {
+                applyCustomAccentHex(h, n);
+                dialog.dismiss();
+            });
+            palList.addView(tvItem);
+        }
+        sv.addView(palList);
+        LinearLayout.LayoutParams svLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(200));
+        root.addView(sv, svLp);
+
+        dialog.show();
+    }
+
+    private void applyCustomAccentHex(String hexCode, String colorName) {
+        try {
+            currentAccentColor = Color.parseColor(hexCode);
+        } catch (Exception e) {
+            currentAccentColor = 0xFF8A56E2;
+        }
+        prefs.edit().putString("accent_color_hex", hexCode).apply();
+        prefs.edit().putInt("selected_accent_index", -1).apply();
+
+        ColorStateList tintList = ColorStateList.valueOf(currentAccentColor);
+
+        int[] colorCircleIds = {
+            R.id.iv_color_1, R.id.iv_color_2, R.id.iv_color_3,
+            R.id.iv_color_4, R.id.iv_color_5, R.id.iv_color_6
+        };
+        for (int i = 0; i < colorCircleIds.length; i++) {
+            View circle = findViewById(colorCircleIds[i]);
+            if (circle != null) {
+                circle.setScaleX(1.0f);
+                circle.setScaleY(1.0f);
+                circle.setAlpha(0.6f);
+            }
+        }
+
+        Button[] allButtons = {
+            btnSpawnKonata, btnSpawnBocchi, btnSpawnMonika, btnSpawnNatsuki, btnSpawnSayori, btnSpawnYuri,
+            btnSpawnHachi, btnSpawnUsagi, btnSpawnPusheen,
+            btnListSpawnKonata, btnListSpawnBocchi, btnListSpawnMonika, btnListSpawnNatsuki, btnListSpawnSayori,
+            btnListSpawnYuri, btnListSpawnHachi, btnListSpawnUsagi, btnListSpawnPusheen, btnAddCategories,
+            btnSpawnCustom, btnInteractionButton, btnCustomizeViews, btnInspectorVoice, btnInspectorGuitar,
+            btnInspectorBox, btnInspectorCenter, btnInspectorPlay, btnInspectorDance, btnInspectorTermux,
+            btnInspectorFiles, btnSettingsPermission, btnSettingsAppFilter, btnSettingsClearExtras
+        };
+        for (Button b : allButtons) {
+            if (b != null) {
+                b.setBackgroundTintList(tintList);
+            }
+        }
+
+        if (badgePremium != null) badgePremium.setBackgroundTintList(tintList);
+        if (tvActiveOverlayCount != null) tvActiveOverlayCount.setTextColor(currentAccentColor);
+        if (badgeSizeNum != null) badgeSizeNum.setTextColor(currentAccentColor);
+        if (badgeFramerateNum != null) badgeFramerateNum.setTextColor(currentAccentColor);
+        if (tvAppTitle != null) tvAppTitle.setTextColor(currentAccentColor);
+        if (cbSettingsZeroG != null) cbSettingsZeroG.setButtonTintList(tintList);
+
+        selectTab(currentTabIndex);
+
+        if (ShimejiService.isRunning) {
+            Intent it = new Intent(MainActivity.this, ShimejiService.class);
+            it.setAction(ShimejiService.ACTION_SET_THEME);
+            startService(it);
+        }
+
+        Toast.makeText(this, "Tema aplicado: " + colorName, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showBubbleConfigDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Configurar Burbuja de Dialogo");
+
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dpToPx(16), dpToPx(12), dpToPx(16), dpToPx(12));
+
+        TextView tvOpac = new TextView(this);
+        int curAlpha = prefs.getInt(KEY_BUBBLE_ALPHA, 92);
+        tvOpac.setText("Opacidad de la burbuja (" + curAlpha + "%):");
+        tvOpac.setTextColor(Color.WHITE);
+        tvOpac.setTextSize(13);
+        root.addView(tvOpac);
+
+        final android.widget.SeekBar sbOpac = new android.widget.SeekBar(this);
+        sbOpac.setMax(100);
+        sbOpac.setProgress(curAlpha);
+        root.addView(sbOpac);
+
+        final CheckBox cbBorder = new CheckBox(this);
+        cbBorder.setText("Mostrar borde de acento");
+        cbBorder.setChecked(prefs.getBoolean(KEY_BUBBLE_BORDER, true));
+        cbBorder.setTextColor(Color.WHITE);
+        root.addView(cbBorder);
+
+        TextView tvFont = new TextView(this);
+        tvFont.setText("Tamano de texto (sp):");
+        tvFont.setTextColor(Color.WHITE);
+        tvFont.setTextSize(13);
+        root.addView(tvFont);
+
+        final EditText etFontSize = new EditText(this);
+        etFontSize.setText(String.valueOf((int) prefs.getFloat("bubble_font_size", 12f)));
+        etFontSize.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        etFontSize.setTextColor(Color.WHITE);
+        etFontSize.setBackgroundResource(R.drawable.chip_tag_bg);
+        etFontSize.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        root.addView(etFontSize);
+
+        TextView tvBg = new TextView(this);
+        tvBg.setText("Color de Fondo Hex (ej: #1A142A):");
+        tvBg.setTextColor(Color.WHITE);
+        tvBg.setTextSize(13);
+        root.addView(tvBg);
+
+        final EditText etBgHex = new EditText(this);
+        etBgHex.setText(prefs.getString("bubble_bg_hex", "#1A142A"));
+        etBgHex.setTextColor(Color.WHITE);
+        etBgHex.setBackgroundResource(R.drawable.chip_tag_bg);
+        etBgHex.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        root.addView(etBgHex);
+
+        TextView tvFg = new TextView(this);
+        tvFg.setText("Color de Texto Hex (ej: #FFFFFF):");
+        tvFg.setTextColor(Color.WHITE);
+        tvFg.setTextSize(13);
+        root.addView(tvFg);
+
+        final EditText etFgHex = new EditText(this);
+        etFgHex.setText(prefs.getString("bubble_text_hex", "#FFFFFF"));
+        etFgHex.setTextColor(Color.WHITE);
+        etFgHex.setBackgroundResource(R.drawable.chip_tag_bg);
+        etFgHex.setPadding(dpToPx(10), dpToPx(8), dpToPx(10), dpToPx(8));
+        root.addView(etFgHex);
+
+        builder.setView(root);
+        builder.setPositiveButton("Guardar", (dialog, which) -> {
+            int newAlpha = Math.max(10, Math.min(100, sbOpac.getProgress()));
+            prefs.edit().putInt(KEY_BUBBLE_ALPHA, newAlpha).apply();
+            prefs.edit().putBoolean(KEY_BUBBLE_BORDER, cbBorder.isChecked()).apply();
+            try {
+                float fs = Float.parseFloat(etFontSize.getText().toString().trim());
+                prefs.edit().putFloat("bubble_font_size", Math.max(8f, Math.min(24f, fs))).apply();
+            } catch (Exception ignored) {}
+            String bg = etBgHex.getText().toString().trim();
+            if (!bg.startsWith("#")) bg = "#" + bg;
+            try {
+                Color.parseColor(bg);
+                prefs.edit().putString("bubble_bg_hex", bg).apply();
+            } catch (Exception ignored) {}
+            String fg = etFgHex.getText().toString().trim();
+            if (!fg.startsWith("#")) fg = "#" + fg;
+            try {
+                Color.parseColor(fg);
+                prefs.edit().putString("bubble_text_hex", fg).apply();
+            } catch (Exception ignored) {}
+
+            if (ShimejiService.getInstance() != null) {
+                ShimejiService.getInstance().showBubbleOnActive("Burbuja configurada correctamente [✓]");
+            }
+            Toast.makeText(MainActivity.this, "Configuracion de burbuja guardada", Toast.LENGTH_SHORT).show();
+        });
+        builder.setNegativeButton("Cancelar", null);
+        builder.show();
     }
 
     private void showAddCustomTagDialog() {

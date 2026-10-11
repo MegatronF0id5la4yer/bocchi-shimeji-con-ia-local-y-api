@@ -551,9 +551,15 @@ public class AgentToolExecutor {
                 String k = it.next();
                 if (normalizeString(k).equals(norm)) {
                     JSONArray steps = macros.getJSONArray(k);
+                    if (ShimejiService.getInstance() != null) {
+                        ShimejiService.getInstance().showBubbleOnActive("[*] Macro: '" + k + "' (" + steps.length() + " pasos)...");
+                    }
                     StringBuilder sb = new StringBuilder("[+] Ejecutando macro '" + k + "' (" + steps.length() + " pasos):\n");
                     for (int s = 0; s < steps.length(); s++) {
                         String stepTag = steps.getString(s);
+                        if (ShimejiService.getInstance() != null) {
+                            ShimejiService.getInstance().showBubbleOnActive("[*] Macro '" + k + "' [" + (s+1) + "/" + steps.length() + "]:\n" + stepTag);
+                        }
                         if (stepTag.startsWith("WAIT ")) {
                             try {
                                 int secs = Integer.parseInt(stepTag.substring(5).trim());
@@ -566,8 +572,14 @@ public class AgentToolExecutor {
                             sb.append(" ").append(res).append("\n");
                         }
                     }
+                    if (ShimejiService.getInstance() != null) {
+                        ShimejiService.getInstance().showBubbleOnActive("[✓] Macro '" + k + "' completada!");
+                    }
                     return sb.toString().trim();
                 }
+            }
+            if (ShimejiService.getInstance() != null) {
+                ShimejiService.getInstance().showBubbleOnActive("[!] Macro '" + macroName + "' no encontrada.");
             }
             return "[!] Macro '" + macroName + "' no encontrada";
         } catch (Exception e) {

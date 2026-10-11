@@ -585,14 +585,28 @@ public class ShimejiEntity {
     public void applyBubbleStyle() {
         if (tvSpeechBubble == null) return;
         android.content.SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, android.content.Context.MODE_PRIVATE);
-        int alphaPercent = sp.getInt(MainActivity.KEY_BUBBLE_ALPHA, 90);
+        int alphaPercent = sp.getInt(MainActivity.KEY_BUBBLE_ALPHA, 92);
         boolean showBorder = sp.getBoolean(MainActivity.KEY_BUBBLE_BORDER, true);
+        float fontSize = sp.getFloat("bubble_font_size", 12f);
+        String bgHex = sp.getString("bubble_bg_hex", "#1A142A");
+        String textHex = sp.getString("bubble_text_hex", "#FFFFFF");
 
         int alpha = (int) (Math.max(10, Math.min(100, alphaPercent)) * 2.55f);
+        int baseBg;
+        try {
+            baseBg = android.graphics.Color.parseColor(bgHex);
+        } catch (Exception e) {
+            baseBg = android.graphics.Color.parseColor("#1A142A");
+        }
+
         android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
         gd.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
         gd.setCornerRadius(service.dpToPx(14));
-        gd.setColor(android.graphics.Color.argb(alpha, 0x1A, 0x14, 0x2A));
+        gd.setColor(android.graphics.Color.argb(alpha,
+            android.graphics.Color.red(baseBg),
+            android.graphics.Color.green(baseBg),
+            android.graphics.Color.blue(baseBg)));
+
         if (showBorder) {
             String accentHex = sp.getString("accent_color_hex", "#8A56E2");
             int accentColor;
@@ -610,6 +624,12 @@ public class ShimejiEntity {
             gd.setStroke(0, 0);
         }
         tvSpeechBubble.setBackground(gd);
+        tvSpeechBubble.setTextSize(fontSize);
+        try {
+            tvSpeechBubble.setTextColor(android.graphics.Color.parseColor(textHex));
+        } catch (Exception ignored) {
+            tvSpeechBubble.setTextColor(android.graphics.Color.WHITE);
+        }
     }
 
     public void say(String text, int durationMs) {
@@ -629,7 +649,10 @@ public class ShimejiEntity {
                 }
             }
         };
-        int effectiveDuration = Math.max(durationMs, Math.min(35000, (text != null ? text.length() : 0) * 85));
+        android.content.SharedPreferences sp = service.getSharedPreferences(MainActivity.PREFS_NAME, android.content.Context.MODE_PRIVATE);
+        float durationMult = sp.getFloat("bubble_duration_mult", 1.0f);
+        int baseDuration = Math.max(durationMs, Math.min(35000, (text != null ? text.length() : 0) * 85));
+        int effectiveDuration = (int) (baseDuration * durationMult);
         handler.postDelayed(hideBubbleRunnable, effectiveDuration);
 
         if (service != null && skin != null) {
@@ -980,10 +1003,30 @@ public class ShimejiEntity {
 
         if ("KO".equals(state) || isKo) {
             frameName = "kneel1";
-        } else if ("FLUNG".equals(state) || "FALL".equals(state) || "ROAM".equals(state)) {
+        } else if (isDragging) {
+            if (skin.folder.matches("Monika|Sayori|Natsuki|Yuri")) {
+                String[] dragFrames = {"drag_l", "drag_r", "air_swing_l", "air_swing_r", "air"};
+                int idx = (tickCount / 4) % dragFrames.length;
+                frameName = dragFrames[idx];
+            } else {
+                frameName = (skin.folder.matches("Bocchi") && ((tickCount / 6) % 2 == 0)) ? "kneel1" : "fall1";
+            }
+        } else if ("FLUNG".equals(state) || "FALL".equals(state)) {
+            if (skin.folder.matches("Monika|Sayori|Natsuki|Yuri")) {
+                frameName = ((tickCount / 4) % 2 == 0) ? "air_swing_l" : "air_swing_r";
+            } else {
+                frameName = (Math.abs(velY) > service.dpToPx(3)) ? "fall1" : "stand1";
+            }
+        } else if ("ROAM".equals(state)) {
             frameName = (Math.abs(velY) > service.dpToPx(3)) ? "fall1" : "stand1";
         } else if ("JUMP".equals(state)) {
             frameName = (velY > 0) ? "fall1" : "stand3";
+        } else if ("CARRY".equals(state)) {
+            frameName = "carry1";
+        } else if ("DEPRESS".equals(state)) {
+            frameName = "depress1";
+        } else if ("AWAY".equals(state)) {
+            frameName = (skin.folder.matches("Bocchi")) ? (((tickCount / 10) % 2 == 0) ? "back1" : "back2") : "away1";
         } else if ("DANCE".equals(state)) {
             String[] danceFrames = {"walk2", "walk4", "stand2", "sit1"};
             int idx = (tickCount / 4) % danceFrames.length;
@@ -1006,7 +1049,8 @@ public class ShimejiEntity {
             int idx = (tickCount / 5) % walkFrames.length;
             frameName = walkFrames[idx];
         } else if ("CLIMB_LEFT".equals(state) || "CLIMB_RIGHT".equals(state)) {
-            String[] climbFrames = {"climb1", "climb2"};
+            String[] climbFrames = skin.folder.matches("Monika|Sayori|Natsuki|Yuri") ?
+                new String[]{"climb", "climb1"} : new String[]{"climb1", "climb2"};
             int idx = (tickCount / 7) % climbFrames.length;
             frameName = climbFrames[idx];
         } else if ("SIT".equals(state)) {
@@ -1028,8 +1072,10 @@ public class ShimejiEntity {
             int idx = (tickCount / 12) % boxFrames.length;
             frameName = boxFrames[idx];
         } else {
-            String[] standFrames = {"stand1", "stand2", "stand1", "stand3"};
-            int idx = (tickCount / 12) % standFrames.length;
+            String[] standFrames = skin.folder.matches("Bocchi") ?
+                new String[]{"stand1", "stand2", "stand3", "stand4", "stand5", "stand1"} :
+                new String[]{"stand1", "stand2", "stand1", "stand3"};
+            int idx = (tickCount / 10) % standFrames.length;
             frameName = standFrames[idx];
         }
 

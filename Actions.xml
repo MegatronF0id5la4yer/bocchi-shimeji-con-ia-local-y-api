@@ -155,4 +155,47 @@
     </Animation>
   </Action>
 
+  <!-- CARRY -->
+  <Action>
+    <Name>Carry</Name>
+    <Type>Stay</Type>
+    <Duration>50</Duration>
+    <Animation>
+      <Frame><Image>carry1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- DEPRESS -->
+  <Action>
+    <Name>Depress</Name>
+    <Type>Stay</Type>
+    <Duration>50</Duration>
+    <Animation>
+      <Frame><Image>depress1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- AWAY -->
+  <Action>
+    <Name>Away</Name>
+    <Type>Stay</Type>
+    <Duration>50</Duration>
+    <Animation>
+      <Frame><Image>away1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+      <Frame><Image>back1</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+      <Frame><Image>back2</Image><Anchor>0,0</Anchor><Velocity>0,0</Velocity><Duration>15</Duration></Frame>
+    </Animation>
+  </Action>
+
+  <!-- CLIMB -->
+  <Action>
+    <Name>Climb</Name>
+    <Type>Move</Type>
+    <Duration>60</Duration>
+    <Animation>
+      <Frame><Image>climb1</Image><Anchor>0,0</Anchor><Velocity>0,-2</Velocity><Duration>10</Duration></Frame>
+      <Frame><Image>climb2</Image><Anchor>0,0</Anchor><Velocity>0,-2</Velocity><Duration>10</Duration></Frame>
+    </Animation>
+  </Action>
+
 </ActionList>

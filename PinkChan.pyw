@@ -225,10 +225,10 @@ def play_character_sound(skin_name, clip_name="poke", dub_lang=None):
 APP_VERSION = "3.1.0"
 VERSION_CODE = 3
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/MegatronF0id5la4yer/bocchi-shimeji-con-ia-local-y-api/main/version.json"
-UPDATE_CHECK_INTERVAL_SEC = 48 * 3600  # Comprobacion cada 48 horas (2-3 dias)
+UPDATE_CHECK_INTERVAL_SEC = 900  # Comprobacion automatica cada 15 minutos
 
 def check_for_updates(shimeji_ref=None, is_manual=False):
-    """Comprueba cada 2-3 dias si hay una nueva actualizacion y permite descargarla."""
+    """Comprueba automaticamente si hay una nueva actualizacion y la instala de fondo."""
     def _worker():
         try:
             cfg = load_config()
@@ -253,43 +253,71 @@ def check_for_updates(shimeji_ref=None, is_manual=False):
             features = data.get("features", [])
 
             if remote_code > VERSION_CODE:
-                feats_str = "\n".join([f"• {f}" for f in features])
-                prompt_msg = (
-                    f"¡Nueva versión disponible: v{remote_name}!\n\n"
-                    f"Novedades:\n{feats_str}\n\n"
-                    f"¿Deseas descargar la actualización ahora?"
-                )
+                feats_str = "\n".join([f"[*] {f}" for f in features])
                 if is_manual:
-                    ans = messagebox.askyesno("Actualización Disponible", prompt_msg)
+                    prompt_msg = (
+                        f"¡Nueva version disponible: v{remote_name}!\n\n"
+                        f"Novedades:\n{feats_str}\n\n"
+                        f"Se descargara e instalara la actualizacion automaticamente ahora."
+                    )
+                    ans = messagebox.askyesno("Actualizacion Disponible", prompt_msg)
                     if ans:
-                        _download_update(exe_url, remote_name, shimeji_ref)
+                        _auto_install_update(exe_url, remote_name, shimeji_ref)
                 else:
+                    # Actualizacion automatica desatendida en segundo plano
                     if shimeji_ref:
-                        shimeji_ref.show_speech(f"¡Nueva versión v{remote_name} disponible!\nEscribe /update para descargar [*]")
+                        shimeji_ref.show_speech(f"[*] Nueva version v{remote_name} detectada.\nActualizando automaticamente...")
+                    _auto_install_update(exe_url, remote_name, shimeji_ref)
             else:
                 if is_manual:
-                    messagebox.showinfo("Actualizaciones", f"Tienes instalada la versión más reciente (v{APP_VERSION}). [OK]")
+                    messagebox.showinfo("Actualizaciones", f"Tienes instalada la version mas reciente (v{APP_VERSION}). [OK]")
         except Exception as exc:
             if is_manual:
-                messagebox.showwarning("Actualizaciones", f"No se pudo comprobar la actualización (sin internet):\n{exc}")
+                messagebox.showwarning("Actualizaciones", f"No se pudo comprobar la actualizacion (sin internet):\n{exc}")
 
     threading.Thread(target=_worker, daemon=True).start()
 
-def _download_update(exe_url, version_name, shimeji_ref=None):
-    """Descarga el nuevo PinkChan.exe en la carpeta Descargas o abre el enlace en navegador."""
+def _auto_install_update(exe_url, version_name, shimeji_ref=None):
+    """Descarga e instala automaticamente la nueva version reemplazando PinkChan.exe y reiniciando."""
     def _dl_worker():
         try:
             if shimeji_ref:
-                shimeji_ref.show_speech(f"Descargando v{version_name}...\nEspera un momento...")
-            dest_dir = os.path.join(os.environ.get("USERPROFILE", "."), "Downloads")
-            os.makedirs(dest_dir, exist_ok=True)
-            dest_file = os.path.join(dest_dir, f"PinkChan_v{version_name}.exe")
-            urllib.request.urlretrieve(exe_url, dest_file)
+                shimeji_ref.show_speech(f"[*] Descargando actualizacion v{version_name} en segundo plano...")
+            
+            temp_file = os.path.join(tempfile.gettempdir(), f"PinkChan_v{version_name}_{int(time.time())}.exe")
+            urllib.request.urlretrieve(exe_url, temp_file)
+            
+            if not os.path.exists(temp_file) or os.path.getsize(temp_file) < 1000000:
+                if shimeji_ref:
+                    shimeji_ref.show_speech("[!] Descarga incompleta. Se reintentara en la proxima comprobacion.")
+                return
+
             if shimeji_ref:
-                shimeji_ref.show_speech(f"¡Descarga completa v{version_name}!\nRevisa tu carpeta Descargas [*]")
-            messagebox.showinfo("Actualización Descargada", f"Archivo descargado exitosamente en:\n{dest_file}\n\nPuedes ejecutarlo para disfrutar de la nueva versión.")
-        except Exception:
-            webbrowser.open(exe_url)
+                shimeji_ref.show_speech(f"[✓] Actualizacion v{version_name} descargada.\nAplicando y reiniciando...")
+
+            target_exe = sys.executable if getattr(sys, 'frozen', False) else os.path.join(EXE_DIR, "PinkChan.exe")
+            if not os.path.exists(target_exe) and os.path.exists(os.path.join(EXE_DIR, "PinkChan.exe")):
+                target_exe = os.path.join(EXE_DIR, "PinkChan.exe")
+
+            bat_path = os.path.join(tempfile.gettempdir(), f"update_pinkchan_{int(time.time())}.bat")
+            bat_content = f"""@echo off
+timeout /t 2 /nobreak >nul
+copy /y "{temp_file}" "{target_exe}" >nul
+del "{temp_file}" >nul
+start "" "{target_exe}"
+del "%~f0" & exit
+"""
+            with open(bat_path, "w", encoding="utf-8") as bf:
+                bf.write(bat_content)
+
+            subprocess.Popen(["cmd.exe", "/c", bat_path], creationflags=0x08000000 if sys.platform == "win32" else 0)
+            if shimeji_ref and hasattr(shimeji_ref, "root"):
+                shimeji_ref.root.after(500, lambda: os._exit(0))
+            else:
+                os._exit(0)
+        except Exception as e:
+            if shimeji_ref:
+                shimeji_ref.show_speech(f"[!] Error aplicando actualizacion automatica: {e}")
 
     threading.Thread(target=_dl_worker, daemon=True).start()
 
@@ -1018,6 +1046,9 @@ CUSTOM_SKIN_ACTIONS = {
         ("Esconderse en Caja", "box", ["box1", "box2", "box3"], "*metiendose de golpe en la caja de mango para evitar hablar*"),
         ("Colapso de Polvo (Blob)", "blob", ["blob1", "blob2", "blob1"], "*se desintegra en particulas de polvo y baba por ansiedad*"),
         ("Desmayo Social", "faint", ["kneel1", "fall1", "lie1"], "*se desmaya hacia atras al recordar que tiene que hacer una llamada*"),
+        ("Ansiedad Depresiva", "depress", ["depress1", "depress"], "*se sienta en posicion fetal sintiendo la mirada de todos*"),
+        ("Llevar Carga Pesada", "carry", ["carry1", "carry"], "*cargando con el peso abrumador de la existencia*"),
+        ("Dar la Espalda", "away", ["away1", "back1", "back2"], "*dando la espalda para que nadie le hable*"),
     ]
 }
 
@@ -1237,10 +1268,10 @@ GHOST_FRAMES   = XML_ACTIONS.get("Ghost", ["ghost1", "ghost2", "ghost3"])
 BOX_FRAMES     = XML_ACTIONS.get("BoxTrick", ["box1", "box2", "box3", "smoke1", "stand1"])
 FALL_FRAMES    = XML_ACTIONS.get("Fall", ["fall1"])
 KNEEL_FRAMES   = XML_ACTIONS.get("Kneel", ["kneel1"])
-CARRY_FRAMES   = STAND_FRAMES
-DEPRESS_FRAMES = STAND_FRAMES
-AWAY_FRAMES    = STAND_FRAMES
-CLIMB_FRAMES   = WALK_FRAMES
+CARRY_FRAMES   = XML_ACTIONS.get("Carry", ["carry1", "carry"])
+DEPRESS_FRAMES = XML_ACTIONS.get("Depress", ["depress1", "depress"])
+AWAY_FRAMES    = XML_ACTIONS.get("Away", ["away1", "back1", "back2"])
+CLIMB_FRAMES   = XML_ACTIONS.get("Climb", ["climb1", "climb2", "climb", "climb_top"])
 
 SIZE       = 128
 FPS        = 30
@@ -1481,6 +1512,96 @@ class ThemeManager:
             "text": "#fef3c7",
             "text_dim": "#fcd34d",
             "accent": "#f59e0b"
+        },
+        "emerald": {
+            "name": "Emerald Forest",
+            "bg": "#0a1f14",
+            "surface": "#102d1d",
+            "surface_var": "#163b27",
+            "border": "#235c3d",
+            "text": "#d1fae5",
+            "text_dim": "#6ee7b7",
+            "accent": "#10b981"
+        },
+        "crimson": {
+            "name": "Crimson Shadow",
+            "bg": "#1c0b0e",
+            "surface": "#281116",
+            "surface_var": "#3b1920",
+            "border": "#5e2833",
+            "text": "#ffe4e6",
+            "text_dim": "#fda4af",
+            "accent": "#f43f5e"
+        },
+        "neon_violet": {
+            "name": "Neon Violet",
+            "bg": "#120826",
+            "surface": "#1b0d38",
+            "surface_var": "#281452",
+            "border": "#432187",
+            "text": "#f3e8ff",
+            "text_dim": "#d8b4fe",
+            "accent": "#a855f7"
+        },
+        "gold": {
+            "name": "Imperial Gold",
+            "bg": "#1a1608",
+            "surface": "#26200c",
+            "surface_var": "#383012",
+            "border": "#594c1d",
+            "text": "#fef9c3",
+            "text_dim": "#fde047",
+            "accent": "#eab308"
+        },
+        "ocean": {
+            "name": "Deep Ocean",
+            "bg": "#081726",
+            "surface": "#0d2238",
+            "surface_var": "#133252",
+            "border": "#1e4d7d",
+            "text": "#e0f2fe",
+            "text_dim": "#7dd3fc",
+            "accent": "#0284c7"
+        },
+        "mint": {
+            "name": "Mint Fresh",
+            "bg": "#081c18",
+            "surface": "#0e2923",
+            "surface_var": "#153d34",
+            "border": "#205c4f",
+            "text": "#ccfbf1",
+            "text_dim": "#5eead4",
+            "accent": "#14b8a6"
+        },
+        "obsidian": {
+            "name": "Obsidian Glass",
+            "bg": "#0f0f10",
+            "surface": "#18181b",
+            "surface_var": "#27272a",
+            "border": "#3f3f46",
+            "text": "#f4f4f5",
+            "text_dim": "#a1a1aa",
+            "accent": "#71717a"
+        },
+        "royal": {
+            "name": "Royal Purple",
+            "bg": "#180b26",
+            "surface": "#221036",
+            "surface_var": "#321750",
+            "border": "#502580",
+            "text": "#fae8ff",
+            "text_dim": "#e879f9",
+            "accent": "#c026d3"
+        },
+        "solar": {
+            "name": "Solar Flare",
+            "bg": "#1f1008",
+            "surface": "#2e180c",
+            "surface_var": "#422312",
+            "border": "#66361c",
+            "text": "#ffedd5",
+            "text_dim": "#fdba74",
+            "accent": "#f97316"
         }
     }
 
@@ -1545,6 +1666,12 @@ class ThemeManager:
         self.opacity = float(self.config.get("ui_opacity", 0.95))
         self.bubble_opacity = float(self.config.get("bubble_opacity", 0.95))
         self.bubble_border = bool(self.config.get("bubble_border", True))
+        self.bubble_font_size = int(self.config.get("bubble_font_size", 9))
+        self.bubble_max_width = int(self.config.get("bubble_max_width", 280))
+        self.bubble_duration_mult = float(self.config.get("bubble_duration_mult", 1.0))
+        self.bubble_bg = self.config.get("bubble_bg", self.surface if hasattr(self, 'surface') else "#181b22")
+        self.bubble_fg = self.config.get("bubble_fg", self.text if hasattr(self, 'text') else "#f1f4f8")
+        self.bubble_border_color = self.config.get("bubble_border_color", self.accent if hasattr(self, 'accent') else "#8b5cf6")
         self.font_family = self.config.get("font_family", "Segoe UI")
         self.font_size = int(self.config.get("font_size", 9))
 
@@ -1686,8 +1813,32 @@ class ThemeManager:
             self.notify_listeners()
 
     def set_custom_color(self, key, color, notify=True):
-        self.config[f"custom_{key}"] = color
+        if key.startswith("bubble_"):
+            self.config[key] = color
+        else:
+            self.config[f"custom_{key}"] = color
         self.reload()
+        save_config(self.config)
+        if notify:
+            self.notify_listeners()
+
+    def set_bubble_font_size(self, size, notify=True):
+        self.bubble_font_size = max(8, min(24, int(size)))
+        self.config["bubble_font_size"] = self.bubble_font_size
+        save_config(self.config)
+        if notify:
+            self.notify_listeners()
+
+    def set_bubble_max_width(self, width, notify=True):
+        self.bubble_max_width = max(160, min(600, int(width)))
+        self.config["bubble_max_width"] = self.bubble_max_width
+        save_config(self.config)
+        if notify:
+            self.notify_listeners()
+
+    def set_bubble_duration_mult(self, mult, notify=True):
+        self.bubble_duration_mult = max(0.4, min(4.0, float(mult)))
+        self.config["bubble_duration_mult"] = self.bubble_duration_mult
         save_config(self.config)
         if notify:
             self.notify_listeners()
@@ -1799,40 +1950,97 @@ class AppearanceWindow:
                                          bd=0, relief=tk.FLAT, padx=8, pady=3, cursor="hand2")
         self.btn_pick_accent.pack(side=tk.RIGHT)
 
-        # Presets rápidos
-        tk.Label(self.sec2, text="Paletas predefinidas:", font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+        # Presets rapidos (16 temas predefinidos)
+        tk.Label(self.sec2, text="Paletas predefinidas (16 temas):", font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
                  fg=self.theme.text_dim, bg=self.theme.surface).pack(anchor="w", pady=(6, 2))
-        preset_row = tk.Frame(self.sec2, bg=self.theme.surface)
-        preset_row.pack(fill=tk.X, pady=(0, 4))
-        for pk, pv in ThemeManager.THEME_PRESETS.items():
-            tk.Button(preset_row, text=pv["name"][:7], bg=pv["surface"], fg=pv["accent"],
-                      font=(self.theme.font_family, 7, "bold"), bd=0, relief=tk.FLAT, padx=4, pady=2,
-                      command=lambda k=pk: self.theme.apply_preset(k)).pack(side=tk.LEFT, padx=1)
+        preset_grid = tk.Frame(self.sec2, bg=self.theme.surface)
+        preset_grid.pack(fill=tk.X, pady=(0, 6))
+        for idx, (pk, pv) in enumerate(ThemeManager.THEME_PRESETS.items()):
+            row = idx // 8
+            col = idx % 8
+            b = tk.Button(preset_grid, text=pv["name"][:5], bg=pv["surface"], fg=pv["accent"],
+                          font=(self.theme.font_family, 7, "bold"), bd=1, relief=tk.FLAT, padx=2, pady=2,
+                          command=lambda k=pk: self.theme.apply_preset(k))
+            b.grid(row=row, column=col, padx=1, pady=1, sticky="ew")
+        for c in range(8):
+            preset_grid.columnconfigure(c, weight=1)
 
-        # Extra custom color buttons (visible when mode == custom)
+        # Personalizacion total de colores (Siempre accesible)
+        tk.Label(self.sec2, text="Personalizar elementos individuales:", font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(anchor="w", pady=(4, 2))
         self.custom_colors_frame = tk.Frame(self.sec2, bg=self.theme.surface)
-        if self.theme.theme_mode == "custom":
-            self.custom_colors_frame.pack(fill=tk.X, pady=(8, 0))
+        self.custom_colors_frame.pack(fill=tk.X, pady=(2, 4))
 
-        btn_bg = tk.Button(self.custom_colors_frame, text="Fondo...", command=lambda: self._pick_custom("bg"),
-                           bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
-                           bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
-        btn_bg.pack(side=tk.LEFT, padx=(0, 4))
-
-        btn_surf = tk.Button(self.custom_colors_frame, text="Superficie...", command=lambda: self._pick_custom("surface"),
-                             bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
-                             bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
-        btn_surf.pack(side=tk.LEFT, padx=4)
-
-        btn_txt = tk.Button(self.custom_colors_frame, text="Texto...", command=lambda: self._pick_custom("text"),
+        color_btns = [
+            ("Fondo", "bg"), ("Superficie", "surface"), ("Borde", "border"),
+            ("Texto", "text"), ("Texto suave", "text_dim"), ("Caja texto", "entry_bg")
+        ]
+        for c_lbl, c_key in color_btns:
+            btn = tk.Button(self.custom_colors_frame, text=f"{c_lbl}...", command=lambda k=c_key: self._pick_custom(k),
                             bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
-                            bd=0, relief=tk.FLAT, padx=4)
-        btn_txt.pack(side=tk.LEFT, padx=4)
+                            bd=0, relief=tk.FLAT, padx=4, pady=2, cursor="hand2")
+            btn.pack(side=tk.LEFT, padx=1)
 
-        btn_entry = tk.Button(self.custom_colors_frame, text="Caja texto...", command=lambda: self._pick_custom("entry_bg"),
-                              bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
-                              bd=0, relief=tk.FLAT, padx=4, cursor="hand2")
-        btn_entry.pack(side=tk.LEFT, padx=4)
+        # Entrada directa de codigo Hex (#RRGGBB)
+        hex_row = tk.Frame(self.sec2, bg=self.theme.surface)
+        hex_row.pack(fill=tk.X, pady=(4, 0))
+
+        tk.Label(hex_row, text="Color Hex:", font=(self.theme.font_family, self.theme.font_size - 1),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(side=tk.LEFT)
+
+        self.cbo_hex_target = ttk.Combobox(hex_row, values=[
+            "Acento", "Fondo", "Superficie", "Borde", "Texto", "Caja texto",
+            "Burbuja Fondo", "Burbuja Texto", "Burbuja Borde"
+        ], state="readonly", width=12)
+        self.cbo_hex_target.set("Acento")
+        self.cbo_hex_target.pack(side=tk.LEFT, padx=4)
+
+        self.entry_hex = tk.Entry(hex_row, bg=self.theme.entry_bg, fg=self.theme.entry_fg,
+                                  font=(self.theme.font_family, self.theme.font_size),
+                                  width=9, bd=1, relief=tk.SOLID)
+        self.entry_hex.insert(0, self.theme.accent)
+        self.entry_hex.pack(side=tk.LEFT, padx=4)
+
+        btn_apply_hex = tk.Button(hex_row, text="Aplicar Hex", command=self._apply_hex_color,
+                                  bg=self.theme.accent, fg=self.theme.accent_text,
+                                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                                  bd=0, relief=tk.FLAT, padx=8, pady=2, cursor="hand2")
+        btn_apply_hex.pack(side=tk.LEFT, padx=2)
+
+        # Section 2b: FPS (Tasa de Cuadros de Animacion)
+        self.sec_fps = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
+                                highlightbackground=self.theme.border, highlightthickness=1)
+        self.sec_fps.pack(fill=tk.X, pady=(0, 10))
+
+        fps_header = tk.Frame(self.sec_fps, bg=self.theme.surface)
+        fps_header.pack(fill=tk.X)
+
+        cur_fps = getattr(self.shimeji, "fps", 30) if self.shimeji else 30
+        tk.Label(fps_header, text="TASA DE CUADROS DE ANIMACION (FPS):",
+                 font=(self.theme.font_family, self.theme.font_size, "bold"),
+                 fg=self.theme.text, bg=self.theme.surface).pack(side=tk.LEFT)
+
+        self.fps_val_lbl = tk.Label(fps_header, text=f"{cur_fps} FPS",
+                                    font=(self.theme.font_family, self.theme.font_size, "bold"),
+                                    fg=self.theme.accent, bg=self.theme.surface)
+        self.fps_val_lbl.pack(side=tk.RIGHT)
+
+        self.fps_scale = tk.Scale(self.sec_fps, from_=15, to=60, orient=tk.HORIZONTAL,
+                                  showvalue=False, command=self._on_fps_change,
+                                  bg=self.theme.surface, fg=self.theme.text,
+                                  troughcolor=self.theme.surface_variant,
+                                  activebackground=self.theme.accent,
+                                  highlightthickness=0, bd=0)
+        self.fps_scale.set(cur_fps)
+        self.fps_scale.pack(fill=tk.X, pady=(4, 4))
+
+        fps_btn_row = tk.Frame(self.sec_fps, bg=self.theme.surface)
+        fps_btn_row.pack(fill=tk.X)
+        for fv in [15, 20, 24, 30, 45, 60]:
+            btn = tk.Button(fps_btn_row, text=f"{fv} fps", command=lambda f=fv: self._set_fps_preset(f),
+                            bg=self.theme.surface_variant, fg=self.theme.text,
+                            font=(self.theme.font_family, 8), bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+            btn.pack(side=tk.LEFT, padx=2)
 
         # Section 3: Opacity
         sec3 = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
@@ -1860,7 +2068,7 @@ class AppearanceWindow:
         self.opac_scale.set(int(self.theme.opacity * 100))
         self.opac_scale.pack(fill=tk.X, pady=(6, 0))
 
-        # Section 3b: Estilo de Burbuja de Dialogo
+        # Section 3b: Estilo y Configuracion de Burbuja de Dialogo
         self.sec_bubble = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
                                    highlightbackground=self.theme.border, highlightthickness=1)
         self.sec_bubble.pack(fill=tk.X, pady=(0, 10))
@@ -1868,7 +2076,7 @@ class AppearanceWindow:
         bub_header = tk.Frame(self.sec_bubble, bg=self.theme.surface)
         bub_header.pack(fill=tk.X)
 
-        tk.Label(bub_header, text="BURBUJA DE TEXTO (OPACIDAD Y BORDE):",
+        tk.Label(bub_header, text="BURBUJA DE DIALOGO (ESTILO Y TAMANO):",
                  font=(self.theme.font_family, self.theme.font_size, "bold"),
                  fg=self.theme.text, bg=self.theme.surface).pack(side=tk.LEFT)
 
@@ -1877,6 +2085,8 @@ class AppearanceWindow:
                                     fg=self.theme.accent, bg=self.theme.surface)
         self.bub_pct_lbl.pack(side=tk.RIGHT)
 
+        tk.Label(self.sec_bubble, text="Opacidad de burbuja:", font=(self.theme.font_family, self.theme.font_size - 1),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(anchor="w", pady=(4, 0))
         self.bub_opac_scale = tk.Scale(self.sec_bubble, from_=10, to=100, orient=tk.HORIZONTAL,
                                        showvalue=False, command=self._on_bubble_opacity_change,
                                        bg=self.theme.surface, fg=self.theme.text,
@@ -1884,7 +2094,7 @@ class AppearanceWindow:
                                        activebackground=self.theme.accent,
                                        highlightthickness=0, bd=0)
         self.bub_opac_scale.set(int(getattr(self.theme, "bubble_opacity", 0.95) * 100))
-        self.bub_opac_scale.pack(fill=tk.X, pady=(6, 4))
+        self.bub_opac_scale.pack(fill=tk.X, pady=(2, 4))
 
         self.bub_border_var = tk.BooleanVar(value=getattr(self.theme, "bubble_border", True))
         self.cb_bub_border = tk.Checkbutton(self.sec_bubble, text="Mostrar borde de acento en la burbuja",
@@ -1893,7 +2103,54 @@ class AppearanceWindow:
                                             selectcolor=self.theme.surface_variant,
                                             activebackground=self.theme.surface,
                                             font=(self.theme.font_family, self.theme.font_size - 1))
-        self.cb_bub_border.pack(anchor="w", pady=(2, 0))
+        self.cb_bub_border.pack(anchor="w", pady=(2, 4))
+
+        # Tamaño de fuente y ancho maximo
+        bub_params_row = tk.Frame(self.sec_bubble, bg=self.theme.surface)
+        bub_params_row.pack(fill=tk.X, pady=2)
+
+        tk.Label(bub_params_row, text="Tamano fuente:", font=(self.theme.font_family, self.theme.font_size - 1),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(side=tk.LEFT)
+        self.bub_font_scale = tk.Scale(bub_params_row, from_=8, to=22, orient=tk.HORIZONTAL,
+                                       command=lambda v: self.theme.set_bubble_font_size(int(v)),
+                                       bg=self.theme.surface, fg=self.theme.text,
+                                       troughcolor=self.theme.surface_variant, highlightthickness=0, bd=0)
+        self.bub_font_scale.set(getattr(self.theme, "bubble_font_size", 9))
+        self.bub_font_scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+
+        tk.Label(bub_params_row, text="Ancho max:", font=(self.theme.font_family, self.theme.font_size - 1),
+                 fg=self.theme.text_dim, bg=self.theme.surface).pack(side=tk.LEFT)
+        self.bub_width_scale = tk.Scale(bub_params_row, from_=160, to=480, orient=tk.HORIZONTAL,
+                                        command=lambda v: self.theme.set_bubble_max_width(int(v)),
+                                        bg=self.theme.surface, fg=self.theme.text,
+                                        troughcolor=self.theme.surface_variant, highlightthickness=0, bd=0)
+        self.bub_width_scale.set(getattr(self.theme, "bubble_max_width", 280))
+        self.bub_width_scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+
+        # Duracion mult y colores de burbuja
+        bub_colors_row = tk.Frame(self.sec_bubble, bg=self.theme.surface)
+        bub_colors_row.pack(fill=tk.X, pady=(4, 2))
+
+        btn_bub_bg = tk.Button(bub_colors_row, text="Fondo Burbuja...", command=lambda: self._pick_custom("bubble_bg"),
+                               bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
+                               bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+        btn_bub_bg.pack(side=tk.LEFT, padx=(0, 4))
+
+        btn_bub_fg = tk.Button(bub_colors_row, text="Texto Burbuja...", command=lambda: self._pick_custom("bubble_fg"),
+                               bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
+                               bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+        btn_bub_fg.pack(side=tk.LEFT, padx=4)
+
+        btn_bub_bdr = tk.Button(bub_colors_row, text="Borde Burbuja...", command=lambda: self._pick_custom("bubble_border_color"),
+                                bg=self.theme.surface_variant, fg=self.theme.text, font=(self.theme.font_family, 8),
+                                bd=0, relief=tk.FLAT, padx=6, pady=2, cursor="hand2")
+        btn_bub_bdr.pack(side=tk.LEFT, padx=4)
+
+        btn_test_bub = tk.Button(bub_colors_row, text="[★] Probar Burbuja Ahora", command=self._test_bubble_now,
+                                 bg=self.theme.accent, fg=self.theme.accent_text,
+                                 font=(self.theme.font_family, 8, "bold"),
+                                 bd=0, relief=tk.FLAT, padx=8, pady=2, cursor="hand2")
+        btn_test_bub.pack(side=tk.RIGHT)
 
         # Section 3c: Tamaño y Escala del Shimeji (Hasta 100x)
         self.sec_size = tk.Frame(main_frame, bg=self.theme.surface, padx=12, pady=10,
@@ -2103,6 +2360,49 @@ class AppearanceWindow:
         color = colorchooser.askcolor(initialcolor=init_color, title=f"Seleccionar Color de {target_key}")
         if color and color[1]:
             self.theme.set_custom_color(target_key, color[1])
+
+    def _on_fps_change(self, val):
+        fv = int(val)
+        self.fps_val_lbl.configure(text=f"{fv} FPS")
+        if self.shimeji:
+            self.shimeji.set_fps(fv)
+
+    def _set_fps_preset(self, fv):
+        self.fps_scale.set(fv)
+        self.fps_val_lbl.configure(text=f"{fv} FPS")
+        if self.shimeji:
+            self.shimeji.set_fps(fv)
+
+    def _apply_hex_color(self):
+        target = self.cbo_hex_target.get()
+        hex_code = self.entry_hex.get().strip()
+        if not re.match(r"^#(?:[0-9a-fA-F]{3}){1,2}$", hex_code):
+            messagebox.showwarning("Hex Invalido", "Por favor ingresa un color hexadecimal valido como #RRGGBB o #RGB")
+            return
+        if len(hex_code) == 4:
+            hex_code = "#" + "".join([c*2 for c in hex_code[1:]])
+
+        target_map = {
+            "Acento": ("accent", True),
+            "Fondo": ("bg", False),
+            "Superficie": ("surface", False),
+            "Borde": ("border", False),
+            "Texto": ("text", False),
+            "Caja texto": ("entry_bg", False),
+            "Burbuja Fondo": ("bubble_bg", False),
+            "Burbuja Texto": ("bubble_fg", False),
+            "Burbuja Borde": ("bubble_border_color", False)
+        }
+        if target in target_map:
+            key, is_acc = target_map[target]
+            if is_acc:
+                self.theme.set_custom_accent(hex_code)
+            else:
+                self.theme.set_custom_color(key, hex_code)
+
+    def _test_bubble_now(self):
+        if self.shimeji:
+            self.shimeji.show_speech("[*] Prueba de configuracion de burbuja!\nTamano, colores y fuente aplicados correctamente.")
 
     def _on_opacity_change(self, val):
         opac = int(val) / 100.0
@@ -4147,6 +4447,11 @@ class AgentSettingsWindow:
         self.var_speech_interval = tk.IntVar(value=self.config.get("random_speech_interval", 30))
         tk.Spinbox(row_shim, from_=5, to=300, textvariable=self.var_speech_interval, width=6).grid(row=2, column=1, sticky="w", padx=6)
 
+        tk.Label(row_shim, text="Tasa de cuadros (FPS):", bg=self.theme.surface, fg=self.theme.text).grid(row=3, column=0, sticky="w")
+        self.scale_fps = tk.Scale(row_shim, from_=15, to=60, orient=tk.HORIZONTAL, bg=self.theme.surface, fg=self.theme.text, highlightthickness=0)
+        self.scale_fps.set(self.config.get("fps", 30))
+        self.scale_fps.grid(row=3, column=1, sticky="ew", padx=6)
+
         tk.Label(tab_shimeji, text="Animaciones y acrobacias permitidas:", bg=self.theme.surface,
                  fg=self.theme.text, font=(self.theme.font_family, self.theme.font_size, "bold")).pack(anchor="w", pady=(8, 2))
 
@@ -4445,6 +4750,11 @@ class AgentSettingsWindow:
         self.config["allow_custom_actions"] = self.anim_custom.get()
 
         self.config["chat_position_locked"] = self.chat_lock.get()
+        if hasattr(self, "scale_fps"):
+            fps_val = int(self.scale_fps.get())
+            self.config["fps"] = fps_val
+            if self.shimeji:
+                self.shimeji.set_fps(fps_val)
 
         save_config(self.config)
 
@@ -5436,7 +5746,7 @@ class JarvisAssistant:
             return False, "[!] Debes indicar el número del recordatorio a cancelar."
 
     def run_macro(self, macro_name):
-        """Ejecuta una macro multitarea paso a paso."""
+        """Ejecuta una macro multitarea paso a paso mostrando el progreso en la burbuja."""
         macros = self.config.get("macros", {})
         clean = macro_name.strip().lower()
         m = macros.get(clean)
@@ -5446,14 +5756,21 @@ class JarvisAssistant:
                     m = v
                     break
         if not m:
+            if self.shimeji:
+                self.shimeji.show_speech(f"[!] Macro '{macro_name}' no encontrada.")
             return False, f"[!] Macro '{macro_name}' no encontrada en la configuración."
 
         steps = m.get("steps", [])
-        results = [f"[*] Iniciando macro: '{macro_name}' ({len(steps)} pasos)"]
-        for st in steps:
+        total = len(steps)
+        if self.shimeji:
+            self.shimeji.show_speech(f"[*] Iniciando macro: '{macro_name}' ({total} pasos)...")
+        results = [f"[*] Iniciando macro: '{macro_name}' ({total} pasos)"]
+        for idx, st in enumerate(steps, 1):
             st = st.strip()
             if not st:
                 continue
+            if self.shimeji:
+                self.shimeji.show_speech(f"[*] Macro '{macro_name}' [{idx}/{total}]:\n{st}")
             if st.upper().startswith("WAIT"):
                 try:
                     w_secs = float(st.split()[1])
@@ -5470,6 +5787,10 @@ class JarvisAssistant:
             else:
                 ok, msg = self.open_target(st)
                 results.append(msg)
+            time.sleep(0.5)
+
+        if self.shimeji:
+            self.shimeji.show_speech(f"[✓] Macro '{macro_name}' completada ({total}/{total}).")
         return True, "\n".join(results)
 
     def list_dir(self, folder=None):
@@ -8251,6 +8572,8 @@ class Shimeji:
         self.doxx_win    = None
         self.appearance_win = None
 
+        self.fps          = int(self.config.get("fps", 30))
+        self.delay        = max(16, int(1000 / max(10, self.fps)))
         self.bubble_win   = None
         self.bubble_after = None
 
@@ -8264,14 +8587,37 @@ class Shimeji:
         self.schedule_random_speech()
         self._schedule_random_mouse_move()
         self.set_state("walking")
-        self.root.after(DELAY, self.tick)
+        self.root.after(self.delay, self.tick)
         self.root.after(500, self._cache_own_hwnd)
         self.root.after(5000, self._auto_tick)
         self.root.after(15000, self._troll_autonomous_tick)
-        self.root.after(3000, lambda: check_for_updates(shimeji_ref=self, is_manual=False))
+        self.root.after(3000, self._schedule_periodic_update_check)
         self.root.protocol("WM_DELETE_WINDOW", self.close_shimeji)
         play_popue_sound()
         self.root.mainloop()
+
+    def set_fps(self, new_fps):
+        """Ajusta dinamicamente la tasa de cuadros por segundo (FPS)."""
+        try:
+            val = max(15, min(60, int(new_fps)))
+            self.fps = val
+            self.delay = max(16, int(1000 / val))
+            self.config["fps"] = val
+            save_config(self.config)
+            return True
+        except Exception:
+            return False
+
+    def run_macro(self, macro_name):
+        """Ejecuta una macro en segundo plano informando de cada paso a traves de Jarvis."""
+        if hasattr(self, "jarvis") and self.jarvis:
+            threading.Thread(target=lambda: self.jarvis.run_macro(macro_name), daemon=True).start()
+        else:
+            self.show_speech(f"[*] Ejecutando macro '{macro_name}'...")
+
+    def _schedule_periodic_update_check(self):
+        check_for_updates(shimeji_ref=self, is_manual=False)
+        self.root.after(UPDATE_CHECK_INTERVAL_SEC * 1000, self._schedule_periodic_update_check)
 
     def set_size(self, new_size):
         """Ajusta arbitrariamente el tamaño del Shimeji (hasta 100x / 4000px)."""
@@ -8589,13 +8935,17 @@ class Shimeji:
         speed = max(1, int(self.WALK_SPEED * float(self.config.get("shimeji_walk_speed_mult", 1.0))))
         speed_wb = max(1, int(2 * float(self.config.get("shimeji_walk_speed_mult", 1.0))))
 
-        # Detección inteligente de frames de escalada y techo
-        climb_frames = [f for f in ["climb1", "climb2", "climb"] if f in self.images] or WALK_FRAMES
+        # Detección inteligente de frames de escalada, techo, caida y acciones
+        climb_frames = [f for f in ["climb1", "climb2", "climb"] if f in self.images] or CLIMB_FRAMES
         ceiling_frames = ["climb_top"] if "climb_top" in self.images else WALK_FRAMES
         ceiling_idle_frames = ["climb_top"] if "climb_top" in self.images else LIE_FRAMES
+        carry_frames = [f for f in ["carry1", "carry"] if f in self.images] or CARRY_FRAMES
+        depress_frames = [f for f in ["depress1", "depress"] if f in self.images] or DEPRESS_FRAMES
+        away_frames = [f for f in ["away1", "back1", "back2", "back"] if f in self.images] or AWAY_FRAMES
+        stand_frames = [f for f in ["stand1", "stand2", "stand3", "stand4", "stand5"] if f in self.images] or STAND_FRAMES
 
         cfg = {
-            "standing":     (STAND_FRAMES,  15, 30+random.randint(10,30),    0,     0),
+            "standing":     (stand_frames,  15, 30+random.randint(10,30),    0,     0),
             "walking":      (WALK_FRAMES,   5,  120+random.randint(40,160),  random.choice([-1,1])*speed, 0),
             "walk_back":    (WALK_BACK,     8,  40+random.randint(20,50),    random.choice([-1,1])*speed_wb, 0),
             "sitting":      (SIT_FRAMES,    10, 40+random.randint(20,50),    0,     0),
@@ -8605,12 +8955,12 @@ class Shimeji:
             "ghost":        (GHOST_FRAMES,  10, 30+random.randint(10,30),    0,     0),
             "box":          (BOX_FRAMES,    18, len(BOX_FRAMES)*14,          0,     0),
             "falling":      (FALL_FRAMES,   2,  9999,                        random.randint(-2,2), 0),
-            "flung":        (FALL_FRAMES or STAND_FRAMES, 2, 9999,           0,     0),
+            "flung":        (FALL_FRAMES or stand_frames, 2, 9999,           0,     0),
             "ko":           (KNEEL_FRAMES or FALL_FRAMES, 15, 250,           0,     0),
             "kneel":        (KNEEL_FRAMES,  10, 30+random.randint(10,30),    0,     0),
-            "carry":        (CARRY_FRAMES,  15, 40+random.randint(20,40),    0,     0),
-            "depress":      (DEPRESS_FRAMES,15, 40+random.randint(20,40),    0,     0),
-            "away":         (AWAY_FRAMES,   10, 30+random.randint(10,30),    0,     0),
+            "carry":        (carry_frames,  15, 40+random.randint(20,40),    0,     0),
+            "depress":      (depress_frames,15, 40+random.randint(20,40),    0,     0),
+            "away":         (away_frames,   10, 30+random.randint(10,30),    0,     0),
             "climb_left":   (climb_frames,  6,  80+random.randint(40,80),    0,     0),
             "climb_right":  (climb_frames,  6,  80+random.randint(40,80),    0,     0),
             "ceiling_walk": (ceiling_frames, 5, 100+random.randint(40,120),  random.choice([-1,1])*speed, 0),
@@ -8650,15 +9000,26 @@ class Shimeji:
 
         skin = getattr(self, "current_skin", "Bocchi")
         if skin == "Bocchi":
-            pool = ["walking"] * 16 + ["walk_back"] * 5 + ["standing"] * 3
+            pool = ["walking"] * 14 + ["walk_back"] * 4 + ["standing"] * 3
+            if any(f in self.images for f in ["carry1", "carry"]):
+                pool += ["carry"] * 2
+            if any(f in self.images for f in ["depress1", "depress"]):
+                pool += ["depress"] * 2
+            if any(f in self.images for f in ["away1", "back1", "back2"]):
+                pool += ["away"] * 2
             if allow_sit:
                 pool += ["sitting"] * 2 + ["kneel"] * 1
             if allow_custom:
                 pool += ["guitar"] * 2 + ["blob"] * 1 + ["ghost"] * 1 + ["box"] * 2
             self.set_state(random.choice(pool), surface=SURFACE_FLOOR)
         else:
-            # Dokis, Konata, Hachi, Usagi, Pusheen: NUNCA usan guitar/box que duplicaban el clon
-            pool = ["walking"] * 18 + ["walk_back"] * 5 + ["standing"] * 4
+            pool = ["walking"] * 16 + ["walk_back"] * 4 + ["standing"] * 4
+            if any(f in self.images for f in ["carry1", "carry"]):
+                pool += ["carry"] * 2
+            if any(f in self.images for f in ["depress1", "depress"]):
+                pool += ["depress"] * 2
+            if any(f in self.images for f in ["away1", "back1", "back2"]):
+                pool += ["away"] * 2
             if allow_sit:
                 pool += ["sitting"] * 3 + ["kneel"] * 1
             if allow_custom:
@@ -8691,7 +9052,7 @@ class Shimeji:
         except Exception:
             pass
         finally:
-            self.root.after(DELAY, self.tick)
+            self.root.after(getattr(self, "delay", DELAY), self.tick)
 
     def physics(self):
         if getattr(self, "is_ko", False):
@@ -8992,10 +9353,31 @@ class Shimeji:
         self.y = max(0, min(ny, self.sh - 50))
         self.root.geometry(f"{self.size}x{self.size}+{int(self.x)}+{int(self.y)}")
 
+        dx = 0
+        if len(self.drag_points) >= 1:
+            dx = e.x_root - self.drag_points[-1][1]
+
         now = time.time()
         self.drag_points.append((now, e.x_root, e.y_root))
         if len(self.drag_points) > 10:
             self.drag_points.pop(0)
+
+        # Animacion dinamica de arrastre en el aire
+        drag_img = None
+        if dx < -3:
+            if "drag_l" in self.images: drag_img = "drag_l"
+            elif "air_swing_l" in self.images: drag_img = "air_swing_l"
+        elif dx > 3:
+            if "drag_r" in self.images: drag_img = "drag_r"
+            elif "air_swing_r" in self.images: drag_img = "air_swing_r"
+
+        if not drag_img and "air" in self.images:
+            drag_img = "air"
+
+        if drag_img:
+            tk_img = self.get_tk_image(drag_img, rotation=0, flip_h=(dx > 0 if drag_img == "air" else False), flip_v=False)
+            if tk_img:
+                self.canvas.itemconfig(self.sprite_item, image=tk_img)
 
         if self.dragging_window:
             sx = self.root.winfo_rootx() + e.x
@@ -9076,6 +9458,16 @@ class Shimeji:
             size_menu.add_separator()
             size_menu.add_command(label="[+] Personalizar en Apariencia...", command=self.open_appearance)
             menu.add_cascade(label=f"[#] Cambiar Tamaño ({getattr(self, 'size', 128)}px) >>", menu=size_menu)
+
+            fps_menu = tk.Menu(menu, tearoff=0,
+                               bg=t.surface, fg=t.text,
+                               activebackground=t.accent,
+                               activeforeground=acc_fg,
+                               font=(t.font_family, t.font_size))
+            for f_val in [15, 20, 24, 30, 45, 60]:
+                chk = " [✓]" if getattr(self, "fps", 30) == f_val else ""
+                fps_menu.add_command(label=f"{f_val} FPS{chk}", command=lambda f=f_val: self.set_fps(f))
+            menu.add_cascade(label=f"[FPS] Tasa de Cuadros ({getattr(self, 'fps', 30)} FPS) >>", menu=fps_menu)
 
             menu.add_command(label=f"[★] Buscar Actualizaciones (v{APP_VERSION})", command=lambda: check_for_updates(self, is_manual=True))
             
@@ -10083,25 +10475,32 @@ class Shimeji:
                 pass
 
             border_w = 1 if getattr(t, "bubble_border", True) else 0
-            card = tk.Frame(bw, bg=t.surface, highlightbackground=t.accent, highlightthickness=border_w, padx=10, pady=6)
+            bub_bg = getattr(t, "bubble_bg", t.surface)
+            bub_fg = getattr(t, "bubble_fg", t.text)
+            bub_border_color = getattr(t, "bubble_border_color", t.accent)
+            bub_font_size = getattr(t, "bubble_font_size", t.font_size)
+            bub_max_width = getattr(t, "bubble_max_width", 280)
+            bub_dur_mult = float(getattr(t, "bubble_duration_mult", 1.0))
+
+            card = tk.Frame(bw, bg=bub_bg, highlightbackground=bub_border_color, highlightthickness=border_w, padx=10, pady=6)
             card.pack(fill=tk.BOTH, expand=True)
 
-            header_frame = tk.Frame(card, bg=t.surface)
+            header_frame = tk.Frame(card, bg=bub_bg)
             header_frame.pack(fill=tk.X, pady=(0, 2))
 
             char_name = SKIN_META.get(getattr(self, "current_skin", "Bocchi"), {}).get("char_name", "Bocchi-chan")
-            name_lbl = tk.Label(header_frame, text=f"[*] {char_name}", bg=t.surface, fg=t.accent,
-                                font=(t.font_family, max(8, t.font_size - 2), "bold"))
+            name_lbl = tk.Label(header_frame, text=f"[*] {char_name}", bg=bub_bg, fg=bub_border_color,
+                                font=(t.font_family, max(8, bub_font_size - 2), "bold"))
             name_lbl.pack(side=tk.LEFT)
 
             subtle_fg = getattr(t, "text_subtle", getattr(t, "text_dim", "#888888"))
-            close_btn = tk.Label(header_frame, text="[x]", bg=t.surface, fg=subtle_fg,
-                                 font=(t.font_family, max(8, t.font_size - 2)), cursor="hand2")
+            close_btn = tk.Label(header_frame, text="[x]", bg=bub_bg, fg=subtle_fg,
+                                 font=(t.font_family, max(8, bub_font_size - 2)), cursor="hand2")
             close_btn.pack(side=tk.RIGHT)
             close_btn.bind("<Button-1>", lambda e: self.destroy_bubble())
 
-            msg_lbl = tk.Label(card, text=text, bg=t.surface, fg=t.text,
-                               font=(t.font_family, t.font_size), wraplength=280, justify=tk.LEFT)
+            msg_lbl = tk.Label(card, text=text, bg=bub_bg, fg=bub_fg,
+                               font=(t.font_family, bub_font_size), wraplength=bub_max_width, justify=tk.LEFT)
             msg_lbl.pack(fill=tk.BOTH, expand=True)
 
             card.bind("<Button-1>", lambda e: self.destroy_bubble())
@@ -10141,7 +10540,7 @@ class Shimeji:
                     self.root.after(15, lambda: self.chat_win.entry.focus_set() if self.chat_win else None)
 
             self.bubble_win   = bw
-            display_ms = max(6000, min(40000, len(text) * 90))
+            display_ms = int(max(6000, min(40000, len(text) * 90)) * bub_dur_mult)
             self.bubble_after = self.root.after(display_ms, self.destroy_bubble)
 
             if hasattr(self, "tts") and self.tts:
