@@ -356,6 +356,26 @@ public class VoiceStudioHelper {
                         }
                     }
 
+                    // FASE 0.5: debpalash/VoiceStudio Local Backend (http://10.0.2.2:3900 o configurado)
+                    String vsUrl = sp.getString("voicestudio_local_url", "http://10.0.2.2:3900");
+                    if (vsUrl != null && !vsUrl.trim().isEmpty()) {
+                        try {
+                            String endpoint = vsUrl.replaceAll("/+$", "") + "/v1/audio/speech";
+                            JSONObject vsBody = new JSONObject();
+                            vsBody.put("model", "voicestudio");
+                            vsBody.put("input", clean);
+                            vsBody.put("voice", sKey);
+                            vsBody.put("response_format", "mp3");
+                            byte[] vsAudio = postJson(endpoint, vsBody.toString());
+                            if (vsAudio != null && vsAudio.length > 0) {
+                                File fOutVs = new File(cacheDir, "vs_local_" + sKey + "_" + dubLang + ".mp3");
+                                writeFile(fOutVs, vsAudio);
+                                postSuccess(callback, fOutVs);
+                                return;
+                            }
+                        } catch (Exception ignored) {}
+                    }
+
                     // FASE 1: Gemini 3.8 Flash TTS Interactions API
                     if (!apiKey.isEmpty()) {
                         try {

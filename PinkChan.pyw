@@ -1752,6 +1752,11 @@ class ThemeManager:
         self.success = "#22c55e"
         self.warning = "#f59e0b"
 
+        self.bubble_bg = self.config.get("bubble_bg", self.surface)
+        self.bubble_fg = self.config.get("bubble_fg", self.text)
+        self.bubble_border_color = self.config.get("bubble_border_color", self.accent)
+        self.bubble_show_macros = bool(self.config.get("bubble_show_macros", True))
+
     def __getattr__(self, name):
         if name in ("entry_fg", "entry_text"):
             entry_bright = self._calc_brightness(getattr(self, "entry_bg", "#1e222b"))
@@ -3183,6 +3188,63 @@ class VoiceStudioManager:
         except Exception as e:
             return None, None, str(e)
 
+    VOICESTUDIO_REPO_URL = "https://github.com/debpalash/VoiceStudio"
+    VOICESTUDIO_DEFAULT_URL = "http://127.0.0.1:3900"
+
+    @classmethod
+    def check_voicestudio_local(cls, base_url="http://127.0.0.1:3900"):
+        """Verifica de forma no bloqueante si el servidor local de debpalash/VoiceStudio esta activo."""
+        try:
+            req = urllib.request.Request(f"{base_url.rstrip('/')}/v1/audio/speech", method="HEAD")
+            with urllib.request.urlopen(req, timeout=0.8) as r:
+                return True
+        except urllib.error.HTTPError as he:
+            if he.code in (400, 404, 405, 422):
+                return True
+        except Exception:
+            pass
+        try:
+            req2 = urllib.request.Request(f"{base_url.rstrip('/')}/", method="GET")
+            with urllib.request.urlopen(req2, timeout=0.8) as r2:
+                return r2.status in (200, 301, 302)
+        except Exception:
+            return False
+        return False
+
+    @classmethod
+    def synthesize_voicestudio_local(cls, text, skin_name="Bocchi", config=None, base_url="http://127.0.0.1:3900", dub_lang="es"):
+        """Sintetiza audio usando el motor de VoiceStudio (debpalash/VoiceStudio en http://localhost:3900)."""
+        clean = cls.clean_text_for_speech(text)
+        if not clean:
+            return None, "Texto vacio"
+        import hashlib
+        h = hashlib.md5((clean + skin_name + str(dub_lang)).encode("utf-8")).hexdigest()[:10]
+        c_dir = cls.get_cache_dir()
+        out_path = os.path.join(c_dir, f"vs_local_{skin_name}_{dub_lang}_{h}.mp3")
+        if os.path.isfile(out_path) and os.path.getsize(out_path) > 500:
+            return out_path, None
+
+        payload = {
+            "model": "voicestudio",
+            "input": clean,
+            "voice": skin_name.lower(),
+            "response_format": "mp3"
+        }
+        data_bytes = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            f"{base_url.rstrip('/')}/v1/audio/speech",
+            data=data_bytes,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            content = resp.read()
+            if content and len(content) > 200:
+                with open(out_path, "wb") as f:
+                    f.write(content)
+                return out_path, None
+            return None, "VoiceStudio local no devolvio datos de audio."
+
     @classmethod
     def _edge_tts_synthesize(cls, text, voice, pitch, rate, out_path):
         """Sintetiza audio neural con Edge TTS (voces de estudio, sin APIs roboticas)."""
@@ -3203,6 +3265,7 @@ class VoiceStudioManager:
         """
         Sintetiza la voz del personaje aplicando una canalizacion automatica de PRUEBA Y ERROR (Trial and Error):
         Intento 0: Si es mascota (Pusheen, Hachi, Usagi), reproducir sonidos autenticos de gato y conejo directamente.
+        Intento 0.5: VoiceStudio Local (debpalash/VoiceStudio en http://localhost:3900 - OpenAI Speech API).
         Intento 1: Gemini 3.8 Flash TTS Interactions API (/v1beta/interactions) con estilo vocal y doblaje seleccionado.
         Intento 2: Gemini 2.5 Flash Audio GenerateContent (/v1beta/models/gemini-2.5-flash:generateContent) con rol de doblaje.
         Intento 3: Gemini 2.0 Flash Audio GenerateContent (/v1beta/models/gemini-2.0-flash:generateContent).
@@ -3233,6 +3296,24 @@ class VoiceStudioManager:
                         if log_cb:
                             log_cb(f"[+] Sonido animal autentico reproducido para {skin_name}: {clip_n}{sfx}.mp3")
                         return f_clip, None
+
+        # -------------------------------------------------------------------------
+        # INTENTO 0.5: VoiceStudio Local (debpalash/VoiceStudio - Puerto 3900)
+        # -------------------------------------------------------------------------
+        vs_local_url = config.get("voicestudio_local_url", cls.VOICESTUDIO_DEFAULT_URL) if config else cls.VOICESTUDIO_DEFAULT_URL
+        engine_mode = config.get("tts_engine", "voice_studio") if config else "voice_studio"
+        if (engine_mode == "voicestudio_local") or (engine_mode in ("voice_studio", "anime_authentic") and cls.check_voicestudio_local(vs_local_url)):
+            if log_cb:
+                log_cb(f"[*] VoiceStudio Local detectado ({vs_local_url} - debpalash/VoiceStudio). Sintetizando...")
+            try:
+                vs_path, vs_err = cls.synthesize_voicestudio_local(clean, skin_name, config, base_url=vs_local_url, dub_lang=dub)
+                if vs_path and os.path.isfile(vs_path):
+                    if log_cb:
+                        log_cb(f"[+] Sintesis exitosa con VoiceStudio Local ({os.path.basename(vs_path)})!")
+                    return vs_path, None
+            except Exception as e_vs:
+                if log_cb:
+                    log_cb(f"[~] VoiceStudio Local aviso: {e_vs}. Probando siguientes motores...")
 
         custom_ids = config.get("voice_studio_ids", {}) if config else {}
         voice_id = custom_ids.get(skin_name) or prof.get("voice_id")
@@ -3589,7 +3670,11 @@ class VoiceStudioWindow:
                                  bg=self.theme.surface_variant, fg=self.theme.accent,
                                  font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
                                  command=lambda: webbrowser.open("https://aistudio.google.com/generate-speech"))
-        btn_aistudio.pack(anchor="e", pady=(4, 0))
+        btn_vs_gh = tk.Button(header, text="[^] GitHub debpalash/VoiceStudio (Local ElevenLabs)",
+                              bg=self.theme.surface_variant, fg=self.theme.accent,
+                              font=(self.theme.font_family, self.theme.font_size - 1, "bold"),
+                              command=lambda: webbrowser.open(VoiceStudioManager.VOICESTUDIO_REPO_URL))
+        btn_vs_gh.pack(anchor="e", pady=(2, 0))
 
         content = tk.Frame(self.win, bg=self.theme.bg, padx=16, pady=10)
         content.pack(fill=tk.BOTH, expand=True)
@@ -3610,16 +3695,34 @@ class VoiceStudioWindow:
                                       command=self._toggle_show_key, width=4)
         self.btn_show_key.pack(side=tk.LEFT, padx=2)
 
+        row_vs_cfg = tk.Frame(f_top, bg=self.theme.surface)
+        row_vs_cfg.pack(fill=tk.X, pady=(4, 2))
+        tk.Label(row_vs_cfg, text="VoiceStudio Local (debpalash):", bg=self.theme.surface, fg=self.theme.text).pack(side=tk.LEFT)
+        self.var_vs_url = tk.StringVar(value=self.config.get("voicestudio_local_url", VoiceStudioManager.VOICESTUDIO_DEFAULT_URL))
+        self.ent_vs_url = tk.Entry(row_vs_cfg, textvariable=self.var_vs_url, bg=self.theme.entry_bg, fg=self.theme.text, width=22)
+        self.ent_vs_url.pack(side=tk.LEFT, padx=4)
+        self.lbl_vs_status = tk.Label(row_vs_cfg, text="[Comprobando...]", bg=self.theme.surface, fg=self.theme.text_dim, font=(self.theme.font_family, self.theme.font_size - 2))
+        self.lbl_vs_status.pack(side=tk.LEFT, padx=2)
+        tk.Button(row_vs_cfg, text="[↻] Probar 3900", bg=self.theme.surface_variant, fg=self.theme.accent,
+                  font=(self.theme.font_family, self.theme.font_size - 2, "bold"),
+                  command=self._check_voicestudio_status).pack(side=tk.LEFT, padx=2)
+
         row_engine = tk.Frame(f_top, bg=self.theme.surface)
         row_engine.pack(fill=tk.X, pady=(6, 2))
-        tk.Label(row_engine, text="Motor de Voz Activo:", bg=self.theme.surface, fg=self.theme.text).pack(side=tk.LEFT)
+        tk.Label(row_engine, text="Motor Activo:", bg=self.theme.surface, fg=self.theme.text).pack(side=tk.LEFT)
         self.var_engine_mode = tk.StringVar(value=self.config.get("tts_engine", "voice_studio"))
-        tk.Radiobutton(row_engine, text="Voice Studio AI (Gemini 3.8 Flash TTS)", variable=self.var_engine_mode,
-                       value="voice_studio", bg=self.theme.surface, fg=self.theme.accent, selectcolor=self.theme.surface_variant,
-                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=8)
+        tk.Radiobutton(row_engine, text="VoiceStudio Local (3900)", variable=self.var_engine_mode,
+                       value="voicestudio_local", bg=self.theme.surface, fg=self.theme.accent, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=4)
+        tk.Radiobutton(row_engine, text="VoiceStudio Cloud (Gemini 3.8)", variable=self.var_engine_mode,
+                       value="voice_studio", bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=4)
+        tk.Radiobutton(row_engine, text="Edge-TTS Neuronal", variable=self.var_engine_mode,
+                       value="edge_tts", bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=4)
         tk.Radiobutton(row_engine, text="SAPI Local (Windows)", variable=self.var_engine_mode,
                        value="sapi", bg=self.theme.surface, fg=self.theme.text, selectcolor=self.theme.surface_variant,
-                       activebackground=self.theme.surface).pack(side=tk.LEFT)
+                       activebackground=self.theme.surface).pack(side=tk.LEFT, padx=4)
 
         # 2. Selección de Personaje y Perfil Vocal
         f_char = tk.LabelFrame(content, text="2. Perfil Vocal del Personaje", bg=self.theme.surface,
@@ -3738,6 +3841,19 @@ class VoiceStudioWindow:
 
         self._load_character_data(cur_skin)
         self._log(f"[+] Voice Studio inicializado. Personaje activo: {cur_skin}")
+        threading.Thread(target=self._check_voicestudio_status, daemon=True).start()
+
+    def _check_voicestudio_status(self):
+        url = self.var_vs_url.get().strip() or VoiceStudioManager.VOICESTUDIO_DEFAULT_URL
+        self.config["voicestudio_local_url"] = url
+        save_config(self.config)
+        is_up = VoiceStudioManager.check_voicestudio_local(url)
+        if is_up:
+            self.win.after(0, lambda: self.lbl_vs_status.configure(text="[✓ CONECTADO (3900)]", fg="#10b981"))
+            self.win.after(0, lambda: self._log(f"[✓] VoiceStudio Local activo y conectado en {url} (debpalash/VoiceStudio)"))
+        else:
+            self.win.after(0, lambda: self.lbl_vs_status.configure(text="[~ NO DETECTADO]", fg=self.theme.danger))
+            self.win.after(0, lambda: self._log(f"[~] VoiceStudio Local no detectado en {url} (Ver repo: {VoiceStudioManager.VOICESTUDIO_REPO_URL})"))
 
     def _toggle_show_key(self):
         if self.ent_api_key.cget("show") == "":
@@ -3828,6 +3944,7 @@ class VoiceStudioWindow:
             tmp_cfg = dict(self.config)
             tmp_cfg["gemini_api_key"] = api_key
             tmp_cfg["voice_dub_language"] = dub
+            tmp_cfg["voicestudio_local_url"] = self.var_vs_url.get().strip() or VoiceStudioManager.VOICESTUDIO_DEFAULT_URL
             custom_ids = dict(tmp_cfg.get("voice_studio_ids", {}))
             v_id_entry = self.var_voice_id.get().strip()
             if v_id_entry:
@@ -3863,6 +3980,16 @@ class VoiceStudioWindow:
         self._log(f"==================================================")
 
         def run_benchmark_thread():
+            # Fase 0: Probar VoiceStudio Local (debpalash/VoiceStudio en puerto 3900)
+            vs_url = self.var_vs_url.get().strip() or VoiceStudioManager.VOICESTUDIO_DEFAULT_URL
+            self.win.after(0, lambda: self._log(f"[*] Probando Nivel 0: VoiceStudio Local ({vs_url} - debpalash/VoiceStudio)..."))
+            t0_vs = time.time()
+            if VoiceStudioManager.check_voicestudio_local(vs_url):
+                dt_vs = round((time.time() - t0_vs) * 1000)
+                self.win.after(0, lambda ms=dt_vs: self._log(f"  [✓] Nivel 0 (VoiceStudio Local debpalash): ACTIVO Y CONECTADO ({ms} ms)"))
+            else:
+                self.win.after(0, lambda: self._log(f"  [~] Nivel 0 (VoiceStudio Local): No activo en {vs_url} (Opcional - https://github.com/debpalash/VoiceStudio)"))
+
             # Fase 1: Probar Gemini 3.8 Flash TTS
             if api_key:
                 t0 = time.time()
@@ -3949,6 +4076,7 @@ class VoiceStudioWindow:
             tmp_cfg = dict(self.config)
             tmp_cfg["gemini_api_key"] = api_key
             tmp_cfg["voice_dub_language"] = dub
+            tmp_cfg["voicestudio_local_url"] = self.var_vs_url.get().strip() or VoiceStudioManager.VOICESTUDIO_DEFAULT_URL
             best_audio, err = VoiceStudioManager.synthesize_speech(api_key, dialogue, skin, tmp_cfg,
                                                                    log_cb=lambda msg: self.win.after(0, lambda m=msg: self._log(m)),
                                                                    dub_lang=dub)
@@ -4006,10 +4134,12 @@ class VoiceStudioWindow:
         skin = self.cbo_character.get()
         dub = self.var_dub_lang.get()
         v_id_entry = self.var_voice_id.get().strip()
+        vs_url = self.var_vs_url.get().strip() or VoiceStudioManager.VOICESTUDIO_DEFAULT_URL
 
         self.config["gemini_api_key"] = api_key
         self.config["tts_engine"] = engine_mode
         self.config["voice_dub_language"] = dub
+        self.config["voicestudio_local_url"] = vs_url
         self.config["tts_enabled"] = True
 
         custom_ids = dict(self.config.get("voice_studio_ids", {}))
@@ -4021,8 +4151,151 @@ class VoiceStudioWindow:
         if self.shimeji and hasattr(self.shimeji, "tts"):
             self.shimeji.tts.config = self.config
 
-        self._log(f"[✓] Configuracion guardada. Motor activo: {engine_mode}. Doblaje: {dub.upper()}. TTS habilitado.")
+        self._log(f"[✓] Configuracion guardada. Motor activo: {engine_mode}. VoiceStudio URL: {vs_url}. Doblaje: {dub.upper()}. TTS habilitado.")
         messagebox.showinfo("Voice Studio", f"Configuracion de Voice Studio guardada y aplicada al Shimeji con exito.")
+
+
+class BubbleQuickConfigWindow:
+    """Ventana interactiva de acceso rapido para configurar la apariencia y macros de la burbuja de chat."""
+    def __init__(self, parent_root, theme_manager, shimeji_ref=None):
+        self.parent = parent_root
+        self.theme = theme_manager
+        self.shimeji = shimeji_ref
+        self.config = self.shimeji.config if self.shimeji and hasattr(self.shimeji, "config") else {}
+        self.win = None
+        self._build_window()
+
+    def _build_window(self):
+        t = self.theme
+        self.win = tk.Toplevel(self.parent)
+        self.win.title("[⚙] Configurador de Burbuja de Chat y Macros")
+        self.win.geometry("480x570")
+        self.win.minsize(440, 520)
+        self.win.attributes("-topmost", True)
+        self.win.attributes("-alpha", getattr(t, "opacity", 0.95))
+        self.win.configure(bg=t.bg)
+
+        # Header
+        h = tk.Frame(self.win, bg=t.surface, pady=10, padx=14)
+        h.pack(fill=tk.X)
+        tk.Label(h, text="[⚙] PERSONALIZACION DE LA BURBUJA DE CHAT",
+                 font=(t.font_family, t.font_size + 1, "bold"),
+                 bg=t.surface, fg=t.accent).pack(anchor="w")
+        tk.Label(h, text="Personaliza colores, opacidad, tamano y activa los macros de acceso rapido.",
+                 font=(t.font_family, max(8, t.font_size - 2)),
+                 bg=t.surface, fg=t.text_dim).pack(anchor="w")
+
+        body = tk.Frame(self.win, bg=t.bg, padx=14, pady=10)
+        body.pack(fill=tk.BOTH, expand=True)
+
+        # 1. Colores de la Burbuja
+        f_colors = tk.LabelFrame(body, text="1. Colores de la Burbuja", bg=t.surface, fg=t.accent,
+                                 font=(t.font_family, t.font_size - 1, "bold"), padx=10, pady=6)
+        f_colors.pack(fill=tk.X, pady=(0, 8))
+
+        self.cur_bg = self.config.get("bubble_bg", getattr(t, "bubble_bg", t.surface))
+        self.cur_fg = self.config.get("bubble_fg", getattr(t, "bubble_fg", t.text))
+        self.cur_bc = self.config.get("bubble_border_color", getattr(t, "bubble_border_color", t.accent))
+
+        def _make_color_row(parent, label_text, init_color, update_cb):
+            row = tk.Frame(parent, bg=t.surface)
+            row.pack(fill=tk.X, pady=3)
+            tk.Label(row, text=label_text, bg=t.surface, fg=t.text,
+                     font=(t.font_family, t.font_size - 1)).pack(side=tk.LEFT)
+            swatch = tk.Label(row, text="    ", bg=init_color, relief=tk.SOLID, bd=1)
+            swatch.pack(side=tk.RIGHT, padx=4)
+            btn = tk.Button(row, text="Cambiar...", bg=t.surface_variant, fg=t.text,
+                            font=(t.font_family, max(8, t.font_size - 2)),
+                            command=lambda: _pick_color(swatch, update_cb, init_color))
+            btn.pack(side=tk.RIGHT, padx=4)
+            return swatch
+
+        def _pick_color(swatch, callback, curr):
+            col = colorchooser.askcolor(initialcolor=curr, title="Seleccionar Color")[1]
+            if col:
+                swatch.configure(bg=col)
+                callback(col)
+
+        def _set_bg(c): self.cur_bg = c
+        def _set_fg(c): self.cur_fg = c
+        def _set_bc(c): self.cur_bc = c
+
+        self.swatch_bg = _make_color_row(f_colors, "Color de Fondo:", self.cur_bg, _set_bg)
+        self.swatch_fg = _make_color_row(f_colors, "Color de Texto:", self.cur_fg, _set_fg)
+        self.swatch_bc = _make_color_row(f_colors, "Color de Borde:", self.cur_bc, _set_bc)
+
+        # 2. Sliders de Dimensiones y Opacidad
+        f_sliders = tk.LabelFrame(body, text="2. Dimensiones y Opacidad", bg=t.surface, fg=t.accent,
+                                  font=(t.font_family, t.font_size - 1, "bold"), padx=10, pady=6)
+        f_sliders.pack(fill=tk.X, pady=(0, 8))
+
+        row_op = tk.Frame(f_sliders, bg=t.surface)
+        row_op.pack(fill=tk.X, pady=2)
+        tk.Label(row_op, text="Opacidad:", bg=t.surface, fg=t.text, font=(t.font_family, t.font_size - 2)).pack(side=tk.LEFT)
+        self.scale_op = tk.Scale(row_op, from_=20, to=100, orient=tk.HORIZONTAL, bg=t.surface, fg=t.text,
+                                 highlightthickness=0, resolution=5)
+        self.scale_op.set(int(self.config.get("bubble_opacity", getattr(t, "bubble_opacity", 0.95)) * 100))
+        self.scale_op.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=6)
+
+        row_font = tk.Frame(f_sliders, bg=t.surface)
+        row_font.pack(fill=tk.X, pady=2)
+        tk.Label(row_font, text="Tamano Fuente:", bg=t.surface, fg=t.text, font=(t.font_family, t.font_size - 2)).pack(side=tk.LEFT)
+        self.scale_font = tk.Scale(row_font, from_=8, to=22, orient=tk.HORIZONTAL, bg=t.surface, fg=t.text,
+                                   highlightthickness=0)
+        self.scale_font.set(int(self.config.get("bubble_font_size", getattr(t, "bubble_font_size", 9))))
+        self.scale_font.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=6)
+
+        row_w = tk.Frame(f_sliders, bg=t.surface)
+        row_w.pack(fill=tk.X, pady=2)
+        tk.Label(row_w, text="Ancho Maximo:", bg=t.surface, fg=t.text, font=(t.font_family, t.font_size - 2)).pack(side=tk.LEFT)
+        self.scale_w = tk.Scale(row_w, from_=180, to=500, orient=tk.HORIZONTAL, bg=t.surface, fg=t.text,
+                                highlightthickness=0, resolution=20)
+        self.scale_w.set(int(self.config.get("bubble_max_width", getattr(t, "bubble_max_width", 280))))
+        self.scale_w.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=6)
+
+        # 3. Opciones de Macros en Burbuja
+        f_mac = tk.LabelFrame(body, text="3. Macros de Acceso Rapido en Burbuja", bg=t.surface, fg=t.accent,
+                              font=(t.font_family, t.font_size - 1, "bold"), padx=10, pady=6)
+        f_mac.pack(fill=tk.X, pady=(0, 8))
+
+        self.var_show_macros = tk.BooleanVar(value=bool(self.config.get("bubble_show_macros", True)))
+        tk.Checkbutton(f_mac, text="Mostrar chips de macros de acceso rapido en la burbuja de chat",
+                       variable=self.var_show_macros, bg=t.surface, fg=t.text,
+                       selectcolor=t.surface_variant, activebackground=t.surface).pack(anchor="w", pady=2)
+
+        # Footer
+        footer = tk.Frame(self.win, bg=t.surface, pady=10, padx=14)
+        footer.pack(fill=tk.X, side=tk.BOTTOM)
+
+        tk.Button(footer, text="[✓] Guardar y Probar Burbuja", bg=t.accent, fg=t.accent_text,
+                  font=(t.font_family, t.font_size, "bold"),
+                  command=self._save_and_test).pack(side=tk.RIGHT, padx=4)
+        tk.Button(footer, text="Cerrar", bg=t.surface_variant, fg=t.text,
+                  font=(t.font_family, t.font_size),
+                  command=self.win.destroy).pack(side=tk.RIGHT, padx=4)
+
+    def _save_and_test(self):
+        self.config["bubble_bg"] = self.cur_bg
+        self.config["bubble_fg"] = self.cur_fg
+        self.config["bubble_border_color"] = self.cur_bc
+        self.config["bubble_opacity"] = round(self.scale_op.get() / 100.0, 2)
+        self.config["bubble_font_size"] = int(self.scale_font.get())
+        self.config["bubble_max_width"] = int(self.scale_w.get())
+        self.config["bubble_show_macros"] = bool(self.var_show_macros.get())
+
+        save_config(self.config)
+        if self.theme:
+            self.theme.bubble_bg = self.cur_bg
+            self.theme.bubble_fg = self.cur_fg
+            self.theme.bubble_border_color = self.cur_bc
+            self.theme.bubble_opacity = self.config["bubble_opacity"]
+            self.theme.bubble_font_size = self.config["bubble_font_size"]
+            self.theme.bubble_max_width = self.config["bubble_max_width"]
+            self.theme.notify_listeners()
+
+        if self.shimeji:
+            self.shimeji.show_speech("[✓] ¡Burbuja de diálogo configurada y macros de acceso rápido listos!")
+        messagebox.showinfo("Burbuja de Chat", "La configuración de la burbuja se ha guardado y aplicado correctamente.")
 
 
 
@@ -6942,6 +7215,43 @@ class ChatWindow:
         bottom_box = tk.Frame(self.win, bg=self.theme.bg)
         bottom_box.pack(side=tk.BOTTOM, fill=tk.X)
 
+        # Fila de Macros de Acceso Rapido con un solo clic
+        macro_quick_bar = tk.Frame(bottom_box, bg=self.theme.surface, padx=8, pady=2,
+                                   highlightbackground=self.theme.accent, highlightthickness=1)
+        macro_quick_bar.pack(side=tk.TOP, fill=tk.X, padx=10, pady=(3, 2))
+
+        tk.Label(macro_quick_bar, text="[⚡ Macros]:", bg=self.theme.surface, fg=self.theme.accent,
+                 font=(self.theme.font_family, max(8, self.theme.font_size - 2), "bold")).pack(side=tk.LEFT, padx=(0, 4))
+
+        quick_chat_macros = [
+            ("Estudio", "modo estudio"),
+            ("Gamer", "modo gamer"),
+            ("Noche", "buenas noches"),
+            ("Diag", "diagnostico"),
+            ("Silencio", "silencio total"),
+        ]
+        for m_lbl, m_cmd in quick_chat_macros:
+            b_mac = tk.Button(macro_quick_bar, text=f"[{m_lbl}]",
+                              command=lambda mc=m_cmd: self.run_macro(mc),
+                              bg=self.theme.surface_variant, fg=self.theme.text,
+                              font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                              activebackground=self.theme.accent, activeforeground=self.theme.accent_text,
+                              bd=0, relief=tk.FLAT, padx=4, pady=1, cursor="hand2")
+            b_mac.pack(side=tk.LEFT, padx=1)
+
+        tk.Button(macro_quick_bar, text="[+ Mas]",
+                  command=self.open_macros_menu,
+                  bg=self.theme.surface_variant, fg=self.theme.accent,
+                  font=(self.theme.font_family, max(8, self.theme.font_size - 2), "bold"),
+                  activebackground=self.theme.accent, activeforeground=self.theme.accent_text,
+                  bd=0, relief=tk.FLAT, padx=4, pady=1, cursor="hand2").pack(side=tk.LEFT, padx=1)
+
+        tk.Button(macro_quick_bar, text="[⚙ Burbuja]",
+                  command=lambda: BubbleQuickConfigWindow(self.win, self.theme, self.shimeji),
+                  bg=self.theme.surface_variant, fg=self.theme.text_dim,
+                  font=(self.theme.font_family, max(8, self.theme.font_size - 2)),
+                  bd=0, relief=tk.FLAT, padx=4, pady=1, cursor="hand2").pack(side=tk.RIGHT, padx=1)
+
         # Chips de accion rapida organizados en 2 filas
         chips_frame1 = tk.Frame(bottom_box, bg=self.theme.bg, padx=10, pady=2)
         chips_frame1.pack(side=tk.TOP, fill=tk.X)
@@ -7086,6 +7396,44 @@ class ChatWindow:
             m.add_command(label=f"{disp}{chk}", command=lambda sk=s: self._select_skin(sk))
         m.add_separator()
         m.add_command(label="[+] Importar Skin (.zip / carpeta)...", command=self.open_sprite_importer)
+        try:
+            m.tk_popup(self.win.winfo_pointerx(), self.win.winfo_pointery())
+        except Exception:
+            pass
+        finally:
+            try:
+                m.grab_release()
+            except Exception:
+                pass
+
+    def run_macro(self, macro_name):
+        """Ejecuta una macro desde la ventana de chat con respuesta visual inmediata."""
+        if self.shimeji:
+            self.shimeji.run_macro(macro_name)
+        elif self.jarvis:
+            threading.Thread(target=lambda: self.jarvis.run_macro(macro_name), daemon=True).start()
+
+    def open_macros_menu(self):
+        """Despliega menu contextual con todos los macros disponibles en la ventana de chat."""
+        macros = self.config.get("macros", {})
+        if not macros:
+            macros = DEFAULT_PREBUILT_MACROS
+        t = self.theme
+        acc_fg = getattr(t, "accent_fg", getattr(t, "accent_text", "#ffffff"))
+        m = tk.Menu(self.win, tearoff=0,
+                    bg=t.surface, fg=t.text,
+                    activebackground=t.accent,
+                    activeforeground=acc_fg,
+                    font=(t.font_family, t.font_size))
+        m.add_command(label="[⚡] EJECUTAR MACRO RAPIDO", state=tk.DISABLED)
+        m.add_separator()
+        for k in macros.keys():
+            def _mk_run(mac=k):
+                return lambda: self.run_macro(mac)
+            m.add_command(label=f"[⚡] {k.title()}", command=_mk_run())
+        m.add_separator()
+        m.add_command(label="[⚙] Configurar Burbuja & Macros...",
+                      command=lambda: BubbleQuickConfigWindow(self.win, self.theme, self.shimeji))
         try:
             m.tk_popup(self.win.winfo_pointerx(), self.win.winfo_pointery())
         except Exception:
@@ -9709,6 +10057,22 @@ class Shimeji:
             menu.add_cascade(label="[!] Travesuras & Windows >>", menu=troll_menu)
 
             menu.add_separator()
+            macros_menu = tk.Menu(menu, tearoff=0,
+                                  bg=t.surface, fg=t.text,
+                                  activebackground=t.accent,
+                                  activeforeground=acc_fg,
+                                  font=(t.font_family, t.font_size))
+            mac_dict = self.config.get("macros", {})
+            if not mac_dict:
+                mac_dict = DEFAULT_PREBUILT_MACROS
+            for k in mac_dict.keys():
+                macros_menu.add_command(label=f"[⚡] {k.title()}", command=lambda m_name=k: self.run_macro(m_name))
+            macros_menu.add_separator()
+            macros_menu.add_command(label="[⚙] Configurar Burbuja & Macros...", command=self.open_bubble_config)
+            menu.add_cascade(label="[⚡] Macros de Acceso Rapido >>", menu=macros_menu)
+            menu.add_command(label="[⚙] Configurar Burbuja de Dialogo...", command=self.open_bubble_config)
+
+            menu.add_separator()
             menu.add_command(label="[★] Voice Studio de Personajes >>", command=self.open_voice_studio)
             menu.add_command(label="[>] Escuchar comando de voz (JARVIS)", command=self.listen_voice_command_once)
             menu.add_command(label="[*] Ajustes del Agente JARVIS >>", command=self.open_agent_settings)
@@ -10604,14 +10968,56 @@ class Shimeji:
             name_lbl.pack(side=tk.LEFT)
 
             subtle_fg = getattr(t, "text_subtle", getattr(t, "text_dim", "#888888"))
-            close_btn = tk.Label(header_frame, text="[x]", bg=bub_bg, fg=subtle_fg,
+            btn_box = tk.Frame(header_frame, bg=bub_bg)
+            btn_box.pack(side=tk.RIGHT)
+
+            cfg_btn = tk.Label(btn_box, text="[⚙]", bg=bub_bg, fg=subtle_fg,
+                               font=(t.font_family, max(8, bub_font_size - 2)), cursor="hand2")
+            cfg_btn.pack(side=tk.LEFT, padx=(0, 4))
+            def _on_cfg(e):
+                self.open_bubble_config()
+                return "break"
+            cfg_btn.bind("<Button-1>", _on_cfg)
+
+            close_btn = tk.Label(btn_box, text="[x]", bg=bub_bg, fg=subtle_fg,
                                  font=(t.font_family, max(8, bub_font_size - 2)), cursor="hand2")
-            close_btn.pack(side=tk.RIGHT)
+            close_btn.pack(side=tk.LEFT)
             close_btn.bind("<Button-1>", lambda e: self.destroy_bubble())
 
             msg_lbl = tk.Label(card, text=text, bg=bub_bg, fg=bub_fg,
                                font=(t.font_family, bub_font_size), wraplength=bub_max_width, justify=tk.LEFT)
             msg_lbl.pack(fill=tk.BOTH, expand=True)
+
+            show_mac = getattr(t, "bubble_show_macros", self.config.get("bubble_show_macros", True))
+            if show_mac:
+                macro_frame = tk.Frame(card, bg=bub_bg)
+                macro_frame.pack(fill=tk.X, pady=(4, 0))
+
+                tk.Label(macro_frame, text="[⚡]", bg=bub_bg, fg=bub_border_color,
+                         font=(t.font_family, max(7, bub_font_size - 3), "bold")).pack(side=tk.LEFT, padx=(0, 2))
+
+                quick_chips = [
+                    ("Estudio", "modo estudio"),
+                    ("Gamer", "modo gamer"),
+                    ("Noche", "buenas noches"),
+                    ("Diag", "diagnostico"),
+                ]
+                btn_font = (t.font_family, max(7, bub_font_size - 3))
+                for label_chip, macro_key in quick_chips:
+                    btn_m = tk.Label(macro_frame, text=f"[{label_chip}]", bg=getattr(t, "surface_variant", "#212630"),
+                                     fg=bub_fg, font=btn_font, cursor="hand2", padx=2, pady=1)
+                    btn_m.pack(side=tk.LEFT, padx=1)
+                    def _mk_chip_click(mk=macro_key):
+                        return lambda e: (self.run_macro(mk), "break")[1]
+                    btn_m.bind("<Button-1>", _mk_chip_click())
+
+                more_btn = tk.Label(macro_frame, text="[+]", bg=getattr(t, "surface_variant", "#212630"),
+                                    fg=bub_border_color, font=btn_font, cursor="hand2", padx=3, pady=1)
+                more_btn.pack(side=tk.LEFT, padx=1)
+                def _on_more(e):
+                    self._show_bubble_macro_menu(e)
+                    return "break"
+                more_btn.bind("<Button-1>", _on_more)
 
             card.bind("<Button-1>", lambda e: self.destroy_bubble())
             msg_lbl.bind("<Button-1>", lambda e: self.destroy_bubble())
@@ -10665,6 +11071,44 @@ class Shimeji:
             except Exception:
                 pass
             self.bubble_win = None
+        if getattr(self, "bubble_after", None):
+            try:
+                self.root.after_cancel(self.bubble_after)
+            except Exception:
+                pass
+            self.bubble_after = None
+
+    def open_bubble_config(self):
+        """Abre el panel interactivo de personalizacion de la burbuja y macros de acceso rapido."""
+        BubbleQuickConfigWindow(self.root, self.theme_manager, self)
+
+    def _show_bubble_macro_menu(self, event=None):
+        """Muestra menu emergente con todas las macros disponibles para ejecutar con 1 clic."""
+        macros = self.config.get("macros", {})
+        if not macros:
+            macros = DEFAULT_PREBUILT_MACROS
+        t = self.theme_manager
+        acc_fg = getattr(t, "accent_fg", getattr(t, "accent_text", "#ffffff"))
+        m = tk.Menu(self.root, tearoff=0,
+                    bg=t.surface, fg=t.text,
+                    activebackground=t.accent,
+                    activeforeground=acc_fg,
+                    font=(t.font_family, t.font_size))
+        m.add_command(label="[⚡] MACROS DE ACCESO RAPIDO", state=tk.DISABLED)
+        m.add_separator()
+        for k in macros.keys():
+            def _mk_run(mac=k):
+                return lambda: self.run_macro(mac)
+            m.add_command(label=f"[⚡] {k.title()}", command=_mk_run())
+        m.add_separator()
+        m.add_command(label="[⚙] Configurar Burbuja & Macros...", command=self.open_bubble_config)
+        if event:
+            try:
+                m.tk_popup(event.x_root, event.y_root)
+            except Exception:
+                m.tk_popup(int(self.x), int(self.y))
+        else:
+            m.tk_popup(int(self.x), int(self.y))
 
     def get_random_speech(self):
         name = self.user_info.username

@@ -276,6 +276,56 @@ public class FloatingChatManager {
         svMessages.addView(layoutMessages);
         tabChatView.addView(svMessages);
 
+        // Barra de Macros de Acceso Rapido
+        HorizontalScrollView macroScroll = new HorizontalScrollView(service);
+        macroScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout.LayoutParams macroScrollParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        macroScrollParams.topMargin = service.dpToPx(4);
+        macroScrollParams.bottomMargin = service.dpToPx(2);
+        macroScroll.setLayoutParams(macroScrollParams);
+
+        LinearLayout macroLayout = new LinearLayout(service);
+        macroLayout.setOrientation(LinearLayout.HORIZONTAL);
+        macroLayout.setGravity(Gravity.CENTER_VERTICAL);
+        macroLayout.setPadding(0, service.dpToPx(2), 0, service.dpToPx(2));
+
+        String[][] quickMacros = new String[][] {
+            {"[⚡ Estudio]", "ejecutar macro modo estudio"},
+            {"[⚡ Gamer]", "ejecutar macro modo gamer"},
+            {"[⚡ Noche]", "ejecutar macro buenas noches"},
+            {"[⚡ Diag]", "ejecutar macro diagnostico"},
+            {"[⚡ Silencio]", "ejecutar macro silencio total"}
+        };
+
+        for (final String[] mItem : quickMacros) {
+            TextView mChip = new TextView(service);
+            mChip.setText(mItem[0]);
+            mChip.setTextColor(Color.parseColor("#DDD6FE"));
+            mChip.setTextSize(10);
+            mChip.setTypeface(null, Typeface.BOLD);
+            mChip.setBackgroundResource(R.drawable.chip_action_bg);
+            mChip.setPadding(service.dpToPx(8), service.dpToPx(4), service.dpToPx(8), service.dpToPx(4));
+            LinearLayout.LayoutParams mChipParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            mChipParams.rightMargin = service.dpToPx(6);
+            mChip.setLayoutParams(mChipParams);
+            mChip.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (etInput != null) {
+                        etInput.setText(mItem[1]);
+                        sendMessage();
+                    }
+                }
+            });
+            macroLayout.addView(mChip);
+        }
+        macroScroll.addView(macroLayout);
+        tabChatView.addView(macroScroll);
+
         // Barra inferior de envío
         LinearLayout inputBar = new LinearLayout(service);
         inputBar.setOrientation(LinearLayout.HORIZONTAL);
