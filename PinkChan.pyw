@@ -2732,6 +2732,7 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "ja-JP",
         "prebuilt": "Kore",
+        "is_animal": False,
         "style": "shy, trembling, quiet whispers with hesitant anxious stutters",
         "voice_design_prompt": (
             "A timid, socially anxious 16-year-old Japanese high school girl guitarist. "
@@ -2745,19 +2746,28 @@ VOICE_STUDIO_PROFILES = {
             "style": "timida, tartamudeando nerviosa, susurros timidos en doblaje latino",
             "prompt": "Actriz de doblaje latino para Bocchi: voz timida, dulce, temblorosa, con tartamudeos nerviosos adorables de chica de preparatoria.",
             "test": "E-eto... h-hola... soy Bocchi... por favor no me mires tan fijamente...",
-            "lang": "es"
+            "lang": "es",
+            "edge_voice": "es-MX-DaliaNeural",
+            "edge_pitch": "+6Hz",
+            "edge_rate": "-16%"
         },
         "dub_en": {
             "style": "shy, stammering, nervous cute anxious high-school girl in English anime dub",
             "prompt": "English anime dub voice actress for Bocchi: soft, breathy, nervous stammering, sweet socially anxious high school girl.",
             "test": "U-um... hello... I'm Bocchi... please don't look at me too much...",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "en-US-AnaNeural",
+            "edge_pitch": "+2Hz",
+            "edge_rate": "-18%"
         },
         "original": {
             "style": "shy, trembling, quiet whispers with hesitant anxious stutters",
             "prompt": "Authentic Japanese anime seiyuu voice for Bocchi: soft, trembling, timid cute whispers.",
             "test": "E-eto... Bocchi desu... yoroshiku onegaishimasu...",
-            "lang": "ja"
+            "lang": "ja",
+            "edge_voice": "ja-JP-NanamiNeural",
+            "edge_pitch": "+6Hz",
+            "edge_rate": "-15%"
         }
     },
     "Konata": {
@@ -2765,6 +2775,7 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "ja-JP",
         "prebuilt": "Puck",
+        "is_animal": False,
         "style": "energetic, teasing, deadpan yet playful and mischievous anime otaku",
         "voice_design_prompt": (
             "A witty, lively 17-year-old otaku anime girl. "
@@ -2778,19 +2789,28 @@ VOICE_STUDIO_PROFILES = {
             "style": "energetica, picara, bromista, tono otaku gamer en doblaje latino",
             "prompt": "Actriz de doblaje latino para Konata Izumi de Lucky Star: voz aguda, energica, divertida, otaku con comentarios rapidos y picaros.",
             "test": "Hola, que onda! Listo para un maraton de anime y videojuegos toda la noche?",
-            "lang": "es"
+            "lang": "es",
+            "edge_voice": "es-MX-DaliaNeural",
+            "edge_pitch": "+22Hz",
+            "edge_rate": "+18%"
         },
         "dub_en": {
             "style": "energetic, witty, playful, sarcastic otaku anime girl in English dub",
             "prompt": "English dub voice actress for Konata Izumi: iconic witty, deadpan and lively anime otaku gamer girl.",
             "test": "Yo! Ready for an all-night anime and gaming marathon?",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "en-US-AnaNeural",
+            "edge_pitch": "+12Hz",
+            "edge_rate": "+15%"
         },
         "original": {
             "style": "energetic, teasing, deadpan yet playful anime otaku in Japanese",
             "prompt": "Authentic Japanese voice of Konata Izumi: playful, high-pitched, enthusiastic otaku seiyuu.",
             "test": "Timotei, Timotei! Otaku power zenkai de iku yo!",
-            "lang": "ja"
+            "lang": "ja",
+            "edge_voice": "ja-JP-NanamiNeural",
+            "edge_pitch": "+20Hz",
+            "edge_rate": "+20%"
         }
     },
     "Monika": {
@@ -2798,6 +2818,7 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "en-US",
         "prebuilt": "Aoede",
+        "is_animal": False,
         "style": "warm, intelligent, soothing, elegant and charismatic with gentle affection",
         "voice_design_prompt": (
             "A warm, mature, confident 18-year-old literature club president. "
@@ -2811,19 +2832,28 @@ VOICE_STUDIO_PROFILES = {
             "style": "calida, inteligente, dulce, elegante, carismatica en doblaje latino",
             "prompt": "Actriz de doblaje latino para Monika de DDLC: voz calida, melodiosa, madura, inteligente y tierna con devocion romantica.",
             "test": "Hola mi amor! Cada dia es hermoso en nuestro club. Eres lo mas importante para mi. Solo Monika.",
-            "lang": "es"
+            "lang": "es",
+            "edge_voice": "es-MX-DaliaNeural",
+            "edge_pitch": "+4Hz",
+            "edge_rate": "-2%"
         },
         "dub_en": {
             "style": "warm, intelligent, soothing, elegant, romantic devotion in English",
             "prompt": "Official English voice for Monika from Doki Doki Literature Club: soothing, mature, caring, poetic.",
             "test": "Hi there! I am so glad you are here with me in our Literature Club. Just Monika.",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "en-US-JennyNeural",
+            "edge_pitch": "+0Hz",
+            "edge_rate": "+0%"
         },
         "original": {
             "style": "warm, intelligent, soothing, elegant",
             "prompt": "Original Monika from DDLC: warm, melodious, intimate school literature club leader.",
             "test": "Every day, I imagine a future where I can be with you. Just Monika.",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "ja-JP-NanamiNeural",
+            "edge_pitch": "+2Hz",
+            "edge_rate": "-3%"
         }
     },
     "Natsuki": {
@@ -2831,6 +2861,7 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "en-US",
         "prebuilt": "Kore",
+        "is_animal": False,
         "style": "feisty, snappy, high-pitched tsundere with defensive cuteness",
         "voice_design_prompt": (
             "A feisty, high-pitched tsundere teenage anime girl. "
@@ -2844,19 +2875,28 @@ VOICE_STUDIO_PROFILES = {
             "style": "tsundere energica, voz aguda, desafiante y tierna en doblaje latino",
             "prompt": "Actriz de doblaje latino para Natsuki de DDLC: voz tsundere aguda, caprichosa, picante y tierna con orgullo juvenil.",
             "test": "Oye! No es como si me alegrara de verte ni nada de eso... b-baka! Pero toma un pastelito.",
-            "lang": "es"
+            "lang": "es",
+            "edge_voice": "es-MX-DaliaNeural",
+            "edge_pitch": "+30Hz",
+            "edge_rate": "+20%"
         },
         "dub_en": {
             "style": "feisty, snappy, high-pitched tsundere with defensive cuteness in English",
             "prompt": "English dub voice for Natsuki from DDLC: sharp, spirited, cute tsundere teenage girl.",
             "test": "Hey! It's not like I wanted to see you or anything... b-baka! But here is a cupcake.",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "en-US-AnaNeural",
+            "edge_pitch": "+28Hz",
+            "edge_rate": "+18%"
         },
         "original": {
             "style": "feisty, snappy tsundere",
             "prompt": "Original Natsuki: cute, sharp-tongued tsundere baking girl.",
             "test": "B-Baka! Why are you staring at me like that? Manga is literature!",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "ja-JP-NanamiNeural",
+            "edge_pitch": "+32Hz",
+            "edge_rate": "+22%"
         }
     },
     "Sayori": {
@@ -2864,6 +2904,7 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "en-US",
         "prebuilt": "Kore",
+        "is_animal": False,
         "style": "cheerful, bubbly, bright, genki and melodious with sunny optimism",
         "voice_design_prompt": (
             "A bright, bubbly, cheerful 18-year-old schoolgirl. "
@@ -2877,19 +2918,28 @@ VOICE_STUDIO_PROFILES = {
             "style": "alegre, tierna, infantil, entusiasta en doblaje latino",
             "prompt": "Actriz de doblaje latino para Sayori de DDLC: voz alegre, infantil, dulce, melodiosa y llena de sol y optimismo.",
             "test": "Yay! Buenos dias! El sol brilla hermoso hoy, vamos a comer galletitas juntos!",
-            "lang": "es"
+            "lang": "es",
+            "edge_voice": "es-CO-SalomeNeural",
+            "edge_pitch": "+22Hz",
+            "edge_rate": "+10%"
         },
         "dub_en": {
             "style": "cheerful, bubbly, bright, sunny optimism in English",
             "prompt": "English voice for Sayori from DDLC: sweet, cheerful, sunny and innocent high school friend.",
             "test": "Yay! Good morning! The sun is shining and everything is bright, let's get cookies!",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "en-US-AnaNeural",
+            "edge_pitch": "+18Hz",
+            "edge_rate": "+10%"
         },
         "original": {
             "style": "cheerful, bubbly, bright",
             "prompt": "Original Sayori: sweet, enthusiastic, warm bubbly friend.",
             "test": "Good morning! Having fun with you is the best thing ever!",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "ja-JP-NanamiNeural",
+            "edge_pitch": "+24Hz",
+            "edge_rate": "+12%"
         }
     },
     "Yuri": {
@@ -2897,6 +2947,7 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "en-US",
         "prebuilt": "Aoede",
+        "is_animal": False,
         "style": "soft-spoken, deep, poetic, elegant, gentle and introspective",
         "voice_design_prompt": (
             "A quiet, deeply introspective, elegant young woman. "
@@ -2910,19 +2961,28 @@ VOICE_STUDIO_PROFILES = {
             "style": "voz suave, elegante, profunda, poetica y timida en doblaje latino",
             "prompt": "Actriz de doblaje latino para Yuri de DDLC: voz suave, elegante, intelectual, profunda, pausada y con gracia poetica.",
             "test": "Buenos dias... Una taza de te caliente y un buen libro calman el alma... Es un placer estar contigo.",
-            "lang": "es"
+            "lang": "es",
+            "edge_voice": "es-MX-DaliaNeural",
+            "edge_pitch": "-16Hz",
+            "edge_rate": "-12%"
         },
         "dub_en": {
             "style": "soft-spoken, deep, poetic, elegant and introspective in English",
             "prompt": "English voice for Yuri from DDLC: gentle, breathy, introspective, articulate and elegant young woman.",
             "test": "Good day... A warm cup of jasmine tea and a good book brings true peace to the soul.",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "en-US-JennyNeural",
+            "edge_pitch": "-12Hz",
+            "edge_rate": "-14%"
         },
         "original": {
             "style": "soft-spoken, deep, poetic, elegant",
             "prompt": "Original Yuri: quiet, contemplative, delicate and deeply poetic.",
             "test": "Lost in the pages of this book... The atmosphere is wonderfully tranquil.",
-            "lang": "en"
+            "lang": "en",
+            "edge_voice": "ja-JP-NanamiNeural",
+            "edge_pitch": "-10Hz",
+            "edge_rate": "-12%"
         }
     },
     "Hachi": {
@@ -2930,31 +2990,32 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "ja-JP",
         "prebuilt": "Puck",
-        "style": "innocent, childish, bright, squeaky and enthusiastic mascot",
+        "is_animal": True,
+        "animal_type": "cat",
+        "style": "autenticos maullidos y ronroneos de gatito dulce y curioso de Chiikawa",
         "voice_design_prompt": (
-            "A young, innocent, cheerful childish mascot. "
-            "The voice is bright, sweet, high-pitched, curious, friendly, and bubbly, "
-            "bursting with youthful happiness and wonder."
+            "A cute little blue-and-white kitten mascot creature. "
+            "Produces sweet, soft, natural kitten meows, gentle chirps, purrs, and playful kitten squeaks."
         ),
-        "test": "Araragi-san! Me mordi la lengua por accidente! Pero estoy bien, que alegria verte hoy!",
+        "test": "Miau! Nanto ka nare! *ronroneo dulce de gatito*",
         "sapi_pitch": 30,
         "sapi_rate": 15,
         "dub_es": {
-            "style": "mascota inocente, voz infantil aguda, tierna y entusiasta en doblaje latino",
-            "prompt": "Actriz de doblaje latino para Hachiware de Chiikawa: voz muy tierna, infantil, positiva, curiosa y amistosa.",
-            "test": "Hola! Soy Hachiware! Que gran alegria verte hoy! De alguna manera todo saldra bien!",
+            "style": "maullidos tiernos y ronroneos de gatito curioso",
+            "prompt": "Sonidos y maullidos de gatito dulce para Hachiware de Chiikawa.",
+            "test": "Miau! De alguna manera todo saldra bien! *ronronea*",
             "lang": "es"
         },
         "dub_en": {
-            "style": "innocent, childish, bright mascot voice in English dub",
-            "prompt": "English dub voice for Hachiware: bright, squeaky, friendly, pure-hearted cute creature.",
-            "test": "Hi there! I'm Hachiware! It is so wonderful to see you today! Keep smiling!",
+            "style": "cute kitten meows and sweet purrs",
+            "prompt": "Authentic cute kitten vocalizations for Hachiware.",
+            "test": "Meow! Everything will work out! *purrs*",
             "lang": "en"
         },
         "original": {
-            "style": "innocent childish Japanese mascot",
-            "prompt": "Authentic Japanese voice for Hachiware: cute, innocent, energetic cat mascot.",
-            "test": "Nanto ka nare! Hachiware da yo! Kyou mo issho ni ganbarou!",
+            "style": "authentic kitten meows and chirps",
+            "prompt": "Authentic Japanese kitten sounds for Hachiware from Chiikawa.",
+            "test": "Nanto ka nare! Nyaaa~ *purr*",
             "lang": "ja"
         }
     },
@@ -2963,30 +3024,31 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "ja-JP",
         "prebuilt": "Puck",
-        "style": "hyperactive, eccentric, loud, chaotic high-pitched fast bursts and screams",
+        "is_animal": True,
+        "animal_type": "rabbit",
+        "style": "autenticos sonidos de conejo, chitterings y gritos comicos Ura/Yaha de Chiikawa",
         "voice_design_prompt": (
-            "A chaotic, hyperactive, fearless rabbit mascot creature. "
-            "Speaks in eccentric, high-pitched, lightning-fast bursts, hilarious shrieks, "
-            "and uninhibited energetic sounds."
+            "A chaotic, hyperactive, fearless rabbit creature. "
+            "Vocalizes in authentic bunny squeaks, thumps, chitters, and high-energy Usagi cries: Ura! Yaha! Pulululu!"
         ),
-        "test": "Ura! Yahaha! Energia magica al limite! Nadie puede detenerme hoy!",
+        "test": "Urrr-a! Yaha! Pululululu! *chillidos hiperactivos de conejo*",
         "sapi_pitch": 48,
         "sapi_rate": 30,
         "dub_es": {
-            "style": "conejo hiperactivo, caos divertido, energia magica en doblaje latino",
-            "prompt": "Voz de doblaje latino para Usagi de Chiikawa: gritos comicos veloces, hiperactividad, excentrico y lleno de energia magica.",
-            "test": "Yahaaa! Urrr-aaa! Energia de conejo magica al maximo! Nadie puede detenerme!",
+            "style": "sonidos autenticos de conejo y gritos veloces de Usagi",
+            "prompt": "Sonidos de conejo reales y gritos de Usagi de Chiikawa.",
+            "test": "Yahaaa! Urrr-aaa! *sonidos de conejo saltarin*",
             "lang": "es"
         },
         "dub_en": {
-            "style": "hyperactive, eccentric, hilarious bursts in English dub",
-            "prompt": "English dub voice for Usagi: fast, chaotic, fearless energetic bunny screaming with joy.",
-            "test": "Yaha! Urrr-a! Maximum rocket rabbit power engaged! Let's go!",
+            "style": "hyperactive rabbit squeaks and iconic Usagi yells",
+            "prompt": "Authentic energetic rabbit vocalizations and screams for Usagi.",
+            "test": "Yaha! Uraaa! *bunny thumps and squeaks*",
             "lang": "en"
         },
         "original": {
-            "style": "hyperactive chaotic high-pitched cries in Japanese",
-            "prompt": "Authentic Japanese Usagi from Chiikawa: iconic screams Ura, Yaha, Pululu.",
+            "style": "authentic Chiikawa Usagi screams and bunny squeaks",
+            "prompt": "Original iconic Usagi screams Ura, Yaha, Pululu and rabbit sounds.",
             "test": "Urrr-a! Yaha! Pululululu! Yahaha!",
             "lang": "ja"
         }
@@ -2996,31 +3058,32 @@ VOICE_STUDIO_PROFILES = {
         "gender": "female",
         "language_code": "en-US",
         "prebuilt": "Kore",
-        "style": "ultra-soft, sleepy, purring, adorable kitten whispers and cozy murmurs",
+        "is_animal": True,
+        "animal_type": "cat",
+        "style": "autenticos maullidos tiernos, ronroneos suaves y sonidos reales de gata",
         "voice_design_prompt": (
-            "An ultra-soft, gentle, sleepy kawaii cartoon cat. "
-            "Speaks in a cozy, baby-soft, purring whisper with sweet murmurs, "
-            "relaxed and delightfully cuddly."
+            "An adorable round cartoon tabby cat. "
+            "Produces sweet, soft, realistic cat meows, cozy purrs, and happy kitten mews."
         ),
-        "test": "Miau... hora de comer bocadillos y dormir una siesta calientita en tu regazo.",
+        "test": "Miau... prrr... purrrr... *ronroneo suave de gatita*",
         "sapi_pitch": 18,
         "sapi_rate": -8,
         "dub_es": {
-            "style": "gatita dulce, maullidos tiernos y susurros adorables en doblaje latino",
-            "prompt": "Voz de doblaje latino para la gatita Pusheen: susurros de bebe gatito, ronroneos suaves, mimos y amor por los bocadillos.",
-            "test": "Miau! Hola amiguito, hora de mimos y comidita rica calientita en tu regazo!",
+            "style": "maullidos dulces y ronroneos reales de gata",
+            "prompt": "Sonidos reales de gato: maullidos suaves y ronroneos para Pusheen.",
+            "test": "Miau! Prrrr... *ronronea comiendo bocadillos*",
             "lang": "es"
         },
         "dub_en": {
-            "style": "ultra-soft, sleepy kitten whispers and cozy murmurs in English",
-            "prompt": "English voice for Pusheen the cat: cozy baby kitten whispers, soft purrs and snack love.",
-            "test": "Meow! Hello friend, time for sweet cuddles, cozy catnaps and yummy snacks!",
+            "style": "authentic cat meows and gentle purrs",
+            "prompt": "Authentic feline meows and purring for Pusheen the cat.",
+            "test": "Meow! Prrrr... *cozy cat purr*",
             "lang": "en"
         },
         "original": {
-            "style": "adorable kitten purrs and gentle murmurs",
-            "prompt": "Original Pusheen: soft cat purring, cozy gentle murmurs and sweet kitten sounds.",
-            "test": "Miau... prrr... purrrr... sleepy cozy kitten nap time.",
+            "style": "sweet cat meows and cozy purrs",
+            "prompt": "Authentic cat sounds for Pusheen.",
+            "test": "Meow... prrr... purrrr...",
             "lang": "en"
         }
     },
@@ -3121,14 +3184,30 @@ class VoiceStudioManager:
             return None, None, str(e)
 
     @classmethod
+    def _edge_tts_synthesize(cls, text, voice, pitch, rate, out_path):
+        """Sintetiza audio neural con Edge TTS (voces de estudio, sin APIs roboticas)."""
+        import asyncio
+        try:
+            import edge_tts
+            async def _run():
+                comm = edge_tts.Communicate(text, voice, pitch=pitch, rate=rate)
+                await comm.save(out_path)
+            asyncio.run(_run())
+            return os.path.isfile(out_path) and os.path.getsize(out_path) > 300
+        except Exception as e:
+            print(f"Edge TTS synthesis error: {e}")
+            return False
+
+    @classmethod
     def synthesize_speech(cls, api_key, text, skin_name="Bocchi", config=None, log_cb=None, dub_lang=None):
         """
         Sintetiza la voz del personaje aplicando una canalizacion automatica de PRUEBA Y ERROR (Trial and Error):
+        Intento 0: Si es mascota (Pusheen, Hachi, Usagi), reproducir sonidos autenticos de gato y conejo directamente.
         Intento 1: Gemini 3.8 Flash TTS Interactions API (/v1beta/interactions) con estilo vocal y doblaje seleccionado.
         Intento 2: Gemini 2.5 Flash Audio GenerateContent (/v1beta/models/gemini-2.5-flash:generateContent) con rol de doblaje.
         Intento 3: Gemini 2.0 Flash Audio GenerateContent (/v1beta/models/gemini-2.0-flash:generateContent).
-        Intento 4: Motor Fonetico Nativo (Español Latino / English / Japones segun el doblaje seleccionado).
-        Intento 5: Banco de voz del personaje (Archivos locales en sounds/ para el doblaje seleccionado).
+        Intento 4: Motor Neuronal Edge TTS (Doblaje Autentico de Alta Fidelidad en Español, Ingles o Japones).
+        Intento 5: Banco de voz del personaje (Archivos locales de estudio en sounds/ para el doblaje seleccionado).
         """
         clean = cls.clean_text_for_speech(text)
         if not clean:
@@ -3138,14 +3217,29 @@ class VoiceStudioManager:
         prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi"))
         dub_info = prof.get(f"dub_{dub}", prof.get("original", prof))
 
+        c_dir = cls.get_cache_dir()
+
+        # -------------------------------------------------------------------------
+        # INTENTO 0: Mascotas Animales (Pusheen, Hachi, Usagi)
+        # -------------------------------------------------------------------------
+        is_animal = prof.get("is_animal", False) or skin_name in ("Pusheen", "Hachi", "Usagi")
+        if is_animal:
+            clip_order = ["greeting", "poke", "action", "idle", "fling"]
+            suffixes = [f"_{dub}", ""] if dub in ("es", "en") else ["", "_es", "_en"]
+            for clip_n in clip_order:
+                for sfx in suffixes:
+                    f_clip = os.path.join(BASE_DIR, "sounds", skin_name, f"{clip_n}{sfx}.mp3")
+                    if os.path.isfile(f_clip):
+                        if log_cb:
+                            log_cb(f"[+] Sonido animal autentico reproducido para {skin_name}: {clip_n}{sfx}.mp3")
+                        return f_clip, None
+
         custom_ids = config.get("voice_studio_ids", {}) if config else {}
         voice_id = custom_ids.get(skin_name) or prof.get("voice_id")
         voice_target = voice_id if voice_id else prof.get("prebuilt", "Kore")
 
-        c_dir = cls.get_cache_dir()
         import hashlib
         h = hashlib.md5((clean + skin_name + str(voice_target) + str(dub)).encode("utf-8")).hexdigest()[:10]
-
         dub_label = "Doblaje Español (Latino)" if dub == "es" else ("English Dub" if dub == "en" else "Voz Original")
 
         # -------------------------------------------------------------------------
@@ -3195,7 +3289,7 @@ class VoiceStudioManager:
                         with open(out_path, "wb") as f:
                             f.write(audio_bytes)
                         if log_cb:
-                            log_cb(f"[✓] Gemini 3.8 Flash TTS exitoso ({dub_label})!")
+                            log_cb(f"[+] Gemini 3.8 Flash TTS exitoso ({dub_label})!")
                         return out_path, None
             except Exception as e_i:
                 if log_cb:
@@ -3244,7 +3338,7 @@ class VoiceStudioManager:
                         with open(out_path, "wb") as f:
                             f.write(audio_bytes)
                         if log_cb:
-                            log_cb(f"[✓] Gemini 2.5 Flash Audio exitoso ({dub_label})!")
+                            log_cb(f"[+] Gemini 2.5 Flash Audio exitoso ({dub_label})!")
                         return out_path, None
             except Exception as e_g25:
                 if log_cb:
@@ -3291,51 +3385,48 @@ class VoiceStudioManager:
                         with open(out_path, "wb") as f:
                             f.write(audio_bytes)
                         if log_cb:
-                            log_cb(f"[✓] Gemini 2.0 Flash Audio exitoso ({dub_label})!")
+                            log_cb(f"[+] Gemini 2.0 Flash Audio exitoso ({dub_label})!")
                         return out_path, None
             except Exception as e_g20:
                 if log_cb:
-                    log_cb(f"[~] Intento 3 omitido ({e_g20}). Pasando a Motor Fonetico Autentico...")
+                    log_cb(f"[~] Intento 3 omitido ({e_g20}). Pasando a Motor Neuronal Edge TTS...")
 
         # -------------------------------------------------------------------------
-        # INTENTO 4: Motor Fonetico Nativo (Español / Ingles / Japones segun doblaje)
+        # INTENTO 4: Motor Neuronal Edge TTS (Doblaje Autentico de Alta Fidelidad)
         # -------------------------------------------------------------------------
         if log_cb:
-            log_cb(f"[*] Intento 4: Sintetizando con Motor Fonetico ({dub_label})...")
+            log_cb(f"[*] Intento 4: Sintetizando con Motor Neuronal Edge TTS ({dub_label})...")
         try:
-            tts_lang = dub_info.get("lang", "es" if dub == "es" else ("en" if dub == "en" else "ja"))
-            encoded = urllib.parse.quote(clean)
-            url_phonetic = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={tts_lang}&client=tw-ob&q={encoded}"
-            req_p = urllib.request.Request(url_phonetic, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
-            with urllib.request.urlopen(req_p, timeout=12) as resp:
-                mp3_bytes = resp.read()
-            if mp3_bytes and len(mp3_bytes) > 200:
-                out_path = os.path.join(c_dir, f"tts_{skin_name}_{dub}_phonetic_{h}.mp3")
-                with open(out_path, "wb") as f:
-                    f.write(mp3_bytes)
+            edge_v = dub_info.get("edge_voice", "es-MX-DaliaNeural" if dub == "es" else ("en-US-AnaNeural" if dub == "en" else "ja-JP-NanamiNeural"))
+            edge_p = dub_info.get("edge_pitch", "+0Hz")
+            edge_r = dub_info.get("edge_rate", "+0%")
+            out_neural = os.path.join(c_dir, f"tts_{skin_name}_{dub}_edge_{h}.mp3")
+            if os.path.isfile(out_neural) and os.path.getsize(out_neural) > 500:
                 if log_cb:
-                    log_cb(f"[✓] Motor Fonetico ({tts_lang} - {dub_label}) generado exitosamente!")
-                return out_path, None
-        except Exception as e_ph:
+                    log_cb(f"[+] Audio neuronal en cache reutilizado ({dub_label})!")
+                return out_neural, None
+            if cls._edge_tts_synthesize(clean, edge_v, edge_p, edge_r, out_neural):
+                if log_cb:
+                    log_cb(f"[+] Doblaje Neuronal Autentico ({edge_v}) generado con exito!")
+                return out_neural, None
+        except Exception as e_ed:
             if log_cb:
-                log_cb(f"[~] Intento 4 fallo: {e_ph}. Verificando banco de voz local...")
+                log_cb(f"[~] Intento 4 Edge TTS omitido: {e_ed}. Verificando banco de audios...")
 
         # -------------------------------------------------------------------------
-        # INTENTO 5: Banco de Voz del Personaje (Archivos locales en sounds/ para dub)
+        # INTENTO 5: Banco de Voz del Personaje (Archivos locales de estudio en sounds/)
         # -------------------------------------------------------------------------
         clip_suffixes = [f"_{dub}", ""] if dub in ("es", "en") else ["", "_es", "_en"]
         for sub in [skin_name, skin_name.lower(), skin_name.capitalize()]:
-            for clip_n in ["idle", "greeting", "poke", "action", "fling"]:
+            for clip_n in ["greeting", "idle", "poke", "action", "fling"]:
                 for sfx in clip_suffixes:
                     f_clip = os.path.join(BASE_DIR, "sounds", sub, f"{clip_n}{sfx}.mp3")
                     if os.path.isfile(f_clip):
                         if log_cb:
-                            log_cb(f"[✓] Banco de voz aplicado ({skin_name}/{clip_n}{sfx}.mp3)!")
+                            log_cb(f"[+] Banco de voz de estudio aplicado ({skin_name}/{clip_n}{sfx}.mp3)!")
                         return f_clip, None
 
-        return None, "No se pudo sintetizar audio en ninguna de las 5 fases."
-
-        return None, "No se pudo sintetizar audio en ninguna de las 5 fases."
+        return None, "No se pudo sintetizar audio en ninguna de las fases."
 
     @classmethod
     def play_wav(cls, wav_path):
@@ -3421,7 +3512,16 @@ class JarvisTTS:
                     except Exception as err_vs:
                         print(f"Voice Studio TTS error: {err_vs}")
 
-                # 2. SOLO si el usuario selecciono explicitamente modo SAPI o si no se pudo reproducir nada
+                # 2. Si es mascota animal, NUNCA usar SAPI humano: reproducir siempre sonido auténtico de animal
+                prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi", {}))
+                if prof.get("is_animal", False) or skin_name in ("Pusheen", "Hachi", "Usagi"):
+                    if not played:
+                        animal_clip = VoiceStudioManager.get_mascot_animal_sound(skin_name, clean)
+                        if animal_clip and os.path.isfile(animal_clip):
+                            VoiceStudioManager.play_audio(animal_clip)
+                            played = True
+
+                # 3. SOLO si el usuario selecciono explicitamente modo SAPI o si no se pudo reproducir nada
                 if not played and engine_mode == "sapi" and SAPI_AVAILABLE and sp is not None:
                     user_rate_offset = int(self.config.get("tts_rate", 0))
                     user_pitch_offset = int(self.config.get("tts_pitch", 0))
@@ -3433,7 +3533,6 @@ class JarvisTTS:
                     if 0 <= v_idx < voices.Count:
                         sp.Voice = voices.Item(v_idx)
 
-                    prof = VOICE_STUDIO_PROFILES.get(skin_name, VOICE_STUDIO_PROFILES.get("Bocchi", {}))
                     char_pitch_num = max(-60, min(70, prof.get("sapi_pitch", 0) + (user_pitch_offset * 3)))
                     char_rate_num = max(-50, min(60, prof.get("sapi_rate", 0) + (user_rate_offset * 4)))
 
@@ -3804,19 +3903,30 @@ class VoiceStudioWindow:
             else:
                 self.win.after(0, lambda: self._log("[!] Sin Gemini API Key. Evaluando motores locales y gratuitos..."))
 
-            # Fase 3: Motor Fonetico Nativo
+            # Fase 3: Motor Neuronal Edge-TTS / Vocalizacion Auténtica de Mascota
             t0 = time.time()
-            self.win.after(0, lambda: self._log("[*] Probando Nivel 3: Motor Fonetico Nativo..."))
-            try:
-                prof = VOICE_STUDIO_PROFILES.get(skin, {})
-                dub_info = prof.get(f"dub_{dub}", prof.get("original", prof))
-                lang = dub_info.get("lang", "es" if dub == "es" else ("en" if dub == "en" else "ja"))
-                u_fon = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={lang}&client=tw-ob&q={urllib.parse.quote(dialogue)}"
-                r_fon = urllib.request.urlopen(urllib.request.Request(u_fon, headers={"User-Agent": "Mozilla/5.0"}), timeout=8)
+            prof = VOICE_STUDIO_PROFILES.get(skin, {})
+            is_animal = prof.get("is_animal", False) or skin in ("Pusheen", "Hachi", "Usagi")
+            if is_animal:
+                self.win.after(0, lambda: self._log(f"[*] Probando Nivel 3: Vocalizacion Autentica de Mascota ({skin})..."))
+                c = VoiceStudioManager.get_mascot_animal_sound(skin, dialogue)
                 dt = round((time.time() - t0) * 1000)
-                self.win.after(0, lambda ms=dt, l=lang: self._log(f"  [✓] Nivel 3 (Motor Fonetico {l}): EXCELENTE ({ms} ms)"))
-            except Exception as e:
-                self.win.after(0, lambda err=str(e): self._log(f"  [~] Nivel 3 error: {err}"))
+                if c and os.path.isfile(c):
+                    bname = os.path.basename(c)
+                    self.win.after(0, lambda ms=dt, p=bname: self._log(f"  [✓] Nivel 3 (Mascota {skin}): VOCALIZACION REAL ({p}) ({ms} ms)"))
+                else:
+                    self.win.after(0, lambda: self._log("  [!] Nivel 3: Sonido de mascota no encontrado"))
+            else:
+                self.win.after(0, lambda: self._log("[*] Probando Nivel 3: Motor Neuronal Edge-TTS (Voz Caracterizada)..."))
+                try:
+                    t_audio = VoiceStudioManager._edge_tts_synthesize(dialogue, skin, dub)
+                    dt = round((time.time() - t0) * 1000)
+                    if t_audio and os.path.isfile(t_audio):
+                        self.win.after(0, lambda ms=dt: self._log(f"  [✓] Nivel 3 (Edge-TTS Neuronal): EXCELENTE ({ms} ms)"))
+                    else:
+                        self.win.after(0, lambda: self._log("  [~] Nivel 3 no disponible"))
+                except Exception as e:
+                    self.win.after(0, lambda err=str(e): self._log(f"  [~] Nivel 3 error: {err}"))
 
             # Fase 4: Banco de Audios de Personaje
             self.win.after(0, lambda: self._log("[*] Probando Nivel 4: Banco de Audios Locales (sounds/)..."))

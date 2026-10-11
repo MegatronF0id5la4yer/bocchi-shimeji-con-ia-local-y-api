@@ -840,6 +840,10 @@ public class ShimejiService extends Service {
 
             if (skinId != null) {
                 String s = skinId.toLowerCase();
+                if (s.contains("hachi") || s.contains("usagi") || s.contains("pusheen")) {
+                    VoiceStudioHelper.playCharacterAsset(this, skinId, "idle", ttsMediaPlayer);
+                    return;
+                }
                 if (s.contains("bocchi")) {
                     charPitchMult = 0.88f; // Suave, timida
                     charRateMult = 0.85f;
@@ -858,15 +862,6 @@ public class ShimejiService extends Service {
                 } else if (s.contains("monika")) {
                     charPitchMult = 1.06f; // Calida, moderada
                     charRateMult = 1.00f;
-                } else if (s.contains("hachi")) {
-                    charPitchMult = 1.30f; // Infantil
-                    charRateMult = 1.15f;
-                } else if (s.contains("usagi")) {
-                    charPitchMult = 1.48f; // Hiperactiva
-                    charRateMult = 1.30f;
-                } else if (s.contains("pusheen")) {
-                    charPitchMult = 1.18f; // Gatita tranquila
-                    charRateMult = 0.92f;
                 }
             }
 

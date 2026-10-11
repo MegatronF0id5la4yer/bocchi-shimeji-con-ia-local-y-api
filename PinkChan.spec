@@ -17,7 +17,8 @@ a = Analysis(
         'tkinter', 'tkinter.filedialog', 'tkinter.colorchooser',
         'tkinter.messagebox', 'tkinter.ttk', 'tkinter.font', 'tkinter.scrolledtext',
         'winshell', 'fnmatch', 'urllib.parse',
-        'win32com', 'win32com.client', 'pythoncom', 'PIL.ImageGrab', 'winsound', 'queue'
+        'win32com', 'win32com.client', 'pythoncom', 'PIL.ImageGrab', 'winsound', 'queue',
+        'edge_tts', 'asyncio'
     ],
     hookspath=[],
     hooksconfig={},

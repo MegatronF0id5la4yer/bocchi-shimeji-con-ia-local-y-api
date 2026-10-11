@@ -34,6 +34,7 @@ public class VoiceStudioHelper {
 
     public static class VoiceProfile {
         public final String name;
+        public final boolean isAnimal;
         public final String prebuilt;
         public final String style;
         public final String prompt;
@@ -46,10 +47,11 @@ public class VoiceStudioHelper {
         public final String promptEn;
         public final String testDialogueEn;
 
-        public VoiceProfile(String name, String prebuilt, String style, String prompt, String testDialogue, String lang,
+        public VoiceProfile(String name, boolean isAnimal, String prebuilt, String style, String prompt, String testDialogue, String lang,
                             String styleEs, String promptEs, String testDialogueEs,
                             String styleEn, String promptEn, String testDialogueEn) {
             this.name = name;
+            this.isAnimal = isAnimal;
             this.prebuilt = prebuilt;
             this.style = style;
             this.prompt = prompt;
@@ -61,6 +63,12 @@ public class VoiceStudioHelper {
             this.styleEn = styleEn;
             this.promptEn = promptEn;
             this.testDialogueEn = testDialogueEn;
+        }
+
+        public VoiceProfile(String name, String prebuilt, String style, String prompt, String testDialogue, String lang,
+                            String styleEs, String promptEs, String testDialogueEs,
+                            String styleEn, String promptEn, String testDialogueEn) {
+            this(name, false, prebuilt, style, prompt, testDialogue, lang, styleEs, promptEs, testDialogueEs, styleEn, promptEn, testDialogueEn);
         }
 
         public String getDialogueForLang(String dubLang) {
@@ -88,7 +96,7 @@ public class VoiceStudioHelper {
 
     static {
         PROFILES.put("bocchi", new VoiceProfile(
-            "Bocchi (Hitori Gotoh)", "Kore",
+            "Bocchi (Hitori Gotoh)", false, "Kore",
             "shy, trembling, quiet whispers with hesitant anxious stutters",
             "A timid, socially anxious 16-year-old Japanese high school girl guitarist. Soft, breathy, trembling, quiet whispers.",
             "E-eto... Bocchi desu... yoroshiku onegaishimasu...", "ja",
@@ -101,7 +109,7 @@ public class VoiceStudioHelper {
         ));
 
         PROFILES.put("konata", new VoiceProfile(
-            "Konata Izumi", "Puck",
+            "Konata Izumi", false, "Puck",
             "energetic, teasing, deadpan yet playful and mischievous anime otaku",
             "A witty, lively 17-year-old otaku anime girl. Distinctive playful, slightly nasal tone, anime enthusiast flair.",
             "Timotei, Timotei! Otaku power zenkai de iku yo!", "ja",
@@ -114,7 +122,7 @@ public class VoiceStudioHelper {
         ));
 
         PROFILES.put("monika", new VoiceProfile(
-            "Monika", "Aoede",
+            "Monika", false, "Aoede",
             "warm, intelligent, soothing, elegant and charismatic with gentle affection",
             "A warm, mature, confident 18-year-old literature club president. Caring intelligence, philosophical poise.",
             "Every day, I imagine a future where I can be with you. Just Monika.", "en",
@@ -127,7 +135,7 @@ public class VoiceStudioHelper {
         ));
 
         PROFILES.put("natsuki", new VoiceProfile(
-            "Natsuki", "Kore",
+            "Natsuki", false, "Kore",
             "feisty, snappy, high-pitched tsundere with defensive cuteness",
             "A feisty, high-pitched tsundere teenage anime girl. Sharp, spirited, snappy and cute.",
             "B-Baka! Why are you staring at me like that? Manga is literature!", "en",
@@ -140,7 +148,7 @@ public class VoiceStudioHelper {
         ));
 
         PROFILES.put("sayori", new VoiceProfile(
-            "Sayori", "Kore",
+            "Sayori", false, "Kore",
             "cheerful, bubbly, bright, genki and melodious with sunny optimism",
             "A bright, bubbly, cheerful 18-year-old schoolgirl. Melodious, sweet, sunny enthusiasm.",
             "Good morning! Having fun with you is the best thing ever!", "en",
@@ -153,7 +161,7 @@ public class VoiceStudioHelper {
         ));
 
         PROFILES.put("yuri", new VoiceProfile(
-            "Yuri", "Aoede",
+            "Yuri", false, "Aoede",
             "soft-spoken, deep, poetic, elegant, gentle and introspective",
             "A quiet, deeply introspective, elegant young woman. Breathy, lower register, intellectual grace.",
             "Lost in the pages of this book... The atmosphere is wonderfully tranquil.", "en",
@@ -166,43 +174,49 @@ public class VoiceStudioHelper {
         ));
 
         PROFILES.put("hachi", new VoiceProfile(
-            "Hachi (Hachiware)", "Puck",
-            "innocent, childish, bright, squeaky and enthusiastic mascot",
-            "A young, innocent, cheerful childish mascot. Bright, sweet, high-pitched, curious, friendly.",
-            "Nanto ka nare! Hachiware da yo! Kyou mo issho ni ganbarou!", "ja",
-            "mascota inocente, voz infantil aguda, tierna y entusiasta en doblaje latino",
-            "Actriz de doblaje latino para Hachiware de Chiikawa: voz muy tierna, infantil, positiva, curiosa y amistosa.",
-            "Hola! Soy Hachiware! Que gran alegria verte hoy! De alguna manera todo saldra bien!",
-            "innocent, childish, bright mascot voice in English dub",
-            "English dub voice for Hachiware: bright, squeaky, friendly, pure-hearted cute creature.",
-            "Hi there! I'm Hachiware! It is so wonderful to see you today! Keep smiling!"
+            "Hachi (Hachiware)", true, "Puck",
+            "authentic young kitten, sweet meows, gentle chirps, purrs and innocent joy",
+            "Real young kitten vocalizations: sweet authentic meows, soft purrs, gentle chirps and joyful kitten sounds.",
+            "Miau! Nanto ka nare! (Sonidos reales de gatito)", "ja",
+            "gatito autentico, maullidos tiernos, ronroneos y sonidos reales de felino",
+            "Vocalizaciones reales de gatito: maullidos dulces, ronroneos calidos y sonidos autenticos felinos para Hachiware.",
+            "Miau! Nanto ka nare! (Maullido dulce y ronroneo de gatito)",
+            "authentic young kitten meows, gentle chirps and joyful purrs",
+            "Real young kitten vocalizations: sweet meows, soft purrs and friendly kitten chirps.",
+            "Meow! Everything will work out! (Authentic sweet kitten purr and meow)"
         ));
 
         PROFILES.put("usagi", new VoiceProfile(
-            "Usagi", "Puck",
-            "hyperactive, eccentric, loud, chaotic high-pitched fast bursts and screams",
-            "A chaotic, hyperactive, fearless rabbit mascot creature. Eccentric bursts, hilarious shrieks.",
+            "Usagi", true, "Puck",
+            "authentic rabbit squeaks, Chiikawa cries: Ura! Yaha! Pulululu!",
+            "Authentic Chiikawa Usagi vocalizations and real rabbit squeaks: iconic Ura!, Yaha!, Pulululu! and bunny thumps.",
             "Urrr-a! Yaha! Pululululu! Yahaha!", "ja",
-            "conejo hiperactivo, caos divertido, energia magica en doblaje latino",
-            "Voz de doblaje latino para Usagi de Chiikawa: gritos comicos veloces, hiperactividad, excentrico y lleno de energia magica.",
-            "Yahaaa! Urrr-aaa! Energia de conejo magica al maximo! Nadie puede detenerme!",
-            "hyperactive, eccentric, hilarious bursts in English dub",
-            "English dub voice for Usagi: fast, chaotic, fearless energetic bunny screaming with joy.",
-            "Yaha! Urrr-a! Maximum rocket rabbit power engaged! Let's go!"
+            "conejo caotico autentico, gritos reales de Usagi (Ura, Yaha, Pulululu) y chillidos de conejo",
+            "Gritos y expresiones autenticas de Usagi de Chiikawa combinadas con chillidos reales de conejo: Ura!, Yaha!, Pulululu!",
+            "Yahaaa! Urrr-aaa! Pululululu! (Grito oficial de Usagi y chillido de conejo)",
+            "authentic chaotic Chiikawa cries (Ura! Yaha! Pulululu!) and real bunny squeaks",
+            "Real Usagi vocalizations and authentic rabbit squeaks: Ura!, Yaha!, Pulululu! and energetic bunny jumps.",
+            "Yaha! Urrr-a! Pululululu! (Authentic Usagi screams and rabbit squeaks)"
         ));
 
         PROFILES.put("pusheen", new VoiceProfile(
-            "Pusheen", "Kore",
-            "ultra-soft, sleepy, purring, adorable kitten whispers and cozy murmurs",
-            "An ultra-soft, gentle, sleepy kawaii cartoon cat. Cozy baby-soft purring whispers.",
-            "Miau... prrr... purrrr... sleepy cozy kitten nap time.", "en",
-            "gatita dulce, maullidos tiernos y susurros adorables en doblaje latino",
-            "Voz de doblaje latino para la gatita Pusheen: susurros de bebe gatito, ronroneos suaves, mimos y amor por los bocadillos.",
-            "Miau! Hola amiguito, hora de mimos y comidita rica calientita en tu regazo!",
-            "ultra-soft, sleepy kitten whispers and cozy murmurs in English",
-            "English voice for Pusheen the cat: cozy baby kitten whispers, soft purrs and snack love.",
-            "Meow! Hello friend, time for sweet cuddles, cozy catnaps and yummy snacks!"
+            "Pusheen", true, "Kore",
+            "authentic cat meows, cozy purrs, kitten chirps and gentle purring",
+            "Authentic domestic cat and kitten sounds: soft gentle meows, deep relaxing purrs, and sweet cat vocalizations.",
+            "Miau... prrr... purrrr... (Maullido suave y ronroneo real de gata)", "en",
+            "gatita real, maullidos domesticos, ronroneos autenticos y mimos felinos",
+            "Sonidos y vocalizaciones reales de gata: maullidos tiernos de diferentes tonos, ronroneos profundos y reconfortantes.",
+            "Miau... prrr... (Maullido dulce y ronroneo reconfortante de gata real)",
+            "authentic cat meows, comforting purrs, and real feline vocalizations",
+            "Authentic domestic cat sounds: gentle cozy meows, deep soothing purrs, and kitten vocalizations.",
+            "Meow... purrrr... (Authentic cozy meow and soothing cat purr)"
         ));
+    }
+
+    public static boolean isAnimalSkin(String skinId) {
+        if (skinId == null) return false;
+        String s = skinId.toLowerCase().trim();
+        return s.contains("pusheen") || s.contains("hachi") || s.contains("usagi");
     }
 
     public static VoiceProfile getProfile(String skinId) {
@@ -300,6 +314,47 @@ public class VoiceStudioHelper {
 
                     String roleStyle = prof.getStyleForLang(dubLang);
                     String rolePrompt = prof.getPromptForLang(dubLang);
+
+                    // FASE 0: MASCOTAS ANIMALES (Pusheen, Hachi, Usagi) - SIEMPRE VOCALIZACION REAL DE ANIMAL
+                    if (prof.isAnimal || isAnimalSkin(sKey)) {
+                        String clip = "idle";
+                        String lowerText = clean.toLowerCase();
+                        if (lowerText.contains("hola") || lowerText.contains("hello") || lowerText.contains("bienven") || lowerText.contains("konnichi")) {
+                            clip = "greeting";
+                        } else if (lowerText.contains("toca") || lowerText.contains("poke") || lowerText.contains("auch") || lowerText.contains("oye")) {
+                            clip = "poke";
+                        } else if (lowerText.contains("lanza") || lowerText.contains("fling") || lowerText.contains("vuela") || lowerText.contains("cae")) {
+                            clip = "fling";
+                        } else if (lowerText.contains("accion") || lowerText.contains("mueve") || lowerText.contains("action") || lowerText.contains("juega")) {
+                            clip = "action";
+                        }
+
+                        String[] mascotCandidates = new String[] {
+                            "sounds/" + sKey + "/" + clip + ".mp3",
+                            "sounds/" + sKey + "/" + clip + "_es.mp3",
+                            "sounds/" + sKey + "/" + clip + "_en.mp3",
+                            "sounds/" + sKey + "/idle.mp3",
+                            "sounds/" + sKey + "/greeting.mp3"
+                        };
+
+                        for (String mPath : mascotCandidates) {
+                            try {
+                                AssetFileDescriptor afd = context.getAssets().openFd(mPath);
+                                InputStream is = afd.createInputStream();
+                                File fOut = new File(cacheDir, "vs_mascot_" + sKey + "_" + clip + ".mp3");
+                                FileOutputStream fos = new FileOutputStream(fOut);
+                                byte[] buf = new byte[4096];
+                                int r;
+                                while ((r = is.read(buf)) != -1) fos.write(buf, 0, r);
+                                fos.flush();
+                                fos.close();
+                                is.close();
+                                afd.close();
+                                postSuccess(callback, fOut);
+                                return;
+                            } catch (Exception ignored) {}
+                        }
+                    }
 
                     // FASE 1: Gemini 3.8 Flash TTS Interactions API
                     if (!apiKey.isEmpty()) {
@@ -431,7 +486,46 @@ public class VoiceStudioHelper {
                         } catch (Exception ignored) {}
                     }
 
-                    // FASE 3: Motor Fonetico Nativo (Audio Online segun Doblaje)
+                    // FASE 3: Banco de Audios de Personaje Auténticos en assets (Prioridad local sin voz robotica)
+                    String clipName = "idle";
+                    String lowerClean = clean.toLowerCase();
+                    if (lowerClean.contains("hola") || lowerClean.contains("hello") || lowerClean.contains("konnichi") || lowerClean.contains("bienven") || lowerClean.contains("buenos") || lowerClean.contains("good morning")) {
+                        clipName = "greeting";
+                    } else if (lowerClean.contains("toca") || lowerClean.contains("poke") || lowerClean.contains("auch") || lowerClean.contains("oye") || lowerClean.contains("hey")) {
+                        clipName = "poke";
+                    } else if (lowerClean.contains("lanza") || lowerClean.contains("fling") || lowerClean.contains("vuela") || lowerClean.contains("cae")) {
+                        clipName = "fling";
+                    } else if (lowerClean.contains("accion") || lowerClean.contains("mueve") || lowerClean.contains("action") || lowerClean.contains("pastel") || lowerClean.contains("musica") || lowerClean.contains("libro")) {
+                        clipName = "action";
+                    }
+
+                    String[] assetCandidates = new String[] {
+                        "sounds/" + sKey + "/" + clipName + "_" + dubLang + ".mp3",
+                        "sounds/" + sKey + "/" + clipName + ".mp3",
+                        "sounds/" + sKey + "/idle_" + dubLang + ".mp3",
+                        "sounds/" + sKey + "/idle.mp3",
+                        "sounds/" + sKey + "/greeting_" + dubLang + ".mp3",
+                        "sounds/" + sKey + "/greeting.mp3"
+                    };
+                    for (String aPath : assetCandidates) {
+                        try {
+                            AssetFileDescriptor afd = context.getAssets().openFd(aPath);
+                            InputStream is = afd.createInputStream();
+                            File fOut3 = new File(cacheDir, "vs_asset_" + sKey + "_" + dubLang + ".mp3");
+                            FileOutputStream fos = new FileOutputStream(fOut3);
+                            byte[] buf = new byte[4096];
+                            int r;
+                            while ((r = is.read(buf)) != -1) fos.write(buf, 0, r);
+                            fos.flush();
+                            fos.close();
+                            is.close();
+                            afd.close();
+                            postSuccess(callback, fOut3);
+                            return;
+                        } catch (Exception ignored) {}
+                    }
+
+                    // FASE 4: Sintesis Fonetica de Respaldo (Online)
                     try {
                         String ttsLang = "es".equals(dubLang) ? "es" : ("en".equals(dubLang) ? "en" : (prof.lang != null ? prof.lang : "ja"));
 
@@ -442,31 +536,7 @@ public class VoiceStudioHelper {
                         gConn.setReadTimeout(10000);
                         if (gConn.getResponseCode() == 200) {
                             InputStream is = gConn.getInputStream();
-                            File fOut3 = new File(cacheDir, "vs_phonetic_" + sKey + "_" + dubLang + ".mp3");
-                            FileOutputStream fos = new FileOutputStream(fOut3);
-                            byte[] buf = new byte[4096];
-                            int r;
-                            while ((r = is.read(buf)) != -1) fos.write(buf, 0, r);
-                            fos.flush();
-                            fos.close();
-                            is.close();
-                            postSuccess(callback, fOut3);
-                            return;
-                        }
-                    } catch (Exception ignored) {}
-
-                    // FASE 4: Banco de Audios de Personaje en assets
-                    String[] assetCandidates = new String[] {
-                        "sounds/" + sKey + "/idle_" + dubLang + ".mp3",
-                        "sounds/" + sKey + "/idle.mp3",
-                        "sounds/" + sKey + "/greeting_" + dubLang + ".mp3",
-                        "sounds/" + sKey + "/greeting.mp3"
-                    };
-                    for (String aPath : assetCandidates) {
-                        try {
-                            AssetFileDescriptor afd = context.getAssets().openFd(aPath);
-                            InputStream is = afd.createInputStream();
-                            File fOut4 = new File(cacheDir, "vs_asset_" + sKey + "_" + dubLang + ".mp3");
+                            File fOut4 = new File(cacheDir, "vs_phonetic_" + sKey + "_" + dubLang + ".mp3");
                             FileOutputStream fos = new FileOutputStream(fOut4);
                             byte[] buf = new byte[4096];
                             int r;
@@ -474,11 +544,10 @@ public class VoiceStudioHelper {
                             fos.flush();
                             fos.close();
                             is.close();
-                            afd.close();
                             postSuccess(callback, fOut4);
                             return;
-                        } catch (Exception ignored) {}
-                    }
+                        }
+                    } catch (Exception ignored) {}
 
                     postError(callback, "No se pudo obtener audio para " + prof.name);
                 } catch (Exception e) {
